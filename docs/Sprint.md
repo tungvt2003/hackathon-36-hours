@@ -1,4 +1,4 @@
-# **AccessAI — Master Sprint Plan (Grab Hackathon 36h)**
+# **Suara — Master Sprint Plan (Grab Hackathon 36h)**
 
 **Vai trò:** Principal Architect / Tech Lead view. **Nguồn phân tích:** `codebase.xml` (backend NestJS+Prisma, frontend Expo RN đã scaffold `HomeScreen`) \+ 16 file mockup `apps/mobile/docs/S2.MD → S17.MD` \+ `ARCHITECTURE_BLUEPRINT.md`.
 

@@ -21,15 +21,15 @@ export default function StatsScreen() {
   return (
     <BrandedBackground variant="default">
       <SafeAreaView edges={['top']} style={styles.root}>
-        <ScreenHeader title="Thống kê" showLogo={false} onBack={() => navigation.goBack()} />
+        <ScreenHeader title="Stats" showLogo={false} onBack={() => navigation.goBack()} />
 
         <View style={styles.center}>
           <View style={styles.iconCircle}>
             <MaterialCommunityIcons name="chart-bar" size={40} color={theme.colors.primary} />
           </View>
-          <Text style={styles.title}>Đang phát triển</Text>
+          <Text style={styles.title}>Coming soon</Text>
           <Text style={styles.subtitle}>
-            Thống kê chi tiêu, số đơn đã đặt, thời gian sử dụng sẽ có ở bản cập nhật sau.
+            Spending stats, order count, and usage time will be available in a future update.
           </Text>
         </View>
       </SafeAreaView>

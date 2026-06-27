@@ -5,4 +5,4 @@ export const SETTINGS_SECTIONS = {
 };
 
 export const ABOUT_TEXT =
-  'AccessAI v1.0 — Được xây dựng cho Grab the Future Hackathon 2026. Giải pháp đặt xe và đồ ăn bằng giọng nói cho người khuyết tật.';
+  'Suara v1.0 — Được xây dựng cho Grab the Future Hackathon 2026. Giải pháp đặt xe và đồ ăn bằng giọng nói cho người khuyết tật.';

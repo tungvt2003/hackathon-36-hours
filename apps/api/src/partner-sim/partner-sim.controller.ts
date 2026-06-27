@@ -7,7 +7,7 @@
  *   Xanh SM: https://api.xanhsm.vn/v1/quote
  *   Shopee:  https://api.shopee.vn/food/v1/quote
  *
- * AccessAI gửi payload chuẩn → partner xử lý theo DB/logic riêng → trả PartnerQuoteResponse.
+ * Suara gửi payload chuẩn → partner xử lý theo DB/logic riêng → trả PartnerQuoteResponse.
  */
 
 import { Body, Controller, Post } from '@nestjs/common';
@@ -90,22 +90,22 @@ export class PartnerSimController {
   // ── Confirm (partner ghi nhận đơn, trả mã đơn nội bộ) ────────
 
   @Post('grab/confirm')
-  grabConfirm(@Body() body: { accessAiOrderId: string }) {
-    return this.svc.grabConfirm(body.accessAiOrderId);
+  grabConfirm(@Body() body: { SuaraOrderId: string }) {
+    return this.svc.grabConfirm(body.SuaraOrderId);
   }
 
   @Post('be/confirm')
-  beConfirm(@Body() body: { accessAiOrderId: string }) {
-    return this.svc.beConfirm(body.accessAiOrderId);
+  beConfirm(@Body() body: { SuaraOrderId: string }) {
+    return this.svc.beConfirm(body.SuaraOrderId);
   }
 
   @Post('xanhsm/confirm')
-  xanhSmConfirm(@Body() body: { accessAiOrderId: string }) {
-    return this.svc.xanhSmConfirm(body.accessAiOrderId);
+  xanhSmConfirm(@Body() body: { SuaraOrderId: string }) {
+    return this.svc.xanhSmConfirm(body.SuaraOrderId);
   }
 
   @Post('shopee/confirm')
-  shopeeConfirm(@Body() body: { accessAiOrderId: string }) {
-    return this.svc.shopeeConfirm(body.accessAiOrderId);
+  shopeeConfirm(@Body() body: { SuaraOrderId: string }) {
+    return this.svc.shopeeConfirm(body.SuaraOrderId);
   }
 }

@@ -59,8 +59,8 @@ export default function VoiceErrorScreen() {
         </View>
       </View>
 
-      <Text style={styles.title}>Không nghe rõ</Text>
-      <Text style={styles.subtitle}>{"Vui lòng nói rõ hơn hoặc thử lại"}</Text>
+      <Text style={styles.title}>Could not hear you</Text>
+      <Text style={styles.subtitle}>Please speak more clearly or try again</Text>
 
       <View style={styles.buttonGroup}>
         <TouchableOpacity 
@@ -69,7 +69,7 @@ export default function VoiceErrorScreen() {
           accessibilityRole="button"
           accessibilityLabel="Retry listening"
         >
-          <Text style={styles.retryBtnText}>Thử lại</Text>
+          <Text style={styles.retryBtnText}>Try again</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
@@ -78,7 +78,7 @@ export default function VoiceErrorScreen() {
           accessibilityRole="button"
           accessibilityLabel="Cancel"
         >
-          <Text style={styles.cancelBtnText}>Huỷ</Text>
+          <Text style={styles.cancelBtnText}>Cancel</Text>
         </TouchableOpacity>
       </View>
     </View>

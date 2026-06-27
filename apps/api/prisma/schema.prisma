@@ -11,7 +11,7 @@ datasource db {
 }
 
 // ============================================================
-// AccessAI own tables — khong luu raw data cua doi tac
+// Suara own tables — khong luu raw data cua doi tac
 // ============================================================
 
 model User {

@@ -23,7 +23,7 @@ export class VoiceNlgService {
       plainText += `${optLines.join('; ')}. `;
 
       if (req.has_more_options) {
-        plainText += 'Noi "nghe them" de xem tiep. ';
+        plainText += 'Say "more options" to see more. ';
       }
     }
 

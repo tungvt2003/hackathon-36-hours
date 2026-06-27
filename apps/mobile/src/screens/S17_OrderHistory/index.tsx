@@ -116,6 +116,7 @@ const OrderHistoryScreen = () => {
             placeholderTextColor={theme.colors.textMuted}
             returnKeyType="search"
             accessibilityLabel="Tìm kiếm đơn hàng"
+            blurOnSubmit={true}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity

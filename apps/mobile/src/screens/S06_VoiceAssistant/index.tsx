@@ -27,6 +27,12 @@ import { ASSETS } from '../../assets';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { getSpeechRecognitionModule, STT_AVAILABLE } from '../../services/speechRecognition';
 import { DEV_FORCE_TEXT_INPUT } from '../../constants/devFlags';
+import {
+  PARTNER_VOICE_KEYWORDS,
+  PARTNER_LABEL,
+} from '../../services/voice/voice.constants';
+import { parseVoiceInput } from '../../services/voice/voice-nlu.service';
+import { voiceNlg } from '../../services/voice/voice-nlg.service';
 
 // Ép modal nhập text khi không nói được (simulator) hoặc DEV_FORCE_TEXT_INPUT=true.
 // Voice flow gốc giữ nguyên — chỉ tắt cờ này khi build Android thiết bị thật.
@@ -41,27 +47,13 @@ type Stage =
   | 'DELIVERED'
   | 'REVIEWING';
 
-const PARTNER_LABEL: Record<PartnerCode, string> = {
-  [PartnerCode.GRAB]: 'Grab',
-  [PartnerCode.BE]: 'Be',
-  [PartnerCode.XANH_SM]: 'Xanh SM',
-  [PartnerCode.SHOPEE]: 'Shopee Food',
-};
+const ORDINAL_WORDS = ['mot', 'nhat', '1', 'hai', '2', 'ba', '3', 'bon', '4', 'nam', '5'];
 
 function tts(text: string, onDone?: () => void) {
   Speech.stop();
-  Speech.speak(text, { language: 'vi-VN', onDone, onStopped: onDone });
+  Speech.speak(text, { language: 'en-US', onDone, onStopped: onDone });
   AccessibilityInfo.announceForAccessibility(text);
 }
-
-const PARTNER_VOICE_KEYWORDS: { code: PartnerCode; words: string[] }[] = [
-  { code: PartnerCode.BE, words: ['be'] },
-  { code: PartnerCode.GRAB, words: ['grab'] },
-  { code: PartnerCode.XANH_SM, words: ['xanh sm', 'xanh'] },
-  { code: PartnerCode.SHOPEE, words: ['shopee', 'shopee food'] },
-];
-
-const ORDINAL_WORDS = ['mot', 'nhat', '1', 'hai', '2', 'ba', '3', 'bon', '4', 'nam', '5'];
 
 /** Map câu trả lời bằng giọng ("Be", "số 1", "rẻ nhất"...) sang partner trong list quote đang hiển thị (đã sort theo giá tăng dần) */
 function matchPartnerFromVoice(
@@ -149,7 +141,7 @@ export default function VoiceAssistantScreen() {
     noInputTimerRef.current = setTimeout(() => {
       const speechModule = getSpeechRecognitionModule();
       try { speechModule?.stop(); } catch { /* ignore */ }
-      const cue = 'Tôi không nghe thấy gì. Bạn hãy chạm vào icon micro ở giữa màn hình để nói.';
+      const cue = "I didn't hear anything. Tap the microphone icon in the center of the screen to speak.";
       setPromptText(cue);
       tts(cue);
       setStage('IDLE');
@@ -254,7 +246,7 @@ export default function VoiceAssistantScreen() {
       await handleConfirm(partner);
       return;
     }
-    const retryText = 'Xin lỗi, tôi chưa nghe rõ bạn chọn đối tác nào. Bạn có thể nói lại tên đối tác, ví dụ Be hoặc Grab.';
+    const retryText = "Sorry, I didn't catch which partner you chose. Please say the partner name again, for example Be or Grab.";
     setPromptText(retryText);
     if (accessibilityFlag) {
       tts(retryText, () => startListening(true));
@@ -267,6 +259,34 @@ export default function VoiceAssistantScreen() {
     if (stage === 'QUOTING') {
       return handleVoicePartnerChoice(text);
     }
+
+    if (!sessionIdRef.current && (stage === 'IDLE' || stage === 'COLLECTING')) {
+      const platformNlu = parseVoiceInput(text, 'platform_select');
+      if (platformNlu.intent === 'PLATFORM_UNSUPPORTED') {
+        const msg = voiceNlg.platformUnsupported(platformNlu.slots.platform as PartnerCode);
+        setPromptText(msg);
+        setStage('COLLECTING');
+        if (autoChain) tts(msg, () => startListening(true));
+        else tts(msg);
+        return;
+      }
+      if (platformNlu.intent === 'SELECT_PLATFORM') {
+        const msg = voiceNlg.platformGrabSelected();
+        setPromptText(msg);
+        setStage('COLLECTING');
+        if (autoChain) tts(msg, () => startListening(true));
+        else tts(msg);
+        return;
+      }
+      if (platformNlu.intent === 'UNKNOWN' && !sessionIdRef.current) {
+        const msg = voiceNlg.platformUnclear(0);
+        setPromptText(msg);
+        if (autoChain) tts(msg, () => startListening(true));
+        else tts(msg);
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       let sid = sessionIdRef.current;
@@ -333,7 +353,7 @@ export default function VoiceAssistantScreen() {
       }
       const begin = () => {
         try {
-          speechModule.start({ lang: 'vi-VN', continuous: false, interimResults: true });
+          speechModule.start({ lang: 'en-US', continuous: false, interimResults: true });
           armNoInputTimer();
         } catch (e) {
           console.warn('STT start failed', e);
@@ -341,7 +361,7 @@ export default function VoiceAssistantScreen() {
         }
       };
       if (autoCue) {
-        tts('Bạn có thể bắt đầu nói.', begin);
+        tts('You can start speaking now.', begin);
       } else {
         tts('Dang lang nghe');
         begin();
@@ -460,21 +480,21 @@ export default function VoiceAssistantScreen() {
       <ScrollView style={s.scroll} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <View style={s.toggleRow}>
           <MaterialCommunityIcons name="eye-off-outline" size={20} color="#6B7280" />
-          <Text style={s.toggleLabel}>Ho tro nguoi khiem thi</Text>
+          <Text style={s.toggleLabel}>Accessibility support</Text>
           <Switch value={accessibilityFlag} onValueChange={setAccessibilityFlag}
             trackColor={{ false: '#D1D5DB', true: '#00B14F' }}
-            accessibilityLabel="Bat che do ho tro nguoi khiem thi" />
+            accessibilityLabel="Enable accessibility support" />
         </View>
 
         {/* ── IDLE ── */}
         {stage === 'IDLE' && (
           <View style={s.centerBlock}>
             <TouchableOpacity style={s.bigMic} onPress={() => startListening()}
-              accessibilityLabel="Nhan de bat dau noi" accessibilityRole="button">
+              accessibilityLabel="Tap to start speaking" accessibilityRole="button">
               <MaterialCommunityIcons name="microphone-outline" size={56} color="#fff" />
             </TouchableOpacity>
-            <Text style={s.idleHint}>Nhấn để nói</Text>
-            <Text style={s.idleSub}>Đặt xe · Đồ ăn · Bằng giọng nói</Text>
+            <Text style={s.idleHint}>Tap to speak</Text>
+            <Text style={s.idleSub}>Rides · Food · By voice</Text>
           </View>
         )}
 
@@ -483,7 +503,7 @@ export default function VoiceAssistantScreen() {
             <View style={s.centerBlock}>
               <AudioVisualizer active={!USE_TEXT_INPUT} />
               <Text style={s.listeningLabel}>
-                {USE_TEXT_INPUT ? 'Nhập yêu cầu' : 'Đang lắng nghe...'}
+                {USE_TEXT_INPUT ? 'Type your request' : 'Listening...'}
               </Text>
 
               {!USE_TEXT_INPUT && liveTranscript !== '' && (
@@ -497,16 +517,17 @@ export default function VoiceAssistantScreen() {
                   style={[s.input, { width: '100%', backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.2)', color: 'white' }]}
                   value={liveTranscript}
                   onChangeText={setLiveTranscript}
-                  placeholder="vd: đặt xe đến sân bay..."
+                  placeholder="e.g. book a ride to the airport..."
                   placeholderTextColor="rgba(255,255,255,0.4)"
-                  multiline
                   autoFocus
+                  onSubmitEditing={stopListening}
+                  returnKeyType="send"
                 />
               )}
 
               <TouchableOpacity style={s.stopBtn} onPress={stopListening}>
                 <MaterialCommunityIcons name={USE_TEXT_INPUT ? 'send' : 'stop'} size={24} color="#fff" />
-                <Text style={s.stopBtnText}>{USE_TEXT_INPUT ? 'Gửi' : 'Dừng'}</Text>
+                <Text style={s.stopBtnText}>{USE_TEXT_INPUT ? 'Send' : 'Stop'}</Text>
               </TouchableOpacity>
               {loading && <ActivityIndicator color={theme.colors.primary} style={{ marginTop: 16 }} />}
             </View>
@@ -523,24 +544,23 @@ export default function VoiceAssistantScreen() {
               )}
               <TouchableOpacity style={s.voiceReBtnDark} onPress={() => startListening()}>
                 <MaterialCommunityIcons name="microphone" size={22} color={theme.colors.primary} />
-                <Text style={s.voiceReBtnTextDark}>{USE_TEXT_INPUT ? 'Nhập' : 'Nói'}</Text>
+                <Text style={s.voiceReBtnTextDark}>{USE_TEXT_INPUT ? 'Type' : 'Speak'}</Text>
               </TouchableOpacity>
               <TextInput 
                 style={s.inputDark} 
                 value={collectingInput} 
                 onChangeText={setCollectingInput}
-                placeholder="Hoặc gõ tay..." 
+                placeholder="Or type manually..." 
                 placeholderTextColor="rgba(255,255,255,0.4)"
-                multiline 
                 returnKeyType="send" 
                 onSubmitEditing={submitCollecting} 
               />
               <TouchableOpacity style={s.primaryBtn} onPress={submitCollecting}
                 disabled={loading || !collectingInput.trim()}>
-                {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.primaryBtnText}>Gửi</Text>}
+                {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.primaryBtnText}>Send</Text>}
               </TouchableOpacity>
               <TouchableOpacity style={s.ghostBtnDark} onPress={reset}>
-                <Text style={s.ghostBtnTextDark}>Huỷ</Text>
+                <Text style={s.ghostBtnTextDark}>Cancel</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -554,7 +574,7 @@ export default function VoiceAssistantScreen() {
                   <Text style={s.promptText}>{promptText}</Text>
                 </View>
               )}
-              <Text style={s.sectionLabel}>Chọn đối tác:</Text>
+              <Text style={s.sectionLabel}>Choose a partner:</Text>
               {allQuotes.map(q => (
                 <TouchableOpacity key={q.partner} style={[s.quoteCard, s.shadow]}
                   onPress={() => handleConfirm(q.partner)} disabled={loading}>
@@ -573,7 +593,7 @@ export default function VoiceAssistantScreen() {
               ))}
               {loading && <ActivityIndicator color={theme.colors.primary} style={{ marginTop: 16 }} />}
               <TouchableOpacity style={s.ghostBtn} onPress={reset}>
-                <Text style={s.ghostBtnText}>Huỷ</Text>
+                <Text style={s.ghostBtnText}>Cancel</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -583,7 +603,7 @@ export default function VoiceAssistantScreen() {
             <View style={s.section}>
               <Text style={s.sectionLabel}>Trạng thái đơn hàng</Text>
               <Text style={s.statusTextDisplay} accessibilityLiveRegion="polite">
-                {orderStatus ?? 'Đang khởi tạo...'}
+                {orderStatus ?? 'Starting up...'}
               </Text>
               {driverName && (
                 <View style={[s.driverCard, s.shadow]}>
@@ -592,7 +612,7 @@ export default function VoiceAssistantScreen() {
                 </View>
               )}
               <ActivityIndicator color={theme.colors.primary} size="large" style={{ marginTop: 40 }} />
-              <Text style={s.hint}>Đang cập nhật mới mỗi 5 giây</Text>
+              <Text style={s.hint}>Updates every 5 seconds</Text>
             </View>
           )}
 
@@ -634,7 +654,7 @@ export default function VoiceAssistantScreen() {
               </View>
 
               <TouchableOpacity style={s.primaryBtn} onPress={handleReview} disabled={loading}>
-                {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.primaryBtnText}>Gửi đánh giá</Text>}
+                {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.primaryBtnText}>Submit review</Text>}
               </TouchableOpacity>
             </View>
           )}
@@ -646,7 +666,7 @@ export default function VoiceAssistantScreen() {
               <Text style={s.successText}>Cảm ơn bạn!</Text>
               <Text style={s.hint}>Đánh giá của bạn giúp dịch vụ tốt hơn.</Text>
               <TouchableOpacity style={s.primaryBtn} onPress={reset}>
-                <Text style={s.primaryBtnText}>Đặt mới</Text>
+                <Text style={s.primaryBtnText}>Order again</Text>
               </TouchableOpacity>
               <TouchableOpacity style={s.ghostBtn} onPress={() => navigation.goBack()}>
                 <Text style={s.ghostBtnText}>Về trang chủ</Text>

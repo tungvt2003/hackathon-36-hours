@@ -21,7 +21,9 @@ export const useVoiceError = (): VoiceErrorViewModel => {
   }, [navigation]);
 
   useEffect(() => {
-    AccessibilityInfo.announceForAccessibility('Voice not recognized. Please try again.');
+    AccessibilityInfo.announceForAccessibility(
+      'Sorry, something went wrong. Would you like to try again, or go back to the home screen?',
+    );
   }, []);
 
   return {

@@ -1,23 +1,26 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Platform, StyleSheet, Text, ViewStyle } from 'react-native';
+import { Animated, Platform, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
 interface AIBubbleProps {
   text: string;
   variant?: 'light' | 'dark';
   label?: string;
   style?: ViewStyle;
+  showPulse?: boolean;
   accessibilityLiveRegion?: 'polite' | 'assertive';
 }
 
 export const AIBubble: React.FC<AIBubbleProps> = ({
   text,
   variant = 'light',
-  label = 'ACCESSAI NÓI',
+  label = 'Suara NÓI',
   style,
+  showPulse = false,
   accessibilityLiveRegion = 'polite',
 }) => {
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(12)).current;
+  const pulse = useRef(new Animated.Value(0.4)).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -25,6 +28,18 @@ export const AIBubble: React.FC<AIBubbleProps> = ({
       Animated.timing(translateY, { toValue: 0, duration: 350, useNativeDriver: true }),
     ]).start();
   }, [opacity, translateY]);
+
+  useEffect(() => {
+    if (!showPulse) return;
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 800, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0.4, duration: 800, useNativeDriver: true }),
+      ]),
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [showPulse, pulse]);
 
   const isDark = variant === 'dark';
 
@@ -39,7 +54,14 @@ export const AIBubble: React.FC<AIBubbleProps> = ({
       accessibilityLabel={`AI nói: ${text}`}
       accessibilityLiveRegion={accessibilityLiveRegion}
     >
-      <Text style={isDark ? styles.labelDark : styles.labelLight}>{label}</Text>
+      <View style={styles.headerRow}>
+        {showPulse ? (
+          <Animated.View style={[styles.dot, { opacity: pulse }]} />
+        ) : (
+          <View style={[styles.dot, { opacity: 1 }]} />
+        )}
+        <Text style={isDark ? styles.labelDark : styles.labelLight}>{label}</Text>
+      </View>
       <Text style={isDark ? styles.textDark : styles.textLight}>{text}</Text>
     </Animated.View>
   );
@@ -82,7 +104,6 @@ const styles = StyleSheet.create({
     color: '#00B14F',
     letterSpacing: 1.5,
     textTransform: 'uppercase',
-    marginBottom: 10,
   },
   labelDark: {
     fontSize: 11,
@@ -90,7 +111,18 @@ const styles = StyleSheet.create({
     color: 'rgba(0,177,79,0.9)',
     letterSpacing: 1.5,
     textTransform: 'uppercase',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 10,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#00B14F',
+    marginRight: 10,
   },
   textLight: { fontSize: 20, fontWeight: '500', color: '#111827', lineHeight: 30 },
   textDark: { fontSize: 22, fontWeight: '600', color: 'rgba(255,255,255,0.95)', lineHeight: 34 },

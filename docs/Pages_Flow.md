@@ -21,7 +21,7 @@ Flow tổng quan
 ## **User Flow**
 
 1. **S02 – Onboarding**  
-   * Giới thiệu AccessAI.  
+   * Giới thiệu Suara.  
    * Có thể **Skip** hoặc **Get Started**.  
    * Chuyển sang **S03 – Connect Grab Account**.  
 2. **S03 – Connect Grab Account**  

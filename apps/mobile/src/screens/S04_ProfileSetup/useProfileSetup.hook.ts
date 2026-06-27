@@ -30,7 +30,7 @@ export const useProfileSetup = (): ProfileSetupViewModel => {
         setHasGreeted(true);
         navigation.navigate('VoiceAssistantIntent', {
           context: 'home',
-          aiGreeting: 'Chào mừng bạn đến với AccessAI! Tôi sẽ điều chỉnh giao diện theo nhu cầu của bạn. Bạn có bị khiếm thị không?',
+          aiGreeting: "Welcome to Suara! I'll adjust the interface to your needs. Do you have a visual impairment?",
         });
       }
     }, 500);

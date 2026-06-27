@@ -1,36 +1,21 @@
 // apps/mobile/src/screens/S05_Dashboard/dashboard.service.ts
 import { PartnerCode } from '../../types';
+import {
+  PARTNER_LABEL,
+  PARTNER_VOICE_KEYWORDS,
+} from '../../services/voice/voice.constants';
+import { matchPlatform } from '../../services/voice/voice-nlu.service';
+import { voiceNlg } from '../../services/voice/voice-nlg.service';
 
-export const PLATFORM_SELECT_GREETING =
-  'Xin chào! Trước tiên, bạn muốn dùng nền tảng nào: Grab, Be, Xanh SM, hoặc ShopeeFood?';
-export const HOME_AI_GREETING = 'Hôm nay bạn cần gì? Đặt đồ ăn, gọi xe, hay xem lịch sử đơn hàng?';
+export { PARTNER_LABEL };
 
-export const PARTNER_LABEL: Record<PartnerCode, string> = {
-  [PartnerCode.GRAB]: 'Grab',
-  [PartnerCode.BE]: 'Be',
-  [PartnerCode.XANH_SM]: 'Xanh SM',
-  [PartnerCode.SHOPEE]: 'ShopeeFood',
-};
-
-const PARTNER_KEYWORDS: { code: PartnerCode; words: string[] }[] = [
-  { code: PartnerCode.BE, words: ['be'] },
-  { code: PartnerCode.GRAB, words: ['grab'] },
-  { code: PartnerCode.XANH_SM, words: ['xanh sm', 'xanh'] },
-  { code: PartnerCode.SHOPEE, words: ['shopee', 'shopee food'] },
-];
-
-function normalize(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[đĐ]/g, 'd');
-}
+export const PLATFORM_SELECT_GREETING = voiceNlg.platformGreeting();
+export const HOME_AI_GREETING = voiceNlg.servicePrompt();
+export const FOOD_AI_GREETING = voiceNlg.serviceFoodSelected();
+export const RIDE_AI_GREETING = voiceNlg.serviceRideSelected();
 
 export function matchPlatformFromVoice(rawText: string): PartnerCode | null {
-  const text = normalize(rawText);
-  for (const { code, words } of PARTNER_KEYWORDS) {
-    if (words.some((w) => text.includes(w))) return code;
-  }
-  return null;
+  return matchPlatform(rawText);
 }
+
+export { PARTNER_VOICE_KEYWORDS };

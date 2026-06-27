@@ -1,4 +1,4 @@
-# AccessAI — Implementation Plan
+# Suara — Implementation Plan
 
 > Source of truth. Tick `[x]` khi xong. Không làm gì ngoài danh sách này.
 > Luôn đọc `docs/Application_Context.md` nếu cần clarify scope.
@@ -69,7 +69,7 @@ FLOW: Voice → STT → NLU → [confirm missing] → Partner ERP → Quote → 
 - [x] `ShopeeDriver`
 - [x] `ShopeePromotion`
 
-**AccessAI own** (thêm mới):
+**Suara own** (thêm mới):
 - [x] `OrderReview` — id, orderId (unique), restaurantRating (1-5), driverRating (1-5), voiceText?, createdAt
 
 ### 1.5.3 Migration
@@ -131,7 +131,7 @@ FLOW: Voice → STT → NLU → [confirm missing] → Partner ERP → Quote → 
 
 ### 3.3 Rating display logic ✅
 
-- [x] `displayRating = accessAiAvgRating ?? partnerRating`
+- [x] `displayRating = SuaraAvgRating ?? partnerRating`
 - [x] `enrichRating()` query AVG từ `OrderReview.restaurantRating` per restaurantId+partner
 - [x] `searchRestaurants` + `listAll` sort theo `displayRating`
 - [x] `PartnerRestaurant` interface có `displayRating` + `reviewCount`
@@ -212,8 +212,8 @@ FLOW: Voice → STT → NLU → [confirm missing] → Partner ERP → Quote → 
 
 ## Phase 9 — Partner-Sim HTTP Fan-Out ✅
 
-> **Lý do:** Không query DB trực tiếp trong AccessAI service. Mỗi partner có endpoint HTTP riêng.
-> Mobile → AccessAI → Promise.all([grab, be, xanhsm/shopee]) → aggregate → trả về.
+> **Lý do:** Không query DB trực tiếp trong Suara service. Mỗi partner có endpoint HTTP riêng.
+> Mobile → Suara → Promise.all([grab, be, xanhsm/shopee]) → aggregate → trả về.
 
 ### 9.1 partner-sim module (giả lập API của từng đối tác)
 
@@ -228,7 +228,7 @@ FLOW: Voice → STT → NLU → [confirm missing] → Partner ERP → Quote → 
 - [x] `POST /partner-sim/shopee/food/quote` → subtotal + ShopeePromotion + ShopeeDriver
 - [x] `POST /partner-sim/*/confirm` → partner ghi nhận đơn, sinh mã đơn nội bộ
 
-### 9.2 Refactor AccessAI services dùng HTTP (không query DB trực tiếp)
+### 9.2 Refactor Suara services dùng HTTP (không query DB trực tiếp)
 
 - [x] `DbPartnersService` (RIDE): dùng `HttpService` fan-out 3 partner-sim ride endpoints song song
 - [x] `RestaurantsService` (FOOD search): dùng `HttpService` fan-out 3 partner-sim food/search song song
