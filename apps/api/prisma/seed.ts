@@ -49,6 +49,25 @@ async function main() {
     },
   });
 
+  const grabPlt = await prisma.grabRestaurant.upsert({
+    where: { id: 'grab-rest-plt' },
+    update: {},
+    create: {
+      id: 'grab-rest-plt',
+      name: 'Cơm Tấm Phúc Lộc Thọ',
+      address: '236 Đinh Bộ Lĩnh, Bình Thạnh, TP.HCM',
+      openHour: 6,
+      closeHour: 22,
+      cuisineType: 'vietnamese',
+      rating: 4.5,
+      reviewCount: 520,
+      keywords: ['phúc lộc thọ', 'cơm tấm', 'com tam phuc loc tho', 'phuc loc tho', 'suon trung'],
+      deliveryFeeVnd: 15000,
+      minOrderVnd: 30000,
+    },
+  });
+
+
   const grabKfc = await prisma.grabRestaurant.upsert({
     where: { id: 'grab-rest-kfc' },
     update: {},
@@ -90,8 +109,11 @@ async function main() {
       { id: 'grab-mi-kfc-burger',   grabRestaurantId: grabKfc.id, categoryName: 'Burger', name: 'Burger Gà Giòn',           priceVnd: 55000, keywords: ['burger gà', 'burger', 'ga gion'] },
       { id: 'grab-mi-kfc-khoai',    grabRestaurantId: grabKfc.id, categoryName: 'Phụ', name: 'Khoai Tây Chiên',             priceVnd: 35000, keywords: ['khoai tây', 'fries'] },
       { id: 'grab-mi-kfc-pepsi',    grabRestaurantId: grabKfc.id, categoryName: 'Đồ uống', name: 'Pepsi', priceVnd: 20000, keywords: ['pepsi', 'cola'] },
+      // Cơm Tấm Phúc Lộc Thọ
+      { id: 'grab-mi-com-suon-trung', grabRestaurantId: 'grab-rest-plt', categoryName: 'Cơm Tấm', name: 'Cơm Tấm Sườn Trứng', priceVnd: 45000, keywords: ['cơm sườn trứng', 'cơm tấm sườn trứng', 'suon trung', 'sườn trứng'] },
     ],
   });
+
 
   await prisma.grabPromotion.createMany({
     skipDuplicates: true,
