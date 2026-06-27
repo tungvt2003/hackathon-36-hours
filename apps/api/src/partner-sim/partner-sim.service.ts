@@ -128,29 +128,23 @@ export class PartnerSimService {
 
   // ── GRAB FOOD SEARCH ─────────────────────────────────────────
 
-  async grabFoodSearch(query: string): Promise<PartnerSimFoodSearchResult[]> {
-    const list = await this.prisma.grabRestaurant.findMany({
-      where: { available: true },
-    });
-    return this.filterByQuery(list, query);
+  async grabFoodSearch(query: string, userLat?: number, userLng?: number): Promise<PartnerSimFoodSearchResult[]> {
+    const list = await this.prisma.grabRestaurant.findMany({ where: { available: true } });
+    return this.filterByQuery(list, query, userLat, userLng);
   }
 
   // ── BE FOOD SEARCH ───────────────────────────────────────────
 
-  async beFoodSearch(query: string): Promise<PartnerSimFoodSearchResult[]> {
-    const list = await this.prisma.beRestaurant.findMany({
-      where: { available: true },
-    });
-    return this.filterByQuery(list, query);
+  async beFoodSearch(query: string, userLat?: number, userLng?: number): Promise<PartnerSimFoodSearchResult[]> {
+    const list = await this.prisma.beRestaurant.findMany({ where: { available: true } });
+    return this.filterByQuery(list, query, userLat, userLng);
   }
 
   // ── SHOPEE FOOD SEARCH ───────────────────────────────────────
 
-  async shopeeFoodSearch(query: string): Promise<PartnerSimFoodSearchResult[]> {
-    const list = await this.prisma.shopeeRestaurant.findMany({
-      where: { available: true },
-    });
-    return this.filterByQuery(list, query);
+  async shopeeFoodSearch(query: string, userLat?: number, userLng?: number): Promise<PartnerSimFoodSearchResult[]> {
+    const list = await this.prisma.shopeeRestaurant.findMany({ where: { available: true } });
+    return this.filterByQuery(list, query, userLat, userLng);
   }
 
   // ── GRAB FOOD QUOTE ──────────────────────────────────────────
@@ -309,6 +303,16 @@ export class PartnerSimService {
 
   // ── private helpers ──────────────────────────────────────────
 
+  private haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
   private filterByQuery<
     T extends {
       id: string;
@@ -323,31 +327,41 @@ export class PartnerSimService {
       cuisineType: string;
       openHour: number;
       closeHour: number;
+      lat?: number | null;
+      lng?: number | null;
     },
-  >(list: T[], query: string): PartnerSimFoodSearchResult[] {
+  >(list: T[], query: string, userLat?: number, userLng?: number): PartnerSimFoodSearchResult[] {
     const q = query.toLowerCase();
-    return list
-      .filter(
-        (r) =>
-          r.available &&
-          (r.keywords.some((k) => q.includes(k) || k.includes(q)) ||
-            q.includes(r.name.toLowerCase()) ||
-            r.name.toLowerCase().includes(q)),
-      )
-      .map((r) => ({
-        restaurantId: r.id,
-        name: r.name,
-        address: r.address,
-        rating: r.rating,
-        reviewCount: r.reviewCount,
-        deliveryFeeVnd: r.deliveryFeeVnd,
-        minOrderVnd: r.minOrderVnd,
-        cuisineType: r.cuisineType,
-        keywords: r.keywords,
-        available: r.available,
-        openHour: r.openHour,
-        closeHour: r.closeHour,
-      }));
+    const byKeyword = list.filter(
+      (r) =>
+        r.available &&
+        (r.keywords.some((k) => q.includes(k) || k.includes(q)) ||
+          q.includes(r.name.toLowerCase()) ||
+          r.name.toLowerCase().includes(q)),
+    );
+
+    // If user location provided, restrict to restaurants within 20km (no fallback — empty = "no nearby")
+    let filtered = byKeyword;
+    if (userLat != null && userLng != null) {
+      filtered = byKeyword.filter(
+        (r) => r.lat == null || r.lng == null || this.haversineKm(userLat, userLng, r.lat, r.lng) <= 20,
+      );
+    }
+
+    return filtered.map((r) => ({
+      restaurantId: r.id,
+      name: r.name,
+      address: r.address,
+      rating: r.rating,
+      reviewCount: r.reviewCount,
+      deliveryFeeVnd: r.deliveryFeeVnd,
+      minOrderVnd: r.minOrderVnd,
+      cuisineType: r.cuisineType,
+      keywords: r.keywords,
+      available: r.available,
+      openHour: r.openHour,
+      closeHour: r.closeHour,
+    }));
   }
 
   private bestPromo(

@@ -1,21 +1,23 @@
 // apps/mobile/src/screens/S08_VoiceSpeaking/index.tsx
 import React, { useEffect, useRef } from 'react';
-import { 
-  Animated, 
-  StyleSheet, 
-  Text, 
-  TouchableOpacity, 
-  View 
+import {
+  ActivityIndicator,
+  Animated,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useVoiceSpeaking } from './useVoiceSpeaking.hook';
 import { AudioVisualizer } from '../../components/AudioVisualizer';
+import { AIBubble } from '../../components/AIBubble';
 import { theme } from '../../theme/theme';
 
 export default function VoiceSpeakingScreen() {
   const insets = useSafeAreaInsets();
-  const { userText, aiText, onConfirm, onCancel, onDismiss } = useVoiceSpeaking();
+  const { userText, aiText, loading, onConfirm, onCancel, onDismiss } = useVoiceSpeaking();
 
   const pulseVal = useRef(new Animated.Value(1)).current;
 
@@ -53,10 +55,7 @@ export default function VoiceSpeakingScreen() {
           <Text style={styles.userText}>{userText}</Text>
         </View>
 
-        <View style={styles.aiCard}>
-          <Text style={styles.aiCardLabel}>AI NÓI</Text>
-          <Text style={styles.aiText}>{aiText}</Text>
-        </View>
+        <AIBubble text={aiText} variant="dark" />
       </View>
 
       <View style={[styles.bottomZone, { paddingBottom: insets.bottom + 16 }]}>
@@ -80,13 +79,18 @@ export default function VoiceSpeakingScreen() {
             <Text style={styles.cancelBtnText}>Huỷ</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.confirmBtn} 
+          <TouchableOpacity
+            style={styles.confirmBtn}
             onPress={onConfirm}
+            disabled={loading}
             accessibilityRole="button"
             accessibilityLabel="Confirm"
           >
-            <Text style={styles.confirmBtnText}>Xác nhận</Text>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.confirmBtnText}>Xác nhận</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>

@@ -17,6 +17,7 @@ import { ASSETS } from '../../assets';
 import { theme } from '../../theme/theme';
 import { SuaraLogo } from '../../components/SuaraLogo';
 import { BrandedBackground } from '../../components/BrandedBackground';
+import { useVoice } from '../../contexts/VoiceContext';
 
 const RideTrackingScreen = () => {
   const insets = useSafeAreaInsets();
@@ -35,6 +36,7 @@ const RideTrackingScreen = () => {
     etaLabel,
     announcement,
   } = useRideTracking();
+  const { openVoice } = useVoice();
 
   // Voice toast animation (opacity only)
   const toastOpacity = useRef(new Animated.Value(0)).current;
@@ -333,8 +335,9 @@ const RideTrackingScreen = () => {
         </View>
 
         {/* Floating Mic FAB */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.micFab, { bottom: Math.max(insets.bottom, 16) + 80 }]}
+          onPress={() => openVoice('home', 'Bạn cần trợ giúp gì? Tôi có thể đặt lại hoặc thay đổi đơn hàng cho bạn.')}
           accessibilityRole="button"
           accessibilityLabel="Voice Assistant"
         >

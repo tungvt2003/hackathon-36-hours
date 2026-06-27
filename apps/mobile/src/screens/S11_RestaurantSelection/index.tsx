@@ -16,9 +16,12 @@ import { theme } from '../../theme/theme';
 import { MockRestaurant } from './restaurantSelection.service';
 import { ASSETS } from '../../assets';
 import { BrandedBackground } from '../../components/BrandedBackground';
+import { AIBubble } from '../../components/AIBubble';
+import { useVoice } from '../../contexts/VoiceContext';
 
 export default function RestaurantSelectionScreen() {
   const { restaurants, onSelect, onBack } = useRestaurantSelection();
+  const { openVoice } = useVoice();
 
   const getRestaurantImage = (id: string) => {
     switch(id) {
@@ -104,10 +107,11 @@ export default function RestaurantSelectionScreen() {
       <SafeAreaView edges={['top', 'bottom']} style={styles.root}>
         <ScreenHeader title="Chọn nhà hàng" showLogo={false} onBack={onBack} />
         
-        <View style={styles.aiMessageCard}>
-          <Text style={styles.aiLabel}>AI NÓI</Text>
-          <Text style={styles.aiText}>Tôi tìm thấy 3 nhà hàng phù hợp. Bạn muốn đặt từ đâu?</Text>
-        </View>
+        <AIBubble
+          text="Tôi tìm thấy 3 nhà hàng phù hợp. Bạn muốn đặt từ đâu?"
+          variant="light"
+          style={{ marginHorizontal: 20, marginBottom: 16 }}
+        />
 
         <FlatList
           data={restaurants}
@@ -116,6 +120,15 @@ export default function RestaurantSelectionScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
         />
+
+        <TouchableOpacity
+          style={styles.voiceFab}
+          onPress={() => openVoice('home', 'Bạn cần trợ giúp gì? Tôi có thể đặt lại hoặc thay đổi đơn hàng cho bạn.')}
+          accessibilityRole="button"
+          accessibilityLabel="Nhấn để nói với AI"
+        >
+          <MaterialCommunityIcons name="microphone" size={32} color="white" />
+        </TouchableOpacity>
       </SafeAreaView>
     </BrandedBackground>
   );
@@ -274,5 +287,23 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: theme.colors.primary,
     marginTop: 8,
+  },
+  voiceFab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 20,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.32,
+    shadowRadius: 20,
+    elevation: 10,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.25)',
   },
 });

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
@@ -20,8 +20,23 @@ export const useProfileSetup = (): ProfileSetupViewModel => {
     speakingSpeed: speed, 
     setAccessibilityModes, 
     setSpeakingSpeed, 
-    setConfigured 
+    setConfigured
   } = useProfileStore();
+  const [hasGreeted, setHasGreeted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!hasGreeted) {
+        setHasGreeted(true);
+        navigation.navigate('VoiceAssistantIntent', {
+          context: 'home',
+          aiGreeting: 'Chào mừng bạn đến với AccessAI! Tôi sẽ điều chỉnh giao diện theo nhu cầu của bạn. Bạn có bị khiếm thị không?',
+        });
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const toggleMode = useCallback((id: 'visual' | 'motor' | 'handsFree') => {
     setAccessibilityModes({

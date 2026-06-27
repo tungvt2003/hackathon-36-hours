@@ -21,6 +21,8 @@ export interface PartnerRideQuoteRequest {
 
 export interface PartnerFoodSearchRequest {
   query: string;
+  userLat?: number;
+  userLng?: number;
 }
 
 export interface PartnerFoodQuoteRequest {
@@ -41,7 +43,7 @@ export class PartnerSimController {
 
   @Post('grab/food/search')
   grabFoodSearch(@Body() body: PartnerFoodSearchRequest) {
-    return this.svc.grabFoodSearch(body.query);
+    return this.svc.grabFoodSearch(body.query, body.userLat, body.userLng);
   }
 
   @Post('grab/food/quote')
@@ -58,7 +60,7 @@ export class PartnerSimController {
 
   @Post('be/food/search')
   beFoodSearch(@Body() body: PartnerFoodSearchRequest) {
-    return this.svc.beFoodSearch(body.query);
+    return this.svc.beFoodSearch(body.query, body.userLat, body.userLng);
   }
 
   @Post('be/food/quote')
@@ -77,7 +79,7 @@ export class PartnerSimController {
 
   @Post('shopee/food/search')
   shopeeFoodSearch(@Body() body: PartnerFoodSearchRequest) {
-    return this.svc.shopeeFoodSearch(body.query);
+    return this.svc.shopeeFoodSearch(body.query, body.userLat, body.userLng);
   }
 
   @Post('shopee/food/quote')

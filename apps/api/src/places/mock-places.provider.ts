@@ -14,7 +14,12 @@ export class MockPlacesProvider implements PlacesProvider {
     );
 
     if (!match) {
-      return { name: query, isOpen: true, address: 'Địa chỉ chưa xác định' };
+      return {
+        name: query,
+        isOpen: true,
+        address: 'Địa chỉ chưa xác định',
+        matched: false,
+      };
     }
 
     // Giả lập isOpen theo giờ thực tế
@@ -25,6 +30,7 @@ export class MockPlacesProvider implements PlacesProvider {
       name: match.name,
       isOpen,
       address: match.address,
+      matched: true,
     };
   }
 }

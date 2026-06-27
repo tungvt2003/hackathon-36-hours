@@ -238,6 +238,93 @@ FLOW: Voice → STT → NLU → [confirm missing] → Partner ERP → Quote → 
 
 ---
 
+## Phase 10 — Location-Aware Restaurant Search ✅
+
+> **Lý do:** User ở Thủ Đức không thể đặt quán ở Quận 1 — cần filter theo GPS thật của user.
+
+### 10.1 Schema (Prisma)
+
+- [x] `GrabRestaurant`: thêm `lat Float?`, `lng Float?`
+- [x] `BeRestaurant`: thêm `lat Float?`, `lng Float?`
+- [x] `ShopeeRestaurant`: thêm `lat Float?`, `lng Float?`
+- [ ] Deploy: `prisma db push --accept-data-loss` trên server (đã tích hợp trong entrypoint.sh)
+
+### 10.2 Seed Data cập nhật
+
+- [x] Gán tọa độ thật (HCM) cho các quán Q1 hiện có (Grab/Be/Shopee)
+  - Phở Hà Nội: `10.7682, 106.6947`
+  - Cơm Tấm Thuận Kiều: `10.7795, 106.7010`
+  - KFC Bến Thành: `10.7736, 106.6955`
+  - Bún Bò Bà Mỹ (Bùi Viện): `10.7679, 106.6907`
+- [x] Thêm quán Thủ Đức (`~10.849, 106.756`) — mỗi partner 1 quán:
+  - Grab: Phở Hà Nội (Thủ Đức) + Cơm Tấm Sài Gòn (Thủ Đức)
+  - Be: Bún Bò Huế (Thủ Đức)
+  - Shopee: Phở Hà Nội (Thủ Đức)
+- [x] Mỗi quán mới có menu items đầy đủ để pass `resolveItems()`
+
+### 10.3 Backend — Location Filter
+
+- [x] `PartnerSimService.grabFoodSearch/beFoodSearch/shopeeFoodSearch`: nhận `userLat?, userLng?`
+- [x] `filterByQuery()`: áp dụng **Haversine** radius ≤ 20km — không có fallback, trả empty nếu không có quán nào gần user
+- [x] `PartnerSimController.PartnerFoodSearchRequest`: thêm `userLat?, userLng?`
+- [x] `RestaurantsService.searchRestaurants(query, userLat?, userLng?)`: forward coords vào HTTP payload
+- [x] `OrdersService.processFoodOrder()`: nhận `currentLat?, currentLng?`, truyền sang `searchRestaurants`
+- [x] `OrdersService.processVoice()`: truyền `currentLat/currentLng` sang `processFoodOrder` (trước chỉ truyền cho RIDE)
+- [x] `matches.length === 0` message context-aware: có GPS → *"Không có quán X nào gần bạn trong 20km"*, không có GPS → *"Không tìm thấy quán X"*
+- [x] `ConversationService.input()`: nhận `userLat?, userLng?`, truyền sang `processVoice`
+- [x] `ConversationController.InputDto`: thêm `userLat?, userLng?` optional fields
+
+### 10.4 Mobile
+
+- [x] `expo-location` installed (`npx expo install expo-location`)
+- [x] `app.json` — iOS: `NSLocationWhenInUseUsageDescription`; Android: `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`; plugin: `expo-location`
+- [x] `api.ts`: `conversation.input(sid, text, userLat?, userLng?)` — gửi coords trong body
+- [x] `VoiceAssistant/index.tsx`:
+  - State `userLocation: { lat, lng } | null`
+  - `useEffect` on mount: `requestForegroundPermissionsAsync()` → `getCurrentPositionAsync()` → lưu vào state
+  - GPS lỗi → silently fall back (không block flow)
+  - `submitTranscript` dùng `userLocation?.lat/lng` khi gọi `api.conversation.input`
+
+### 10.5 Cần làm sau khi merge
+
+- [ ] `docker compose down -v && docker compose up -d --build` trên server (để schema được push + seed chạy lại)
+- [ ] Build APK mới: `eas build --platform android --profile preview`
+
+---
+
+## Phase 11 — LLM-based NLU (chờ OpenRouter key, chưa triển khai)
+
+> **Lý do:** `MockNluProvider` rule-based brittle — regex fail khi STT chèn từ giữa câu, không hiểu ngữ cảnh.
+> Thay bằng LLM qua OpenRouter, giữ contract `Intent` không đổi → không đụng `OrdersService`/`ConversationService`.
+> **Block lại chờ:** API key OpenRouter + xác nhận tên model thật (`openai/gpt-5.5` hay tên khác).
+
+### 11.1 Provider mới
+
+- [ ] `apps/api/src/nlu/llm-nlu.provider.ts` — implement `NluProvider`
+- [ ] Gọi `POST https://openrouter.ai/api/v1/chat/completions`
+- [ ] `response_format: { type: 'json_schema', json_schema: <Intent schema> }` — ép model trả đúng shape `Intent` (`type`, `origin?`, `destination?`, `restaurant?`, `items?`, `note?`, `confidence`)
+- [ ] System prompt tiếng Việt: trích xuất ý định đặt xe/đồ ăn, không tự bịa địa điểm/món không có trong câu nói
+- [ ] Timeout ~2.5s (`AbortController`) cho call LLM
+
+### 11.2 Fallback an toàn
+
+- [ ] LLM fail/timeout/parse lỗi → tự fallback gọi `MockNluProvider.parse()` (rule-based cũ) — không chặn conversation lúc demo nếu key/API lỗi
+- [ ] Giữ `MockNluProvider` y nguyên, không xoá
+
+### 11.3 Wiring
+
+- [ ] `nlu.module.ts` — thêm case `provider === 'openai'`, đọc `OPENROUTER_API_KEY`, `NLU_MODEL` từ `ConfigService`
+- [ ] `.env.example` — thêm `OPENROUTER_API_KEY=`, `NLU_MODEL=openai/gpt-5.5`, `PROVIDER_NLU=mock` (default an toàn, đổi `openai` khi sẵn sàng)
+- [ ] Không sửa `OrdersService`, `ConversationService`, partner-sim — contract `Intent` không đổi
+
+### 11.4 Điều kiện bắt đầu code
+
+- [ ] Có `OPENROUTER_API_KEY` thật
+- [ ] Xác nhận tên model chính xác trên OpenRouter
+- [ ] Test 1 request thủ công (curl) confirm `response_format json_schema` hoạt động với model đó trước khi viết provider
+
+---
+
 ## Thứ tự làm (ưu tiên hackathon)
 
 ```

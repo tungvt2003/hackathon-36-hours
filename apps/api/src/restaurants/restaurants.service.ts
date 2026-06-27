@@ -29,10 +29,10 @@ export class RestaurantsService {
    * Fan-out HTTP tới 3 partner-sim search endpoints song song.
    * Giả lập: AccessAI gửi 3 request đồng thời → chờ cả 3 → aggregate.
    */
-  async searchRestaurants(query: string): Promise<PartnerRestaurant[]> {
+  async searchRestaurants(query: string, userLat?: number, userLng?: number): Promise<PartnerRestaurant[]> {
     if (!query || query.trim().length < 2) return [];
 
-    const payload = { query };
+    const payload = { query, userLat, userLng };
     const [grabRes, beRes, shopeeRes] = await Promise.allSettled([
       this.post<PartnerSimFoodSearchResult[]>(
         '/partner-sim/grab/food/search',

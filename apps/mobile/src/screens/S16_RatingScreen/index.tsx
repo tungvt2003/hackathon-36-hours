@@ -20,6 +20,7 @@ import { PrimaryButton } from '../../components/PrimaryButton';
 import { theme } from '../../theme/theme';
 import { SuaraLogo } from '../../components/SuaraLogo';
 import { BrandedBackground } from '../../components/BrandedBackground';
+import { useVoice } from '../../contexts/VoiceContext';
 
 const RatingScreen = () => {
   const insets = useSafeAreaInsets();
@@ -36,6 +37,7 @@ const RatingScreen = () => {
     onSkip,
     onBack,
   } = useRating();
+  const { openVoice } = useVoice();
 
   return (
     <BrandedBackground variant="default">
@@ -171,6 +173,15 @@ const RatingScreen = () => {
             <SuaraLogo size="sm" />
           </View>
         </View>
+
+        <TouchableOpacity
+          style={[styles.voiceFab, { bottom: 180 + insets.bottom }]}
+          onPress={() => openVoice('home', 'Bạn cần trợ giúp gì? Tôi có thể đặt lại hoặc thay đổi đơn hàng cho bạn.')}
+          accessibilityRole="button"
+          accessibilityLabel="Nhấn để nói với AI"
+        >
+          <MaterialCommunityIcons name="microphone" size={32} color="white" />
+        </TouchableOpacity>
       </SafeAreaView>
     </BrandedBackground>
   );
@@ -318,6 +329,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
     marginBottom: 4,
+  },
+  voiceFab: {
+    position: 'absolute',
+    right: 20,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.32,
+    shadowRadius: 20,
+    elevation: 10,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.25)',
   },
 });
 

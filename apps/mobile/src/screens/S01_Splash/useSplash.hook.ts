@@ -29,9 +29,9 @@ export const useSplash = (): SplashViewModel => {
     logoOpacity.value = withTiming(1, { duration: 500 });
     taglineOpacity.value = withDelay(700, withTiming(1, { duration: 500 }));
 
-    // Auto-advance to Onboarding
+    // Auto-advance to Dashboard — voice handles platform select inline
     const timer = setTimeout(() => {
-      navigation.replace('Onboarding');
+      navigation.replace('Dashboard');
     }, 2200);
 
     return () => clearTimeout(timer);
