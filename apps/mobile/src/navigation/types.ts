@@ -9,7 +9,7 @@ export type RootStackParamList = {
   Dashboard: undefined;
   VoiceAssistant: { initialPromptHint?: string; context?: string };
   VoiceAssistantIntent: { context: VoiceIntentContext; aiGreeting: string };
-  VoiceProcessing: { userText: string; context?: string };
+  VoiceProcessing: { audioBase64: string; context?: string };
   VoiceSpeaking: {
     userText: string;
     aiText: string;
@@ -17,6 +17,7 @@ export type RootStackParamList = {
     sessionId?: string;
     quotePartner?: PartnerCode;
     canConfirmOrder?: boolean;
+    audioBase64?: string;
   };
   VoiceError: undefined;
   RestaurantSelection: { intent: Intent };

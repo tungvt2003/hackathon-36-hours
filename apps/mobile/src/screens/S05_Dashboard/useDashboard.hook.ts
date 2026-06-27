@@ -9,6 +9,7 @@ import { getSpeechRecognitionModule, STT_AVAILABLE } from '../../services/speech
 import { DEV_FORCE_TEXT_INPUT } from '../../constants/devFlags';
 import { api } from '../../api';
 import { PartnerCode } from '../../types';
+import { getCurrentLocation } from '../../services/location';
 import {
   PLATFORM_SELECT_GREETING,
   HOME_AI_GREETING,
@@ -48,7 +49,7 @@ export const useDashboard = (): DashboardViewModel => {
 
   const sessionIdRef = useRef<string | null>(null);
   const platformRef = useRef<PartnerCode | null>(null);
-  const beginListeningRef = useRef<() => void>(() => {});
+  const beginListeningRef = useRef<() => void>(() => { });
   useEffect(() => { platformRef.current = platform; }, [platform]);
 
   // Đọc to mỗi khi aiText đổi — đồng bộ với text hiện trên card.
@@ -94,11 +95,12 @@ export const useDashboard = (): DashboardViewModel => {
         sid = s.sessionId;
         sessionIdRef.current = sid;
       }
+      const loc = await getCurrentLocation();
       const res = await api.conversation.input(
         sid,
         transcript,
-        undefined,
-        undefined,
+        loc.lat,
+        loc.lng,
         platformRef.current ?? undefined,
       );
       setAiText(res.promptText);

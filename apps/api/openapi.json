@@ -1,0 +1,608 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/partner-sim/grab/ride/quote": {
+      "post": {
+        "operationId": "PartnerSimController_grabRideQuote",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PartnerSim"
+        ]
+      }
+    },
+    "/partner-sim/grab/food/search": {
+      "post": {
+        "operationId": "PartnerSimController_grabFoodSearch",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PartnerSim"
+        ]
+      }
+    },
+    "/partner-sim/grab/food/quote": {
+      "post": {
+        "operationId": "PartnerSimController_grabFoodQuote",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PartnerSim"
+        ]
+      }
+    },
+    "/partner-sim/be/ride/quote": {
+      "post": {
+        "operationId": "PartnerSimController_beRideQuote",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PartnerSim"
+        ]
+      }
+    },
+    "/partner-sim/be/food/search": {
+      "post": {
+        "operationId": "PartnerSimController_beFoodSearch",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PartnerSim"
+        ]
+      }
+    },
+    "/partner-sim/be/food/quote": {
+      "post": {
+        "operationId": "PartnerSimController_beFoodQuote",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PartnerSim"
+        ]
+      }
+    },
+    "/partner-sim/xanhsm/ride/quote": {
+      "post": {
+        "operationId": "PartnerSimController_xanhSmRideQuote",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PartnerSim"
+        ]
+      }
+    },
+    "/partner-sim/shopee/food/search": {
+      "post": {
+        "operationId": "PartnerSimController_shopeeFoodSearch",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PartnerSim"
+        ]
+      }
+    },
+    "/partner-sim/shopee/food/quote": {
+      "post": {
+        "operationId": "PartnerSimController_shopeeFoodQuote",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PartnerSim"
+        ]
+      }
+    },
+    "/partner-sim/grab/confirm": {
+      "post": {
+        "operationId": "PartnerSimController_grabConfirm",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PartnerSim"
+        ]
+      }
+    },
+    "/partner-sim/be/confirm": {
+      "post": {
+        "operationId": "PartnerSimController_beConfirm",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PartnerSim"
+        ]
+      }
+    },
+    "/partner-sim/xanhsm/confirm": {
+      "post": {
+        "operationId": "PartnerSimController_xanhSmConfirm",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PartnerSim"
+        ]
+      }
+    },
+    "/partner-sim/shopee/confirm": {
+      "post": {
+        "operationId": "PartnerSimController_shopeeConfirm",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PartnerSim"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "OrdersController_health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/orders/history": {
+      "get": {
+        "operationId": "OrdersController_getOrderHistory",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/orders/confirm": {
+      "post": {
+        "operationId": "OrdersController_confirmOrder",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/orders/{id}/status": {
+      "get": {
+        "operationId": "OrdersController_orderStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/orders/{id}/review": {
+      "post": {
+        "operationId": "OrdersController_submitReview",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/stt": {
+      "post": {
+        "operationId": "OrdersController_testStt",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/nlu": {
+      "post": {
+        "operationId": "OrdersController_testNlu",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/places/status": {
+      "get": {
+        "operationId": "OrdersController_testPlaces",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/weather": {
+      "get": {
+        "operationId": "OrdersController_testWeather",
+        "parameters": [
+          {
+            "name": "location",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/restaurants": {
+      "get": {
+        "operationId": "RestaurantsController_list",
+        "parameters": [
+          {
+            "name": "partner",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Restaurants"
+        ]
+      }
+    },
+    "/restaurants/{id}/menu": {
+      "get": {
+        "operationId": "RestaurantsController_menu",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "partner",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Restaurants"
+        ]
+      }
+    },
+    "/conversation/start": {
+      "post": {
+        "operationId": "ConversationController_start",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Conversation"
+        ]
+      }
+    },
+    "/conversation/input": {
+      "post": {
+        "operationId": "ConversationController_input",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Conversation"
+        ]
+      }
+    },
+    "/conversation/confirm": {
+      "post": {
+        "operationId": "ConversationController_confirm",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Conversation"
+        ]
+      }
+    },
+    "/voice-flow": {
+      "post": {
+        "operationId": "VoiceFlowController_handle",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "VoiceFlow"
+        ]
+      }
+    },
+    "/voice-flow/session/{id}": {
+      "get": {
+        "operationId": "VoiceFlowController_getSession",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "VoiceFlow"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Voice Mobility API",
+    "description": "",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "ConfirmOrderDto": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "example": "clxyz123"
+          },
+          "partner": {
+            "type": "string",
+            "enum": [
+              "GRAB",
+              "BE",
+              "XANH_SM",
+              "SHOPEE"
+            ],
+            "example": "GRAB"
+          }
+        },
+        "required": [
+          "orderId",
+          "partner"
+        ]
+      },
+      "ReviewDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "StartDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "InputDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "ConfirmDto": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  }
+}

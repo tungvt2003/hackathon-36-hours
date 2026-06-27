@@ -14,7 +14,7 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import { ASSETS } from '../../assets';
 import { theme } from '../../theme/theme';
 
-type LogoSize = 'sm' | 'md' | 'lg';
+type LogoSize = 'sm' | 'md' | 'lg' | 'xl';
 
 interface SuaraLogoProps {
   size?: LogoSize;
@@ -27,6 +27,7 @@ const SIZE_MAP: Record<LogoSize, { width: number; height: number; fontSize: numb
   sm: { width: 56,  height: 24, fontSize: 18 },
   md: { width: 80,  height: 34, fontSize: 24 },
   lg: { width: 120, height: 52, fontSize: 36 },
+  xl: { width: 220, height: 95, fontSize: 64 },
 };
 
 export const SuaraLogo: React.FC<SuaraLogoProps> = ({
