@@ -8,6 +8,7 @@ import OnboardingScreen from '../screens/S02_Onboarding';
 import LoginScreen from '../screens/S03_Login';
 import ProfileSetupScreen from '../screens/S04_ProfileSetup';
 import VoiceListeningScreen from '../screens/S06_VoiceListening';
+import VoiceProcessingScreen from '../screens/S07_VoiceProcessing';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -25,35 +26,35 @@ export const RootNavigator = () => {
       <Stack.Screen name="ConnectGrabAccount" component={LoginScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
-      
-      <Stack.Screen 
-        name="VoiceAssistant" 
-        component={VoiceListeningScreen} 
+
+      <Stack.Screen
+        name="VoiceAssistant"
+        component={VoiceListeningScreen}
         options={{ presentation: 'transparentModal', animation: 'fade', headerShown: false }}
       />
 
-      <Stack.Screen 
-        name="VoiceProcessing" 
-        component={() => <Placeholder name="VoiceProcessing" />} 
+      <Stack.Screen
+        name="VoiceProcessing"
+        component={VoiceProcessingScreen}
         options={{ presentation: 'transparentModal', animation: 'fade', headerShown: false }}
       />
-      
-      <Stack.Screen 
-        name="RestaurantSelection" 
-        component={() => <Placeholder name="RestaurantSelection" />} 
+
+      <Stack.Screen
+        name="RestaurantSelection"
+        component={() => <Placeholder name="RestaurantSelection" />}
         options={{ presentation: 'transparentModal', animation: 'fade', headerShown: false }}
       />
-      
+
       <Stack.Screen name="OrderConfirmation" component={() => <Placeholder name="OrderConfirmation" />} />
       <Stack.Screen name="FoodTracking" component={() => <Placeholder name="FoodTracking" />} />
       <Stack.Screen name="RideTracking" component={() => <Placeholder name="RideTracking" />} />
-      
-      <Stack.Screen 
-        name="CancellationAlert" 
-        component={() => <Placeholder name="CancellationAlert" />} 
+
+      <Stack.Screen
+        name="CancellationAlert"
+        component={() => <Placeholder name="CancellationAlert" />}
         options={{ presentation: 'modal' }}
       />
-      
+
       <Stack.Screen name="DeliverySuccess" component={() => <Placeholder name="DeliverySuccess" />} />
       <Stack.Screen name="RatingScreen" component={() => <Placeholder name="RatingScreen" />} />
       <Stack.Screen name="OrderHistory" component={() => <Placeholder name="OrderHistory" />} />
