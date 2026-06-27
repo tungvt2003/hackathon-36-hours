@@ -5,6 +5,8 @@
   "scripts": {
     "dev:api": "cd apps/api && npm run start:dev",
     "build:api": "cd apps/api && npm run build",
-    "start:api": "cd apps/api && npm run start:prod"
+    "start:api": "cd apps/api && npm run start:prod",
+    "dev:voice": "cd apps/deno-voice && deno task dev",
+    "start:voice": "cd apps/deno-voice && deno task start"
   }
 }
