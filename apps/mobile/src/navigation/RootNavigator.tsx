@@ -7,6 +7,14 @@ import SplashScreen from '../screens/S01_Splash';
 import OnboardingScreen from '../screens/S02_Onboarding';
 import LoginScreen from '../screens/S03_Login';
 import ProfileSetupScreen from '../screens/S04_ProfileSetup';
+import VoiceListeningScreen from '../screens/S06_VoiceListening';
+import VoiceProcessingScreen from '../screens/S07_VoiceProcessing';
+import VoiceSpeakingScreen from '../screens/S08_VoiceSpeaking';
+import VoiceErrorScreen from '../screens/S09_VoiceError';
+import OrderConfirmationScreen from '../screens/S10_OrderConfirmation';
+import RestaurantSelectionScreen from '../screens/S11_RestaurantSelection';
+import FoodTrackingScreen from '../screens/S12_FoodTracking';
+import RideTrackingScreen from '../screens/S13_RideTracking';
 import VoiceAssistantScreen from '../screens/S06_VoiceAssistant';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -31,23 +39,53 @@ export const RootNavigator = () => {
         component={VoiceAssistantScreen}
         options={{ headerShown: false }}
       />
-      
-      <Stack.Screen 
-        name="RestaurantSelection" 
-        component={() => <Placeholder name="RestaurantSelection" />} 
+
+      <Stack.Screen
+        name="VoiceProcessing"
+        component={VoiceProcessingScreen}
         options={{ presentation: 'transparentModal', animation: 'fade', headerShown: false }}
       />
-      
-      <Stack.Screen name="OrderConfirmation" component={() => <Placeholder name="OrderConfirmation" />} />
-      <Stack.Screen name="FoodTracking" component={() => <Placeholder name="FoodTracking" />} />
-      <Stack.Screen name="RideTracking" component={() => <Placeholder name="RideTracking" />} />
-      
+
+      <Stack.Screen
+        name="VoiceSpeaking"
+        component={VoiceSpeakingScreen}
+        options={{ presentation: 'transparentModal', animation: 'fade', headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="VoiceError"
+        component={VoiceErrorScreen}
+        options={{ presentation: 'transparentModal', animation: 'fade', headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="RestaurantSelection"
+        component={RestaurantSelectionScreen}
+        options={{ headerShown: false }}
+      />
+
       <Stack.Screen 
-        name="CancellationAlert" 
-        component={() => <Placeholder name="CancellationAlert" />} 
+        name="OrderConfirmation" 
+        component={OrderConfirmationScreen} 
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="FoodTracking" 
+        component={FoodTrackingScreen} 
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="RideTracking" 
+        component={RideTrackingScreen} 
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="CancellationAlert"
+        component={() => <Placeholder name="CancellationAlert" />}
         options={{ presentation: 'modal' }}
       />
-      
+
       <Stack.Screen name="DeliverySuccess" component={() => <Placeholder name="DeliverySuccess" />} />
       <Stack.Screen name="RatingScreen" component={() => <Placeholder name="RatingScreen" />} />
       <Stack.Screen name="OrderHistory" component={() => <Placeholder name="OrderHistory" />} />

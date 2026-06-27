@@ -1,10 +1,11 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Image } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSplash } from './useSplash.hook';
 import { theme } from '../../theme/theme';
+import { ASSETS } from '../../assets';
 
 export default function SplashScreen() {
   const insets = useSafeAreaInsets();
@@ -17,7 +18,7 @@ export default function SplashScreen() {
           <View style={styles.iconCircle}>
             <MaterialCommunityIcons name="microphone" size={48} color="#FFFFFF" />
           </View>
-          <Text style={styles.wordmark}>AccessAI</Text>
+          <Text style={styles.wordmark}>Suara</Text>
         </Animated.View>
         
         <Animated.Text style={[styles.tagline, taglineOpacity]}>
@@ -26,10 +27,18 @@ export default function SplashScreen() {
       </View>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
-        <View style={styles.grabBadge}>
-          <View style={styles.grabDot} />
-          <Text style={styles.poweredBy}>Powered by Grab</Text>
-        </View>
+        {ASSETS.images.grabLogo ? (
+          <Image 
+            source={ASSETS.images.grabLogo} 
+            style={styles.grabLogoFooter} 
+            resizeMode="contain" 
+          />
+        ) : (
+          <View style={styles.grabBadge}>
+            <View style={styles.grabDot} />
+            <Text style={styles.poweredBy}>Powered by Grab</Text>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -53,7 +62,7 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: theme.colors.primary, // #00B14F
+    backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -77,6 +86,10 @@ const styles = StyleSheet.create({
   },
   footer: {
     alignItems: 'center',
+  },
+  grabLogoFooter: {
+    width: 100,
+    height: 40,
   },
   grabBadge: {
     flexDirection: 'row',

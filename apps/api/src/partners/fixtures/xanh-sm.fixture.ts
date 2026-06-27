@@ -27,7 +27,7 @@ export interface XanhSmRawConfirm {
   pickup_code: string;
 }
 
-// Dữ liệu mẫu — team thay bằng gọi API thật
+// Dữ liệu mẫu - team thay bằng gọi API thật
 export const XANH_SM_MOCK_QUOTE: XanhSmRawQuote = {
   quote: {
     amount: 68000,

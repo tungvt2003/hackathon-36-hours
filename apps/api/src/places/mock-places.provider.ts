@@ -4,7 +4,7 @@ import { PlacesProvider } from './places.provider';
 import { PLACE_FIXTURES } from './fixtures/places.fixture';
 
 // TODO: team thay bằng GooglePlacesProvider khi có API key
-// PLACE_FIXTURES là data mẫu — chỉnh sửa file fixtures/places.fixture.ts
+// PLACE_FIXTURES là data mẫu - chỉnh sửa file fixtures/places.fixture.ts
 @Injectable()
 export class MockPlacesProvider implements PlacesProvider {
   async getStatus(query: string): Promise<PlaceStatus> {

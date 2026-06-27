@@ -1,4 +1,4 @@
-// Fixture địa điểm mẫu — team điền thêm data thật vào đây
+// Fixture địa điểm mẫu - team điền thêm data thật vào đây
 // Sau khi có Google Places API key: thay MockPlacesProvider bằng GooglePlacesProvider
 // giữ nguyên interface, chỉ cần mapper từ Google response sang PlaceStatus
 

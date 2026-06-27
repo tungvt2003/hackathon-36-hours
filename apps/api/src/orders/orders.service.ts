@@ -23,7 +23,7 @@ import { PARTNERS_IMPL } from '../partners/partners.module';
 import { PrismaService } from '../prisma/prisma.service';
 import { RestaurantsService } from '../restaurants/restaurants.service';
 
-/** Interface tối giản — cả DbPartnersService lẫn PartnersService đều implement */
+/** Interface tối giản - cả DbPartnersService lẫn PartnersService đều implement */
 interface IPartnersService {
   quoteAll(intent: Intent): Promise<PartnerQuote[]>;
   confirm(

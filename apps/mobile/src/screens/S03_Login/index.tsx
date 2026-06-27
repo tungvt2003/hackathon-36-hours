@@ -52,7 +52,7 @@ export default function LoginScreen() {
 
         <Text style={styles.heading}>Connect Grab Account</Text>
         <Text style={styles.body}>
-          Use your Grab account for orders and payments. AccessAI never stores your password.
+          Use your Grab account for orders and payments. Suara never stores your password.
         </Text>
 
         <View style={styles.badgeRow}>

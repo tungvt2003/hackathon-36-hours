@@ -24,7 +24,7 @@ export interface BeRawConfirm {
   plate: string;
 }
 
-// Dữ liệu mẫu — team thay bằng gọi API thật
+// Dữ liệu mẫu - team thay bằng gọi API thật
 export const BE_MOCK_QUOTE: BeRawQuote = {
   data: {
     price: 72000,
