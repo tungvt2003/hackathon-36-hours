@@ -44,7 +44,7 @@ export class OrdersService {
     @Inject(PARTNERS_IMPL) private readonly partners: IPartnersService,
     private readonly prisma: PrismaService,
     private readonly restaurantsService: RestaurantsService,
-  ) {}
+  ) { }
 
   /** Pipeline chính: transcript -> NLU -> enrichment -> quotes -> lưu DB */
   async processVoice(params: {
@@ -559,9 +559,9 @@ export class OrdersService {
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
@@ -607,4 +607,62 @@ export class OrdersService {
       ],
     });
   }
+
+  /**
+   * Lấy lịch sử các đơn hàng thành công (CONFIRMED trở lên, loại CANCELLED).
+   * @param userId  - lọc theo user (optional)
+   * @param limit   - số lượng tối đa (default 20)
+   * @param type    - lọc theo loại FOOD | RIDE (optional)
+   */
+  async getOrderHistory(params: {
+    userId?: string;
+    limit?: number;
+    type?: string;
+  } = {}) {
+    const { userId, limit = 20, type } = params;
+
+    const orders = await this.prisma.order.findMany({
+      where: {
+        status: {
+          // Chỉ lấy đơn đã được xác nhận (loại QUOTED và CANCELLED)
+          notIn: [OrderStatus.QUOTED, OrderStatus.CANCELLED],
+        },
+        ...(userId ? { userId } : {}),
+        ...(type ? { type } : {}),
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      include: {
+        review: {
+          select: {
+            restaurantRating: true,
+            driverRating: true,
+            voiceText: true,
+          },
+        },
+      },
+    });
+
+    return orders.map((o) => ({
+      order_id: o.id,
+      type: o.type,
+      status: o.status,
+      partner: o.partner,
+      // Food fields
+      restaurant: o.restaurant ?? undefined,
+      items: o.items ?? undefined,
+      subtotal: o.subtotalVnd ?? undefined,
+      delivery_fee: o.deliveryFeeVnd ?? undefined,
+      // Ride fields
+      origin: o.origin ?? undefined,
+      destination: o.destination ?? undefined,
+      // Common
+      total: o.totalVnd ?? undefined,
+      eta_minutes: o.etaMinutes ?? undefined,
+      driver_name: o.driverName ?? undefined,
+      created_at: o.createdAt,
+      review: o.review ?? undefined,
+    }));
+  }
 }
+

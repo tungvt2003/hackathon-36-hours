@@ -6,6 +6,7 @@ import { OrdersModule } from './orders/orders.module';
 import { PartnerSimModule } from './partner-sim/partner-sim.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RestaurantsModule } from './restaurants/restaurants.module';
+import { VoiceFlowModule } from './voice-flow/voice-flow.module';
 
 @Module({
   imports: [
@@ -16,6 +17,10 @@ import { RestaurantsModule } from './restaurants/restaurants.module';
     OrdersModule,
     RestaurantsModule,
     ConversationModule,
+    VoiceFlowModule,
   ],
 })
 export class AppModule {}
+
+
+
