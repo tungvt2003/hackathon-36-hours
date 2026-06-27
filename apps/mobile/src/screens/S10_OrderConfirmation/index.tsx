@@ -5,7 +5,8 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Image
+  Image,
+  ImageBackground
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -14,6 +15,7 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { SecondaryButton } from '../../components/SecondaryButton';
 import { ASSETS } from '../../assets';
+import { PartnerCode } from '../../types';
 
 export default function OrderConfirmationScreen() {
   const insets = useSafeAreaInsets();
@@ -21,15 +23,28 @@ export default function OrderConfirmationScreen() {
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.root}>
-      <ScreenHeader
-        title={isViewMode ? 'Chi tiết đơn hàng' : 'Xác nhận đơn hàng'}
-        onBack={onBack}
-        rightElement={
-          <View style={styles.partnerBadge}>
-            <Text style={styles.partnerBadgeText}>{order.partnerLabel}</Text>
-          </View>
-        }
-      />
+      <ImageBackground 
+        source={ASSETS.images.bgTexture} 
+        style={styles.flex1}
+        resizeMode="repeat"
+      >
+        <ScreenHeader
+          title={isViewMode ? 'Chi tiết đơn hàng' : 'Xác nhận đơn hàng'}
+          onBack={onBack}
+          rightElement={
+            order.partner === PartnerCode.GRAB ? (
+              <Image 
+                source={ASSETS.images.grabLogo} 
+                style={styles.headerLogo} 
+                resizeMode="contain"
+              />
+            ) : (
+              <View style={styles.partnerBadge}>
+                <Text style={styles.partnerBadgeText}>{order.partnerLabel}</Text>
+              </View>
+            )
+          }
+        />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Card 1: Restaurant */}
@@ -147,6 +162,7 @@ export default function OrderConfirmationScreen() {
           </View>
         )}
       </View>
+      </ImageBackground>
     </SafeAreaView>
   );
 }
@@ -342,5 +358,9 @@ const styles = StyleSheet.create({
   },
   ml12: {
     marginLeft: 12,
+  },
+  headerLogo: {
+    width: 60,
+    height: 24,
   },
 });

@@ -5,7 +5,8 @@ import {
   Text, 
   TouchableOpacity, 
   View, 
-  Dimensions 
+  Dimensions,
+  ImageBackground
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -14,6 +15,7 @@ import { MicButton } from '../../components/MicButton';
 import { BottomNavBar } from '../../components/BottomNavBar';
 import { DashboardAction } from './dashboard.service';
 import { theme } from '../../theme/theme';
+import { ASSETS } from '../../assets';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = (width - 40) / 2;
@@ -57,7 +59,11 @@ export default function DashboardScreen() {
   );
 
   return (
-    <View style={styles.root}>
+    <ImageBackground 
+      source={ASSETS.images.bgTexture} 
+      style={styles.root}
+      resizeMode="repeat"
+    >
       <SafeAreaView style={styles.topSafe} edges={['top']}>
         {renderHeader()}
         <Text style={styles.sectionLabel}>QUICK ACTIONS</Text>
@@ -69,6 +75,7 @@ export default function DashboardScreen() {
         numColumns={2}
         contentContainerStyle={styles.listContent}
         keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
       />
 
       <View style={styles.micWrapper}>
@@ -79,7 +86,7 @@ export default function DashboardScreen() {
       <SafeAreaView style={styles.bottomSafe} edges={['bottom']}>
         <BottomNavBar activeTab="home" onTabPress={onTabPress} />
       </SafeAreaView>
-    </View>
+    </ImageBackground>
   );
 }
 

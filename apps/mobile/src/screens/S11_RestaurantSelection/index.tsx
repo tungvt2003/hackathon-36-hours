@@ -5,7 +5,8 @@ import {
   Text, 
   TouchableOpacity, 
   View,
-  Image 
+  Image,
+  ImageBackground
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -96,19 +97,26 @@ export default function RestaurantSelectionScreen() {
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.root}>
-      <ScreenHeader title="Chọn nhà hàng" onBack={onBack} />
-      
-      <View style={styles.aiCard}>
-        <Text style={styles.aiLabel}>AI NÓI</Text>
-        <Text style={styles.aiGreeting}>Tôi tìm thấy 3 nhà hàng phù hợp. Bạn muốn đặt từ đâu?</Text>
-      </View>
+      <ImageBackground 
+        source={ASSETS.images.bgTexture} 
+        style={styles.container}
+        resizeMode="repeat"
+      >
+        <ScreenHeader title="Chọn nhà hàng" onBack={onBack} />
+        
+        <View style={styles.aiCard}>
+          <Text style={styles.aiLabel}>AI NÓI</Text>
+          <Text style={styles.aiGreeting}>Tôi tìm thấy 3 nhà hàng phù hợp. Bạn muốn đặt từ đâu?</Text>
+        </View>
 
-      <FlatList
-        data={restaurants}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-      />
+        <FlatList
+          data={restaurants}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      </ImageBackground>
     </SafeAreaView>
   );
 }
@@ -117,6 +125,9 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#F9F9FF',
+  },
+  container: {
+    flex: 1,
   },
   aiCard: {
     backgroundColor: '#E8F8EF',

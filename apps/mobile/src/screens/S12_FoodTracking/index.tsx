@@ -6,13 +6,15 @@ import {
   Text, 
   TouchableOpacity, 
   View,
-  Image 
+  Image,
+  ImageBackground
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFoodTracking } from './useFoodTracking.hook';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { ASSETS } from '../../assets';
+import { PartnerCode } from '../../types';
 
 export default function FoodTrackingScreen() {
   const insets = useSafeAreaInsets();
@@ -74,15 +76,24 @@ export default function FoodTrackingScreen() {
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.root}>
-      <ScreenHeader 
-        title={`Đơn #${orderId.slice(-3)}`} 
-        onBack={onBack}
-        rightElement={
-          <View style={styles.grabBadge}>
-            <Text style={styles.grabBadgeText}>Grab</Text>
-          </View>
-        }
-      />
+      <ImageBackground 
+        source={ASSETS.images.bgTexture} 
+        style={styles.flex1}
+        resizeMode="repeat"
+      >
+        <ScreenHeader 
+          title={`Đơn #${orderId.slice(-3)}`} 
+          onBack={onBack}
+          rightElement={
+            <View style={styles.grabBadge}>
+              <Image 
+                source={ASSETS.images.grabLogo} 
+                style={styles.grabLogoImg} 
+                resizeMode="contain"
+              />
+            </View>
+          }
+        />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Map Placeholder */}
@@ -186,6 +197,7 @@ export default function FoodTrackingScreen() {
           </View>
         )}
       </View>
+      </ImageBackground>
     </SafeAreaView>
   );
 }
@@ -198,16 +210,18 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 140,
   },
+  flex1: {
+    flex: 1,
+  },
   grabBadge: {
     backgroundColor: '#00B14F',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 999,
   },
-  grabBadgeText: {
-    fontSize: 12,
-    color: 'white',
-    fontWeight: '600',
+  grabLogoImg: {
+    width: 24,
+    height: 16,
   },
   mapArea: {
     height: 200,
@@ -311,10 +325,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#E8F8EF',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  flex1: {
-    flex: 1,
-    marginLeft: 12,
   },
   driverName: {
     fontSize: 17,

@@ -86,23 +86,28 @@ const RideTrackingScreen = () => {
 
   return (
     <SafeAreaView edges={['top']} style={styles.root}>
-      <ScreenHeader
-        title="Chuyến đi của bạn"
-        onBack={onBack}
-        rightElement={
-          <View style={styles.grabBadge}>
-            {ASSETS.images.grabLogo ? (
-              <Image
-                source={ASSETS.images.grabLogo}
-                style={styles.grabLogoImg}
-                resizeMode="contain"
-              />
-            ) : (
-              <Text style={styles.grabBadgeText}>Grab</Text>
-            )}
-          </View>
-        }
-      />
+      <ImageBackground 
+        source={ASSETS.images.bgTexture} 
+        style={styles.flex1}
+        resizeMode="repeat"
+      >
+        <ScreenHeader
+          title="Chuyến đi của bạn"
+          onBack={onBack}
+          rightElement={
+            <View style={styles.grabBadge}>
+              {ASSETS.images.grabLogo ? (
+                <Image
+                  source={ASSETS.images.grabLogo}
+                  style={styles.grabLogoImg}
+                  resizeMode="contain"
+                />
+              ) : (
+                <Text style={styles.grabBadgeText}>Grab</Text>
+              )}
+            </View>
+          }
+        />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* MAP ZONE */}
@@ -332,6 +337,7 @@ const RideTrackingScreen = () => {
           </View>
         )}
       </View>
+      </ImageBackground>
     </SafeAreaView>
   );
 };
@@ -340,6 +346,9 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#F9F9FF',
+  },
+  flex1: {
+    flex: 1,
   },
   scrollContent: {
     paddingBottom: 140,

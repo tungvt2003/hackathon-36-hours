@@ -9,10 +9,10 @@ export interface DashboardAction {
 export const dashboardService = {
   getActions: (): DashboardAction[] => {
     return [
-      { id: '1', title: 'Order Food', hint: 'Say what you want', icon: 'food', route: 'RestaurantSelection' },
-      { id: '2', title: 'Book Ride', hint: 'Tell me where to go', icon: 'car', route: 'VoiceAssistant' },
-      { id: '3', title: 'Order History', hint: 'View past orders', icon: 'history', route: 'OrderHistory' },
-      { id: '4', title: 'Account Settings', hint: 'Manage your profile', icon: 'account', route: 'ProfileSetup' },
+      { id: '1', title: 'Food Delivery', hint: 'Order from best shops', icon: 'food', route: 'RestaurantSelection' },
+      { id: '2', title: 'Ride Hailing', hint: 'Go anywhere safely', icon: 'car', route: 'VoiceAssistant' },
+      { id: '3', title: 'Quick Track', hint: 'Follow your active orders', icon: 'map-marker-distance', route: 'OrderHistory' },
+      { id: '4', title: 'Voice Help', hint: 'Ask AI anything', icon: 'microphone', route: 'VoiceAssistant' },
     ];
   },
 };
