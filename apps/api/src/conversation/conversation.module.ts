@@ -10,5 +10,6 @@ import { NluModule } from '../nlu/nlu.module';
   imports: [PrismaModule, RestaurantsModule, OrdersModule, NluModule],
   controllers: [ConversationController],
   providers: [ConversationService],
+  exports: [ConversationService],
 })
 export class ConversationModule {}

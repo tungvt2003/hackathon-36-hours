@@ -2,16 +2,44 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { PlacesProvider } from './places.provider';
 import type { PlaceStatus } from '../types';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class GooglePlacesProvider implements PlacesProvider {
   private readonly logger = new Logger(GooglePlacesProvider.name);
 
-  constructor(private readonly config: ConfigService) {}
+  constructor(
+    private readonly config: ConfigService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async getStatus(query: string): Promise<PlaceStatus> {
     try {
-      this.logger.log(`Searching Google Places API for: ${query}`);
+      const q = query.toLowerCase().trim();
+
+      // BƯỚC 1: Check trong Database Local trước
+      this.logger.log(`Checking local database for place keyword matching: "${query}"`);
+      const places = await this.prisma.place.findMany();
+      const dbMatch = places.find((p) => p.keywords.some((k) => q.includes(k.toLowerCase())));
+
+      if (dbMatch) {
+        this.logger.log(`Found matching place in local DB: ${dbMatch.name}`);
+        const hour = new Date().getHours();
+        const isOpen = hour >= dbMatch.openHour && hour < dbMatch.closeHour;
+
+        // Trả về dữ liệu từ DB (ở đây ta chưa lưu lat/lng cụ thể, nhưng có thể mock hoặc dùng tọa độ mặc định nếu DB không có.
+        // Để an toàn và nhất quán, ta gán tọa độ trung tâm TP.HCM hoặc bạn có thể mock coordinates)
+        return {
+          name: dbMatch.name,
+          isOpen,
+          address: dbMatch.address,
+          latitude: 10.7769, // Tọa độ fallback
+          longitude: 106.7009,
+        };
+      }
+
+      // BƯỚC 2: Nếu không thấy trong DB -> Call Google Places API
+      this.logger.log(`Not found in DB. Searching Google Places API for: ${query}`);
       const apiKey = this.config.get<string>('GOOGLE_API_KEY');
       if (!apiKey) {
         this.logger.warn(
@@ -21,10 +49,11 @@ export class GooglePlacesProvider implements PlacesProvider {
           name: query,
           isOpen: true,
           address: 'Mock Address (No API Key)',
+          latitude: 10.7769,
+          longitude: 106.7009,
         };
       }
 
-      // Gọi API Place Text Search của Google Maps
       const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}&language=vi`;
       const res = await fetch(url);
       if (!res.ok)
@@ -32,7 +61,6 @@ export class GooglePlacesProvider implements PlacesProvider {
 
       const data = (await res.json()) as any;
 
-      // Log trạng thái phản hồi từ Google để debug
       this.logger.log(`Google API Status: ${data.status}`);
       if (data.error_message) {
         this.logger.error(`Google API Error Message: ${data.error_message}`);
@@ -53,7 +81,6 @@ export class GooglePlacesProvider implements PlacesProvider {
 
       const name = firstResult.name || query;
       const address = firstResult.formatted_address || '';
-      // Google trả về field opening_hours.open_now để biết trạng thái đóng/mở
       const isOpen = firstResult.opening_hours?.open_now ?? true;
 
       const latitude = firstResult.geometry?.location?.lat;
@@ -69,8 +96,13 @@ export class GooglePlacesProvider implements PlacesProvider {
         `Error fetching place status from Google Places API: ${(error as Error).message}`,
         error,
       );
-      // Fallback an toàn
-      return { name: query, isOpen: true, address: 'Lỗi kết nối bản đồ' };
+      return {
+        name: query,
+        isOpen: true,
+        address: 'Lỗi kết nối bản đồ',
+        latitude: 10.7769,
+        longitude: 106.7009,
+      };
     }
   }
 }

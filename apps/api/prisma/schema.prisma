@@ -71,14 +71,16 @@ model OrderReview {
 }
 
 model Place {
-  id        String   @id @default(cuid())
-  name      String
-  address   String
-  openHour  Int
-  closeHour Int
-  keywords  String[]
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  name         String
+  address      String
+  openHour     Int
+  closeHour    Int
+  keywords     String[]
+  rainOverride Boolean  @default(false)
+  createdAt    DateTime @default(now())
 }
+
 
 model ConversationSession {
   id            String   @id @default(cuid())

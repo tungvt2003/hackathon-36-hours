@@ -18,7 +18,7 @@ import { PrismaService } from '../prisma/prisma.service';
         if (provider === 'db') return new DbPlacesProvider(prisma);
         if (provider === 'mock') return new MockPlacesProvider();
         if (provider === 'serpapi') return new SerpApiPlacesProvider(config);
-        if (provider === 'google') return new GooglePlacesProvider(config);
+        if (provider === 'google') return new GooglePlacesProvider(config, prisma);
         throw new Error(`Unknown Places provider: ${provider}`);
       },
       inject: [ConfigService, PrismaService],

@@ -49,6 +49,25 @@ async function main() {
     },
   });
 
+  const grabPlt = await prisma.grabRestaurant.upsert({
+    where: { id: 'grab-rest-plt' },
+    update: {},
+    create: {
+      id: 'grab-rest-plt',
+      name: 'Cơm Tấm Phúc Lộc Thọ',
+      address: '236 Đinh Bộ Lĩnh, Bình Thạnh, TP.HCM',
+      openHour: 6,
+      closeHour: 22,
+      cuisineType: 'vietnamese',
+      rating: 4.5,
+      reviewCount: 520,
+      keywords: ['phúc lộc thọ', 'cơm tấm', 'com tam phuc loc tho', 'phuc loc tho', 'suon trung'],
+      deliveryFeeVnd: 15000,
+      minOrderVnd: 30000,
+    },
+  });
+
+
   const grabKfc = await prisma.grabRestaurant.upsert({
     where: { id: 'grab-rest-kfc' },
     update: {},
@@ -90,8 +109,11 @@ async function main() {
       { id: 'grab-mi-kfc-burger',   grabRestaurantId: grabKfc.id, categoryName: 'Burger', name: 'Burger Gà Giòn',           priceVnd: 55000, keywords: ['burger gà', 'burger', 'ga gion'] },
       { id: 'grab-mi-kfc-khoai',    grabRestaurantId: grabKfc.id, categoryName: 'Phụ', name: 'Khoai Tây Chiên',             priceVnd: 35000, keywords: ['khoai tây', 'fries'] },
       { id: 'grab-mi-kfc-pepsi',    grabRestaurantId: grabKfc.id, categoryName: 'Đồ uống', name: 'Pepsi', priceVnd: 20000, keywords: ['pepsi', 'cola'] },
+      // Cơm Tấm Phúc Lộc Thọ
+      { id: 'grab-mi-com-suon-trung', grabRestaurantId: 'grab-rest-plt', categoryName: 'Cơm Tấm', name: 'Cơm Tấm Sườn Trứng', priceVnd: 45000, keywords: ['cơm sườn trứng', 'cơm tấm sườn trứng', 'suon trung', 'sườn trứng'] },
     ],
   });
+
 
   await prisma.grabPromotion.createMany({
     skipDuplicates: true,
@@ -336,13 +358,14 @@ async function main() {
   await prisma.place.createMany({
     skipDuplicates: true,
     data: [
-      { id: 'place-tsn',       name: 'Sân bay Tân Sơn Nhất',  address: '60 Trường Sơn, Tân Bình, TP.HCM',         openHour: 0,  closeHour: 24, keywords: ['tân sơn nhất', 'sân bay', 'tsn', 'airport', 'tan son nhat'] },
-      { id: 'place-ben-xe-md', name: 'Bến xe Miền Đông',       address: '292 Đinh Bộ Lĩnh, Bình Thạnh, TP.HCM',   openHour: 5,  closeHour: 22, keywords: ['bến xe miền đông', 'miền đông', 'ben xe'] },
-      { id: 'place-ben-thanh', name: 'Chợ Bến Thành',          address: 'Quảng trường Quách Thị Trang, Q1',       openHour: 6,  closeHour: 19, keywords: ['bến thành', 'chợ bến thành', 'ben thanh'] },
-      { id: 'place-bitexco',   name: 'Bitexco Financial Tower', address: '2 Hải Triều, Q1, TP.HCM',               openHour: 8,  closeHour: 22, keywords: ['bitexco', 'tháp bitexco'] },
-      { id: 'place-quan-1',    name: 'Quận 1',                  address: 'Quận 1, TP.HCM',                        openHour: 0,  closeHour: 24, keywords: ['quận 1', 'q1', 'quan 1'] },
+      { id: 'place-tsn',       name: 'Sân bay Tân Sơn Nhất',  address: '60 Trường Sơn, Tân Bình, TP.HCM',         openHour: 0,  closeHour: 24, keywords: ['tân sơn nhất', 'sân bay', 'tsn', 'airport', 'tan son nhat'], rainOverride: true },
+      { id: 'place-ben-xe-md', name: 'Bến xe Miền Đông',       address: '292 Đinh Bộ Lĩnh, Bình Thạnh, TP.HCM',   openHour: 5,  closeHour: 22, keywords: ['bến xe miền đông', 'miền đông', 'ben xe'], rainOverride: false },
+      { id: 'place-ben-thanh', name: 'Chợ Bến Thành',          address: 'Quảng trường Quách Thị Trang, Q1',       openHour: 6,  closeHour: 19, keywords: ['bến thành', 'chợ bến thành', 'ben thanh'], rainOverride: false },
+      { id: 'place-bitexco',   name: 'Bitexco Financial Tower', address: '2 Hải Triều, Q1, TP.HCM',               openHour: 8,  closeHour: 22, keywords: ['bitexco', 'tháp bitexco'], rainOverride: true },
+      { id: 'place-quan-1',    name: 'Quận 1',                  address: 'Quận 1, TP.HCM',                        openHour: 0,  closeHour: 24, keywords: ['quận 1', 'q1', 'quan 1'], rainOverride: false },
     ],
   });
+
 
   console.log('✓ Places seeded');
   console.log('✅ Seed complete!');
