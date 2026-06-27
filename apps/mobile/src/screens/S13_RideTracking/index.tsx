@@ -1,8 +1,8 @@
+// apps/mobile/src/screens/S13_RideTracking/index.tsx
 import React, { useRef, useEffect } from 'react';
 import {
   Animated,
   Image,
-  ImageBackground,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,6 +14,9 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRideTracking } from './useRideTracking.hook';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { ASSETS } from '../../assets';
+import { theme } from '../../theme/theme';
+import { SuaraLogo } from '../../components/SuaraLogo';
+import { BrandedBackground } from '../../components/BrandedBackground';
 
 const RideTrackingScreen = () => {
   const insets = useSafeAreaInsets();
@@ -85,351 +88,343 @@ const RideTrackingScreen = () => {
   }, [showOtp]);
 
   return (
-    <SafeAreaView edges={['top']} style={styles.root}>
-      <ImageBackground 
-        source={ASSETS.images.bgTexture} 
-        style={styles.flex1}
-        resizeMode="repeat"
-      >
+    <BrandedBackground variant="default">
+      <SafeAreaView edges={['top', 'bottom']} style={styles.root}>
         <ScreenHeader
           title="Chuyến đi của bạn"
+          showLogo={false}
           onBack={onBack}
           rightElement={
-            <View style={styles.grabBadge}>
-              {ASSETS.images.grabLogo ? (
-                <Image
-                  source={ASSETS.images.grabLogo}
-                  style={styles.grabLogoImg}
-                  resizeMode="contain"
-                />
-              ) : (
-                <Text style={styles.grabBadgeText}>Grab</Text>
-              )}
-            </View>
+            ASSETS.images.grabLogo && (
+              <Image
+                source={ASSETS.images.grabLogo}
+                style={styles.grabLogoImg}
+                resizeMode="contain"
+              />
+            )
           }
         />
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* MAP ZONE */}
-        <View style={styles.mapZoneContainer}>
-          <ImageBackground
-            source={ASSETS.images.mapPlaceholder ?? undefined}
-            style={styles.mapZone}
-            imageStyle={{ borderRadius: 20, opacity: 0.15 }}
-          >
-            {!ASSETS.images.mapPlaceholder && <View style={styles.mapPlaceholderBg} />}
-            <MaterialCommunityIcons name="car" size={52} color="#00B14F" />
-            <Text style={styles.mapEtaText}>
-              {etaLabel === '–' ? 'Đang tìm xe...' : etaLabel}
-            </Text>
-
-            <View style={[styles.etaBadge, styles.shadow]}>
-              <MaterialCommunityIcons name="clock-outline" size={14} color="#6B7280" />
-              <Text style={styles.etaBadgeText}>{etaLabel}</Text>
-            </View>
-
-            <View style={styles.statusPill}>
-              <Text style={styles.statusPillText}>
-                {steps[stepIndex]?.label || ''}
-              </Text>
-            </View>
-          </ImageBackground>
-        </View>
-
-        {/* STEP INDICATOR */}
-        <View style={styles.stepRow}>
-          {steps.map((step, index) => {
-            const isDone = index < stepIndex;
-            const isActive = index === stepIndex;
-            const isPending = index > stepIndex;
-
-            return (
-              <React.Fragment key={step.id}>
-                <View style={styles.stepItem}>
-                  <View
-                    style={[
-                      styles.stepCircle,
-                      {
-                        backgroundColor: isPending ? '#E5E7EB' : '#00B14F',
-                      },
-                    ]}
-                  >
-                    {isDone ? (
-                      <MaterialCommunityIcons name="check" size={18} color="white" />
-                    ) : (
-                      <MaterialCommunityIcons
-                        name={step.icon as any}
-                        size={16}
-                        color={isPending ? '#9CA3AF' : 'white'}
-                      />
-                    )}
-                  </View>
-                  <Text
-                    style={[
-                      styles.stepLabel,
-                      {
-                        color: isDone ? '#009040' : isActive ? '#00B14F' : '#9CA3AF',
-                      },
-                    ]}
-                  >
-                    {step.label}
-                  </Text>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* MAP ZONE */}
+          <View style={styles.mapZoneContainer}>
+            <View style={styles.mapZone}>
+              {ASSETS.images.mapPlaceholder ? (
+                <Image
+                  source={ASSETS.images.mapPlaceholder}
+                  style={styles.mapImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={styles.mapPlaceholderBg}>
+                  <MaterialCommunityIcons name="car" size={52} color={theme.colors.primary} />
                 </View>
-                {index < steps.length - 1 && (
-                  <View
-                    style={[
-                      styles.connector,
-                      {
-                        backgroundColor: index < stepIndex ? '#00B14F' : '#E5E7EB',
-                      },
-                    ]}
-                  />
-                )}
-              </React.Fragment>
-            );
-          })}
-        </View>
+              )}
 
-        {/* DRIVER CARD */}
-        <View
-          style={[styles.card, styles.shadow]}
-          accessibilityLabel={`Tài xế ${driver.name}, đánh giá ${driver.rating}, ${driver.vehicle}, biển số ${driver.plate}`}
-          accessibilityRole="none"
-        >
-          <View style={styles.driverRow}>
-            <View style={styles.driverAvatar}>
-              <MaterialCommunityIcons name="account" size={36} color="#00B14F" />
-            </View>
-            <View style={styles.driverInfoCenter}>
-              <Text style={styles.driverName}>{driver.name}</Text>
-              <View style={styles.driverRatingRow}>
-                <MaterialCommunityIcons name="star" size={13} color="#F59E0B" />
-                <Text style={styles.driverRatingText}>{driver.rating}</Text>
-                <Text style={styles.dotSeparator}>·</Text>
-                <MaterialCommunityIcons name="car" size={13} color="#6B7280" />
-                <Text style={styles.vehicleText}>{driver.vehicle}</Text>
+              <View style={styles.floatingLogoPill}>
+                <SuaraLogo size="sm" />
               </View>
-              <View
-                style={styles.plateView}
-                accessibilityLabel={'Biển số xe ' + driver.plate}
-              >
-                <Text style={styles.plateText}>{driver.plate}</Text>
+
+              <View style={[styles.etaBadge, styles.shadow]}>
+                <MaterialCommunityIcons name="clock-outline" size={14} color={theme.colors.textPrimary} />
+                <Text style={styles.etaBadgeText}>{etaLabel}</Text>
               </View>
-            </View>
-            <View style={styles.driverActions}>
-              <TouchableOpacity
-                style={styles.actionBtn}
-                accessibilityRole="button"
-                accessibilityLabel="Gọi tài xế"
-              >
-                <MaterialCommunityIcons name="phone" size={22} color="#374151" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.actionBtn}
-                accessibilityRole="button"
-                accessibilityLabel="Nhắn tin tài xế"
-              >
-                <MaterialCommunityIcons name="chat-outline" size={22} color="#374151" />
-              </TouchableOpacity>
             </View>
           </View>
-        </View>
 
-        {/* OTP CARD */}
-        {showOtp && (
+          {/* STEP INDICATOR */}
+          <View style={styles.stepRow}>
+            {steps.map((step, index) => {
+              const isDone = index < stepIndex;
+              const isActive = index === stepIndex;
+              const isPending = index > stepIndex;
+
+              return (
+                <React.Fragment key={step.id}>
+                  <View style={styles.stepItem}>
+                    <View
+                      style={[
+                        styles.stepCircle,
+                        {
+                          backgroundColor: isPending ? theme.colors.border : theme.colors.primary,
+                        },
+                      ]}
+                    >
+                      {isDone ? (
+                        <MaterialCommunityIcons name="check" size={18} color="white" />
+                      ) : (
+                        <MaterialCommunityIcons
+                          name={step.icon as any}
+                          size={16}
+                          color={isPending ? theme.colors.textMuted : 'white'}
+                        />
+                      )}
+                    </View>
+                    <Text
+                      style={[
+                        styles.stepLabel,
+                        {
+                          color: isDone ? theme.colors.primaryDark : isActive ? theme.colors.primary : theme.colors.textMuted,
+                        },
+                      ]}
+                    >
+                      {step.label}
+                    </Text>
+                  </View>
+                  {index < steps.length - 1 && (
+                    <View
+                      style={[
+                        styles.connector,
+                        {
+                          backgroundColor: index < stepIndex ? theme.colors.primary : theme.colors.border,
+                        },
+                      ]}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </View>
+
+          {/* DRIVER CARD */}
+          <View
+            style={[styles.card, styles.shadow]}
+            accessibilityLabel={`Tài xế ${driver.name}, đánh giá ${driver.rating}, ${driver.vehicle}, biển số ${driver.plate}`}
+            accessibilityRole="none"
+          >
+            <View style={styles.driverRow}>
+              <View style={styles.driverAvatar}>
+                <MaterialCommunityIcons name="account" size={32} color={theme.colors.primary} />
+              </View>
+              <View style={styles.driverInfoCenter}>
+                <Text style={styles.driverName}>{driver.name}</Text>
+                <View style={styles.driverRatingRow}>
+                  <MaterialCommunityIcons name="star" size={13} color="#F59E0B" />
+                  <Text style={styles.driverRatingText}>{driver.rating}</Text>
+                  <Text style={styles.dotSeparator}>·</Text>
+                  <MaterialCommunityIcons name="car" size={13} color={theme.colors.textSecondary} />
+                  <Text style={styles.vehicleText}>{driver.vehicle}</Text>
+                </View>
+                <View
+                  style={styles.plateView}
+                  accessibilityLabel={'Biển số xe ' + driver.plate}
+                >
+                  <Text style={styles.plateText}>{driver.plate}</Text>
+                </View>
+              </View>
+              <View style={styles.driverActions}>
+                <TouchableOpacity
+                  style={styles.actionBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel="Gọi tài xế"
+                >
+                  <MaterialCommunityIcons name="phone" size={22} color={theme.colors.textPrimary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel="Nhắn tin tài xế"
+                >
+                  <MaterialCommunityIcons name="chat-outline" size={22} color={theme.colors.textPrimary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+
+          {/* OTP CARD */}
+          {showOtp && (
+            <Animated.View
+              style={[
+                styles.otpCard,
+                { opacity: otpOpacity, transform: [{ scale: otpScale }] },
+              ]}
+              accessibilityLabel={`Mã OTP của bạn là ${otpDigits.join(' ')}`}
+              accessibilityLiveRegion="polite"
+            >
+              <Text style={styles.otpHeader}>MÃ OTP CỦA BẠN</Text>
+              <View style={styles.otpRow}>
+                {otpDigits.map((digit, i) => (
+                  <View key={i} style={styles.otpBox}>
+                    <Text style={styles.otpDigit}>{digit}</Text>
+                  </View>
+                ))}
+              </View>
+              <Text style={styles.otpHint}>
+                Chia sẻ mã này với tài xế để xác nhận lên xe
+              </Text>
+              <View style={styles.securityRow}>
+                <MaterialCommunityIcons name="shield-check" size={14} color={theme.colors.primary} />
+                <Text style={styles.securityText}>Mã hết hạn khi chuyến bắt đầu</Text>
+              </View>
+            </Animated.View>
+          )}
+
+          {/* RIDE DETAILS CARD */}
+          <View
+            style={[styles.card, styles.shadow]}
+            accessibilityLabel={`Từ ${intent?.origin ?? '123 Lê Lợi, Q.1'} đến ${
+              intent?.destination ?? 'Bến Thành Market'
+            }`}
+          >
+            <View style={styles.locationRow}>
+              <MaterialCommunityIcons name="map-marker-outline" size={18} color={theme.colors.primary} />
+              <View style={styles.locationInfo}>
+                <Text style={styles.locationLabel}>ĐIỂM ĐÓN</Text>
+                <Text style={styles.locationText}>
+                  {intent?.origin ?? '123 Lê Lợi, Q.1'}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.locationDivider} />
+            <View style={styles.locationRow}>
+              <MaterialCommunityIcons name="map-marker-check" size={18} color={theme.colors.error} />
+              <View style={styles.locationInfo}>
+                <Text style={styles.locationLabel}>ĐIỂM ĐẾN</Text>
+                <Text style={styles.locationText}>
+                  {intent?.destination ?? 'Bến Thành Market'}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.locationDivider} />
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>Giá ước tính</Text>
+              <Text style={styles.priceValue}>~45.000đ</Text>
+            </View>
+          </View>
+        </ScrollView>
+
+        {/* VOICE TOAST */}
+        {toastVisible && (
           <Animated.View
             style={[
-              styles.otpCard,
-              { opacity: otpOpacity, transform: [{ scale: otpScale }] },
+              styles.voiceToast,
+              { top: insets.top + 70, opacity: toastOpacity },
             ]}
-            accessibilityLabel={`Mã OTP của bạn là ${otpDigits.join(' ')}`}
             accessibilityLiveRegion="polite"
+            importantForAccessibility="yes"
           >
-            <Text style={styles.otpHeader}>MÃ OTP CỦA BẠN</Text>
-            <View style={styles.otpRow}>
-              {otpDigits.map((digit, i) => (
-                <View key={i} style={styles.otpBox}>
-                  <Text style={styles.otpDigit}>{digit}</Text>
-                </View>
-              ))}
-            </View>
-            <Text style={styles.otpHint}>
-              Chia sẻ mã này với tài xế để xác nhận lên xe
-            </Text>
-            <View style={styles.securityRow}>
-              <MaterialCommunityIcons name="shield-check" size={14} color="#00B14F" />
-              <Text style={styles.securityText}>Mã hết hạn khi chuyến bắt đầu</Text>
+            <View style={styles.toastInner}>
+              <MaterialCommunityIcons name="volume-high" size={20} color={theme.colors.primary} />
+              <Text style={styles.toastText} numberOfLines={2}>
+                {announcement}
+              </Text>
             </View>
           </Animated.View>
         )}
 
-        {/* RIDE DETAILS CARD */}
-        <View
-          style={[styles.card, styles.shadow]}
-          accessibilityLabel={`Từ ${intent?.origin ?? '123 Lê Lợi, Q.1'} đến ${
-            intent?.destination ?? 'Bến Thành Market'
-          }`}
-        >
-          <View style={styles.locationRow}>
-            <MaterialCommunityIcons name="map-marker-outline" size={18} color="#00B14F" />
-            <View style={styles.locationInfo}>
-              <Text style={styles.locationLabel}>ĐIỂM ĐÓN</Text>
-              <Text style={styles.locationText}>
-                {intent?.origin ?? '123 Lê Lợi, Q.1'}
-              </Text>
+        {/* FOOTER */}
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+          {canCancel ? (
+            <TouchableOpacity
+              style={styles.cancelBtn}
+              onPress={onCancel}
+              accessibilityRole="button"
+              accessibilityLabel="Huỷ chuyến đi"
+              accessibilityHint="Chỉ khả dụng khi đang tìm xe hoặc tài xế đang đến"
+            >
+              <Text style={styles.cancelBtnText}>Huỷ chuyến</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.disabledFooter}>
+              <MaterialCommunityIcons name="lock" size={14} color={theme.colors.textMuted} />
+              <Text style={styles.disabledFooterText}>Không thể huỷ lúc này</Text>
             </View>
-          </View>
-          <View style={styles.divider} />
-          <View style={styles.locationRow}>
-            <MaterialCommunityIcons name="map-marker-check" size={18} color="#EF4444" />
-            <View style={styles.locationInfo}>
-              <Text style={styles.locationLabel}>ĐIỂM ĐẾN</Text>
-              <Text style={styles.locationText}>
-                {intent?.destination ?? 'Bến Thành Market'}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.divider} />
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Giá ước tính</Text>
-            <Text style={styles.priceValue}>~45.000đ</Text>
-          </View>
+          )}
         </View>
-      </ScrollView>
 
-      {/* VOICE TOAST */}
-      {toastVisible && (
-        <Animated.View
-          style={[
-            styles.voiceToast,
-            { top: insets.top + 8, opacity: toastOpacity },
-          ]}
-          accessibilityLiveRegion="polite"
-          importantForAccessibility="yes"
+        {/* Floating Mic FAB */}
+        <TouchableOpacity 
+          style={[styles.micFab, { bottom: Math.max(insets.bottom, 16) + 80 }]}
+          accessibilityRole="button"
+          accessibilityLabel="Voice Assistant"
         >
-          <MaterialCommunityIcons name="volume-high" size={16} color="#00B14F" />
-          <Text style={styles.toastText} numberOfLines={2}>
-            {announcement}
-          </Text>
-        </Animated.View>
-      )}
-
-      {/* FOOTER */}
-      <View
-        style={[
-          styles.footer,
-          { paddingBottom: insets.bottom + 16 },
-        ]}
-      >
-        {canCancel ? (
-          <TouchableOpacity
-            style={styles.cancelBtn}
-            onPress={onCancel}
-            accessibilityRole="button"
-            accessibilityLabel="Huỷ chuyến đi"
-            accessibilityHint="Chỉ khả dụng khi đang tìm xe hoặc tài xế đang đến"
-          >
-            <Text style={styles.cancelBtnText}>Huỷ chuyến</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.disabledFooter}>
-            <Text style={styles.disabledFooterText}>Không thể huỷ</Text>
-          </View>
-        )}
-      </View>
-      </ImageBackground>
-    </SafeAreaView>
+          <MaterialCommunityIcons name="microphone" size={32} color="white" />
+        </TouchableOpacity>
+      </SafeAreaView>
+    </BrandedBackground>
   );
 };
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F9F9FF',
+    backgroundColor: 'transparent',
   },
   flex1: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 140,
-  },
-  grabBadge: {
-    backgroundColor: '#00B14F',
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  grabBadgeText: {
-    fontSize: 12,
-    color: 'white',
-    fontWeight: '600',
+    paddingBottom: 160,
   },
   grabLogoImg: {
-    width: 16,
-    height: 16,
+    width: 60,
+    height: 24,
   },
   mapZoneContainer: {
-    marginHorizontal: 20,
-    marginTop: 8,
-    marginBottom: 16,
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 24,
   },
   mapZone: {
-    height: 200,
-    borderRadius: 20,
+    height: 240,
+    borderRadius: theme.radius.card,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
-    backgroundColor: '#E8F8EF',
+    backgroundColor: '#E8EDEA',
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  mapImage: {
+    width: '100%',
+    height: '100%',
   },
   mapPlaceholderBg: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#E8F8EF',
+    backgroundColor: '#E8EDEA',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  mapEtaText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#00B14F',
-    marginTop: 8,
+  floatingLogoPill: {
+    position: 'absolute',
+    top: 12,
+    left: '50%',
+    marginLeft: -42,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: theme.radius.full,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
   },
   etaBadge: {
     position: 'absolute',
-    top: 12,
+    bottom: 12,
     right: 12,
     backgroundColor: 'white',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+    borderRadius: theme.radius.full,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   etaBadgeText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  statusPill: {
-    position: 'absolute',
-    bottom: 12,
-    left: 12,
-    backgroundColor: 'rgba(0,177,79,0.9)',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-  },
-  statusPillText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: 'white',
+    fontSize: 15,
+    fontWeight: '800',
+    color: theme.colors.textPrimary,
   },
   stepRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingHorizontal: 24,
+    marginBottom: 24,
   },
   stepItem: {
     alignItems: 'center',
@@ -441,41 +436,44 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   stepLabel: {
-    fontSize: 10,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     textAlign: 'center',
     width: 64,
   },
   connector: {
     flex: 1,
-    height: 2,
-    marginTop: -18,
+    height: 3,
+    marginTop: -26,
   },
   card: {
-    backgroundColor: 'white',
-    borderRadius: 20,
-    marginHorizontal: 20,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.card,
+    marginHorizontal: 16,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   shadow: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 4,
   },
   driverRow: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
   driverAvatar: {
-    width: 64,
-    height: 64,
-    backgroundColor: '#E8F8EF',
-    borderRadius: 32,
+    width: 56,
+    height: 56,
+    backgroundColor: theme.colors.primarySoft,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -484,9 +482,9 @@ const styles = StyleSheet.create({
     marginLeft: 14,
   },
   driverName: {
-    fontSize: 19,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#111827',
+    color: theme.colors.textPrimary,
   },
   driverRatingRow: {
     flexDirection: 'row',
@@ -495,96 +493,101 @@ const styles = StyleSheet.create({
   },
   driverRatingText: {
     fontSize: 13,
-    color: '#374151',
+    color: theme.colors.textSecondary,
     marginLeft: 3,
+    fontWeight: '600',
   },
   dotSeparator: {
     marginHorizontal: 4,
-    color: '#6B7280',
+    color: theme.colors.border,
   },
   vehicleText: {
     fontSize: 13,
-    color: '#6B7280',
+    color: theme.colors.textSecondary,
     marginLeft: 3,
+    fontWeight: '500',
   },
   plateView: {
     backgroundColor: '#111827',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    borderRadius: theme.radius.sm,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     alignSelf: 'flex-start',
-    marginTop: 10,
+    marginTop: 8,
   },
   plateText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: 'white',
-    letterSpacing: 2,
+    letterSpacing: 1.5,
   },
   driverActions: {
     flexDirection: 'row',
     gap: 8,
   },
   actionBtn: {
-    width: 52,
-    height: 52,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 26,
+    width: 48,
+    height: 48,
+    backgroundColor: theme.colors.primaryXSoft,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
   },
   otpCard: {
-    backgroundColor: 'white',
-    borderRadius: 20,
-    marginHorizontal: 20,
+    backgroundColor: theme.colors.primaryXSoft,
+    borderRadius: theme.radius.card,
+    marginHorizontal: 16,
     padding: 20,
-    marginBottom: 12,
+    marginBottom: 16,
     borderWidth: 2,
-    borderColor: '#00B14F',
+    borderColor: theme.colors.primary,
   },
   otpHeader: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#9CA3AF',
-    letterSpacing: 0.9,
+    fontWeight: '800',
+    color: theme.colors.textMuted,
+    letterSpacing: 1,
     textAlign: 'center',
     marginBottom: 12,
   },
   otpRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 8,
+    gap: 10,
   },
   otpBox: {
-    width: 56,
-    height: 56,
-    backgroundColor: '#E8F8EF',
-    borderRadius: 12,
+    width: 60,
+    height: 60,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+    borderRadius: theme.radius.lg,
     justifyContent: 'center',
     alignItems: 'center',
   },
   otpDigit: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '800',
-    color: '#00B14F',
+    color: theme.colors.primary,
   },
   otpHint: {
-    fontSize: 13,
-    color: '#6B7280',
+    fontSize: 14,
+    color: theme.colors.textSecondary,
     textAlign: 'center',
     marginTop: 12,
+    fontWeight: '500',
   },
   securityRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 10,
     gap: 6,
   },
   securityText: {
     fontSize: 12,
-    color: '#00B14F',
-    fontWeight: '600',
+    color: theme.colors.primary,
+    fontWeight: '700',
   },
   locationRow: {
     flexDirection: 'row',
@@ -592,25 +595,25 @@ const styles = StyleSheet.create({
     marginVertical: 12,
   },
   locationInfo: {
-    marginLeft: 10,
+    marginLeft: 12,
     flex: 1,
   },
   locationLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#9CA3AF',
-    letterSpacing: 0.9,
+    color: theme.colors.textMuted,
+    letterSpacing: 1,
   },
   locationText: {
     fontSize: 15,
-    color: '#111827',
-    fontWeight: '500',
+    color: theme.colors.textPrimary,
+    fontWeight: '600',
     marginTop: 2,
   },
-  divider: {
+  locationDivider: {
     height: 1,
-    backgroundColor: '#F3F4F6',
-    marginLeft: 28,
+    backgroundColor: theme.colors.border,
+    marginLeft: 30,
   },
   priceRow: {
     flexDirection: 'row',
@@ -619,31 +622,40 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   priceLabel: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: 15,
+    color: theme.colors.textSecondary,
+    fontWeight: '500',
   },
   priceValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
+    fontSize: 18,
+    fontWeight: '800',
+    color: theme.colors.primary,
   },
   voiceToast: {
     position: 'absolute',
-    left: 16,
-    right: 16,
-    backgroundColor: '#111827',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    left: 20,
+    right: 20,
     zIndex: 100,
   },
+  toastInner: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: theme.colors.primary,
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
   toastText: {
-    fontSize: 14,
-    color: 'white',
-    fontWeight: '500',
+    color: theme.colors.textPrimary,
+    fontSize: 15,
+    fontWeight: '700',
+    marginLeft: 12,
     flex: 1,
   },
   footer: {
@@ -651,33 +663,51 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: theme.colors.border,
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingTop: 16,
   },
   cancelBtn: {
-    height: 52,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: '#EF4444',
+    height: 60,
+    borderRadius: theme.radius.full,
+    borderWidth: 1.5,
+    borderColor: theme.colors.error,
     justifyContent: 'center',
     alignItems: 'center',
   },
   cancelBtnText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#EF4444',
+    fontSize: 17,
+    fontWeight: '700',
+    color: theme.colors.error,
   },
   disabledFooter: {
-    height: 52,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    height: 60,
   },
   disabledFooterText: {
-    fontSize: 14,
-    color: '#9CA3AF',
+    fontSize: 15,
+    color: theme.colors.textMuted,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  micFab: {
+    position: 'absolute',
+    right: 20,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
 });
 

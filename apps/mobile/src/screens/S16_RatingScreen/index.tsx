@@ -1,3 +1,4 @@
+// apps/mobile/src/screens/S16_RatingScreen/index.tsx
 import React from 'react';
 import {
   Animated,
@@ -16,6 +17,9 @@ import { useRating } from './useRating.hook';
 import { RATING_TAGS } from './rating.service';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { PrimaryButton } from '../../components/PrimaryButton';
+import { theme } from '../../theme/theme';
+import { SuaraLogo } from '../../components/SuaraLogo';
+import { BrandedBackground } from '../../components/BrandedBackground';
 
 const RatingScreen = () => {
   const insets = useSafeAreaInsets();
@@ -34,154 +38,169 @@ const RatingScreen = () => {
   } = useRating();
 
   return (
-    <SafeAreaView edges={['top', 'bottom']} style={styles.root}>
-      <ScreenHeader title="Đánh giá dịch vụ" onBack={onBack} />
+    <BrandedBackground variant="default">
+      <SafeAreaView edges={['top', 'bottom']} style={styles.root}>
+        <ScreenHeader title="Đánh giá dịch vụ" showLogo={false} onBack={onBack} />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.keyboardView}
-      >
-        <ScrollView
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: insets.bottom + 120, paddingHorizontal: 20 },
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.keyboardView}
+        >
+          <ScrollView
+            contentContainerStyle={[
+              styles.scrollContent,
+              { paddingBottom: insets.bottom + 140, paddingHorizontal: 20 },
+            ]}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* ORDER RECAP CARD */}
+            <View
+              style={[styles.recapCard, styles.shadow]}
+              accessibilityLabel="Đơn hàng Phở Hà Nội, Phở Bò Tái, 80.000 đồng"
+            >
+              <View style={styles.recapRow}>
+                <Text style={styles.restaurantName}>Phở Hà Nội</Text>
+                <Text style={styles.priceText}>80.000đ</Text>
+              </View>
+              <Text style={styles.itemText}>Phở Bò Tái ×1</Text>
+            </View>
+
+            {/* STARS SECTION */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Đồ ăn và dịch vụ thế nào?</Text>
+              <View style={styles.starsRow}>
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <Animated.View
+                    key={n}
+                    style={{ transform: [{ scale: starAnims[n - 1] }] }}
+                  >
+                    <TouchableOpacity
+                      onPress={() => onStarPress(n)}
+                      style={styles.starBtn}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${n} sao`}
+                      accessibilityState={{ selected: stars >= n }}
+                    >
+                      <MaterialCommunityIcons
+                        name={stars >= n ? 'star' : 'star-outline'}
+                        size={48}
+                        color={stars >= n ? '#F59E0B' : theme.colors.border}
+                      />
+                    </TouchableOpacity>
+                  </Animated.View>
+                ))}
+              </View>
+              {stars > 0 && (
+                <Text style={[styles.starsCountText, { color: stars === 5 ? theme.colors.primary : theme.colors.textSecondary }]}>
+                  {stars}/5 sao — {stars === 5 ? 'Tuyệt vời!' : stars >= 4 ? 'Rất tốt' : 'Bình thường'}
+                </Text>
+              )}
+            </View>
+
+            {/* TAGS SECTION */}
+            {stars >= 1 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Điều gì nổi bật?</Text>
+                <View style={styles.tagsContainer}>
+                  {RATING_TAGS.map((tag) => {
+                    const isSelected = selectedTags.includes(tag);
+                    return (
+                      <TouchableOpacity
+                        key={tag}
+                        onPress={() => onTagPress(tag)}
+                        style={[styles.tagPill, isSelected && styles.tagPillActive]}
+                        accessibilityRole="checkbox"
+                        accessibilityState={{ checked: isSelected }}
+                        accessibilityLabel={tag}
+                      >
+                        <Text
+                          style={[
+                            styles.tagText,
+                            isSelected && styles.tagTextActive,
+                          ]}
+                        >
+                          {tag}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
+            {/* COMMENT SECTION */}
+            <View style={styles.section}>
+              <Text style={styles.commentLabel}>Thêm bình luận (tuỳ chọn)</Text>
+              <TextInput
+                style={styles.commentInput}
+                value={comment}
+                onChangeText={onCommentChange}
+                placeholder="Hãy chia sẻ trải nghiệm của bạn..."
+                placeholderTextColor={theme.colors.textMuted}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+                accessibilityLabel="Ô nhập bình luận"
+                accessibilityHint="Tuỳ chọn. Mô tả trải nghiệm của bạn bằng văn bản."
+              />
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+
+        {/* FOOTER */}
+        <View
+          style={[
+            styles.footer,
+            { paddingBottom: Math.max(insets.bottom, 16) },
           ]}
         >
-          {/* ORDER RECAP CARD */}
-          <View
-            style={styles.recapCard}
-            accessibilityLabel="Đơn hàng Phở Hà Nội, Phở Bò Tái, 80.000 đồng"
+          <PrimaryButton
+            label={loading ? 'Đang gửi...' : 'Gửi đánh giá'}
+            onPress={onSubmit}
+            disabled={stars === 0 || loading}
+          />
+          <TouchableOpacity
+            onPress={onSkip}
+            style={styles.skipBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Bỏ qua đánh giá, về trang chủ"
           >
-            <View style={styles.recapRow}>
-              <Text style={styles.restaurantName}>Phở Hà Nội</Text>
-              <Text style={styles.priceText}>80.000đ</Text>
-            </View>
-            <Text style={styles.itemText}>Phở Bò Tái ×1</Text>
+            <Text style={styles.skipText}>Bỏ qua</Text>
+          </TouchableOpacity>
+          <View style={styles.logoBottom}>
+            <SuaraLogo size="sm" />
           </View>
-
-          {/* STARS SECTION */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Đồ ăn và dịch vụ thế nào?</Text>
-            <View style={styles.starsRow}>
-              {[1, 2, 3, 4, 5].map((n) => (
-                <Animated.View
-                  key={n}
-                  style={{ transform: [{ scale: starAnims[n - 1] }] }}
-                >
-                  <TouchableOpacity
-                    onPress={() => onStarPress(n)}
-                    style={styles.starBtn}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${n} sao`}
-                    accessibilityState={{ selected: stars >= n }}
-                  >
-                    <MaterialCommunityIcons
-                      name={stars >= n ? 'star' : 'star-outline'}
-                      size={42}
-                      color={stars >= n ? '#F59E0B' : '#D1D5DB'}
-                    />
-                  </TouchableOpacity>
-                </Animated.View>
-              ))}
-            </View>
-            {stars > 0 && (
-              <Text style={styles.starsCountText}>{stars}/5 sao</Text>
-            )}
-          </View>
-
-          {/* TAGS SECTION */}
-          {stars >= 1 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Điều gì nổi bật?</Text>
-              <View style={styles.tagsContainer}>
-                {RATING_TAGS.map((tag) => {
-                  const isSelected = selectedTags.includes(tag);
-                  return (
-                    <TouchableOpacity
-                      key={tag}
-                      onPress={() => onTagPress(tag)}
-                      style={[styles.tagPill, isSelected && styles.tagPillActive]}
-                      accessibilityRole="checkbox"
-                      accessibilityState={{ checked: isSelected }}
-                      accessibilityLabel={tag}
-                    >
-                      <Text
-                        style={[
-                          styles.tagText,
-                          isSelected && styles.tagTextActive,
-                        ]}
-                      >
-                        {tag}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-          )}
-
-          {/* COMMENT SECTION */}
-          <View style={styles.section}>
-            <Text style={styles.commentLabel}>Thêm bình luận (tuỳ chọn)</Text>
-            <TextInput
-              style={styles.commentInput}
-              value={comment}
-              onChangeText={onCommentChange}
-              placeholder="Hãy chia sẻ trải nghiệm của bạn..."
-              placeholderTextColor="#9CA3AF"
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-              accessibilityLabel="Ô nhập bình luận"
-              accessibilityHint="Tuỳ chọn. Mô tả trải nghiệm của bạn bằng văn bản."
-            />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-
-      {/* FOOTER */}
-      <View
-        style={[
-          styles.footer,
-          { paddingBottom: insets.bottom + 16 },
-        ]}
-      >
-        <PrimaryButton
-          label={loading ? 'Đang gửi...' : 'Gửi đánh giá'}
-          onPress={onSubmit}
-          disabled={stars === 0 || loading}
-        />
-        <TouchableOpacity
-          onPress={onSkip}
-          style={styles.skipBtn}
-          accessibilityRole="button"
-          accessibilityLabel="Bỏ qua đánh giá, về trang chủ"
-        >
-          <Text style={styles.skipText}>Bỏ qua</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+        </View>
+      </SafeAreaView>
+    </BrandedBackground>
   );
 };
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'transparent',
   },
   keyboardView: {
     flex: 1,
   },
   scrollContent: {
-    paddingTop: 8,
+    paddingTop: 12,
   },
   recapCard: {
-    backgroundColor: '#F9F9FF',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.card,
+    padding: 16,
     marginBottom: 24,
-    marginTop: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  shadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   recapRow: {
     flexDirection: 'row',
@@ -189,109 +208,116 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   restaurantName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: 18,
+    fontWeight: '700',
+    color: theme.colors.textPrimary,
   },
   priceText: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#00B14F',
+    color: theme.colors.primary,
   },
   itemText: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginTop: 2,
+    fontSize: 15,
+    color: theme.colors.textSecondary,
+    marginTop: 4,
   },
   section: {
-    marginBottom: 20,
+    marginBottom: 28,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: 20,
+    fontWeight: '700',
+    color: theme.colors.textPrimary,
     marginBottom: 16,
   },
   starsRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 4,
+    gap: 8,
   },
   starBtn: {
-    width: 52,
-    height: 52,
+    width: 56,
+    height: 56,
     justifyContent: 'center',
     alignItems: 'center',
   },
   starsCountText: {
-    fontSize: 13,
-    color: '#6B7280',
+    fontSize: 15,
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: 12,
+    fontWeight: '700',
   },
   tagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 10,
   },
   tagPill: {
-    height: 40,
-    paddingHorizontal: 14,
-    borderRadius: 999,
-    backgroundColor: '#F3F4F6',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    height: 44,
+    paddingHorizontal: 16,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1.5,
+    borderColor: theme.colors.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
   tagPillActive: {
-    backgroundColor: '#00B14F',
-    borderColor: '#00B14F',
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
   },
   tagText: {
-    fontSize: 14,
-    color: '#374151',
+    fontSize: 15,
+    color: theme.colors.textPrimary,
+    fontWeight: '500',
   },
   tagTextActive: {
     color: 'white',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   commentLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 10,
+    fontSize: 17,
+    fontWeight: '700',
+    color: theme.colors.textPrimary,
+    marginBottom: 12,
   },
   commentInput: {
-    height: 100,
-    backgroundColor: '#F9F9FF',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 16,
-    padding: 14,
+    height: 120,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1.5,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.lg,
+    padding: 16,
     fontSize: 16,
-    color: '#111827',
+    color: theme.colors.textPrimary,
   },
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: theme.colors.border,
     paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingTop: 16,
   },
   skipBtn: {
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 4,
   },
   skipText: {
-    fontSize: 14,
-    color: '#9CA3AF',
+    fontSize: 15,
+    color: theme.colors.textMuted,
+    fontWeight: '700',
+  },
+  logoBottom: {
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 4,
   },
 });
 

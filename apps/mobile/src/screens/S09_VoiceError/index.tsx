@@ -1,3 +1,4 @@
+// apps/mobile/src/screens/S09_VoiceError/index.tsx
 import React, { useEffect, useRef } from 'react';
 import { 
   Animated, 
@@ -54,7 +55,7 @@ export default function VoiceErrorScreen() {
         <Animated.View style={[styles.pulseCircle, styles.pulse2, createPulseStyle(pulse2)]} />
         
         <View style={styles.micCircle}>
-          <MaterialCommunityIcons name="microphone-off" size={40} color="#EF4444" />
+          <MaterialCommunityIcons name="microphone-off" size={44} color={theme.colors.error} />
         </View>
       </View>
 
@@ -87,7 +88,7 @@ export default function VoiceErrorScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: 'rgba(17, 24, 39, 0.93)',
+    backgroundColor: '#0A1F14',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
@@ -124,56 +125,64 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(239, 68, 68, 0.12)',
   },
   micCircle: {
-    width: 96,
-    height: 96,
-    backgroundColor: '#FEE2E2',
-    borderRadius: 48,
+    width: 104,
+    height: 104,
+    backgroundColor: theme.colors.errorBg,
+    borderRadius: 52,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
+    borderWidth: 2,
+    borderColor: theme.colors.error,
   },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     color: '#FFFFFF',
     fontWeight: '700',
     textAlign: 'center',
     marginTop: 32,
   },
   subtitle: {
-    fontSize: 17,
-    color: '#9CA3AF',
+    fontSize: 18,
+    color: 'rgba(255,255,255,0.7)',
     textAlign: 'center',
     marginTop: 12,
-    lineHeight: 24,
+    lineHeight: 26,
+    fontWeight: '400',
   },
   buttonGroup: {
     width: '100%',
-    marginTop: 48,
+    marginTop: 64,
     gap: 12,
   },
   retryBtn: {
-    height: 56,
-    borderRadius: 999,
-    backgroundColor: '#00B14F',
+    height: 60,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 4,
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
   retryBtnText: {
     color: 'white',
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
   },
   cancelBtn: {
-    height: 52,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: '#374151',
+    height: 56,
+    borderRadius: theme.radius.full,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.3)',
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
   },
   cancelBtnText: {
-    color: '#9CA3AF',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },

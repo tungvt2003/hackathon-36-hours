@@ -3,6 +3,14 @@ export enum OrderType {
   FOOD = 'FOOD',
 }
 
+export interface Intent {
+  type: OrderType;
+  restaurant?: string;
+  items?: string[];
+  origin?: string;
+  destination?: string;
+}
+
 export enum OrderStatus {
   QUOTED = 'QUOTED',
   CONFIRMED = 'CONFIRMED',
@@ -130,4 +138,50 @@ export interface RateOrderRequest {
 export interface AccessibilityProfile {
   modes: ('VISUAL' | 'MOTOR' | 'HANDS_FREE')[];
   aiSpeed: 'SLOW' | 'NORMAL' | 'FAST';
+}
+
+// ── Voice API ─────────────────────────────────────────────────
+
+export interface PlaceStatus {
+  name: string;
+  isOpen: boolean;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface WeatherInfo {
+  tempC: number;
+  condition: string;
+  willRain: boolean;
+}
+
+export interface Enrichment {
+  place?: PlaceStatus;
+  weather?: WeatherInfo;
+}
+
+export interface VoiceOrderRequest {
+  userId?: string;
+  transcript?: string;
+  audioBase64?: string;
+}
+
+export interface VoiceOrderResponse {
+  orderId: string;
+  transcript: string;
+  intent: Intent;
+  enrichment: Enrichment;
+}
+
+export interface ConfirmOrderRequest {
+  orderId: string;
+  partner: PartnerCode;
+}
+
+export interface ConfirmOrderResponse {
+  orderId: string;
+  status: OrderStatus;
+  partner: PartnerCode;
+  responseText: string;
 }

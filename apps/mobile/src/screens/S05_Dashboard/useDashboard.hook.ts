@@ -18,7 +18,7 @@ export const useDashboard = (): DashboardViewModel => {
   const micState: 'idle' = 'idle';
 
   const actions = dashboardService.getActions();
-  const userName = "John Doe"; // To be fetched from store in production
+  const userName = 'Người dùng';
 
   const onMicPress = useCallback(() => {
     navigation.navigate('VoiceAssistant', {});

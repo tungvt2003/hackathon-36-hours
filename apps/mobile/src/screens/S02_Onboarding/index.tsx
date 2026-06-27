@@ -1,3 +1,4 @@
+// apps/mobile/src/screens/S02_Onboarding/index.tsx
 import React, { useEffect, useRef } from 'react';
 import { 
   Dimensions, 
@@ -14,6 +15,7 @@ import { useOnboarding } from './useOnboarding.hook';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { theme } from '../../theme/theme';
 import { OnboardingSlide } from './onboarding.service';
+import { SuaraLogo } from '../../components/SuaraLogo';
 
 const { width } = Dimensions.get('window');
 
@@ -34,7 +36,7 @@ const Dot = ({ active }: { active: boolean }) => {
         styles.dot, 
         { 
           width: widthAnim, 
-          backgroundColor: active ? theme.colors.primary : '#D1D5DB' 
+          backgroundColor: active ? theme.colors.primary : theme.colors.border 
         }
       ]} 
     />
@@ -64,7 +66,10 @@ export default function OnboardingScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+      <View style={styles.logoAndSkipRow}>
+        <View style={styles.logoWrapper}>
+          <SuaraLogo size="sm" />
+        </View>
         <TouchableOpacity 
           onPress={handleSkip} 
           accessibilityRole="button" 
@@ -94,7 +99,7 @@ export default function OnboardingScreen() {
           ))}
         </View>
         <PrimaryButton 
-          label={currentIndex === slides.length - 1 ? 'Get Started' : 'Next →'} 
+          label={currentIndex === slides.length - 1 ? 'Get Started' : 'Next'} 
           onPress={handleNext}
         />
       </View>
@@ -105,22 +110,31 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
   },
-  header: {
-    alignItems: 'flex-end',
-    paddingHorizontal: 20,
+  logoAndSkipRow: {
     height: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginTop: 8,
+  },
+  logoWrapper: {
+    flex: 1,
+    alignItems: 'center',
+    paddingLeft: 48, // offset skip button width to center logo
   },
   skipButton: {
+    width: 48,
     height: 48,
     justifyContent: 'center',
-    paddingHorizontal: 8,
+    alignItems: 'center',
   },
   skipText: {
     color: theme.colors.primary,
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
   },
   slide: {
     width: width,
@@ -129,10 +143,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   iconContainer: {
-    width: 240,
-    height: 240,
-    backgroundColor: '#E8F8EF',
-    borderRadius: 24,
+    width: 200,
+    height: 200,
+    backgroundColor: theme.colors.primarySoft,
+    borderRadius: theme.radius.card,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 48,
@@ -142,30 +156,30 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: 'rgba(0, 177, 79, 0.1)',
+    backgroundColor: theme.colors.primaryGlow,
   },
   pulse: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: 'rgba(0, 177, 79, 0.2)',
+    backgroundColor: theme.colors.primaryGlow,
     transform: [{ scale: 1.5 }],
   },
   textContainer: {
     alignItems: 'center',
   },
   title: {
-    fontSize: 26,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: 28,
+    fontWeight: '800',
+    color: theme.colors.textPrimary,
     marginBottom: 16,
     textAlign: 'center',
   },
   description: {
     fontSize: 18,
-    lineHeight: 1.65 * 18,
+    lineHeight: 28,
     fontWeight: '400',
-    color: '#374151',
+    color: theme.colors.textSecondary,
     textAlign: 'center',
   },
   footer: {

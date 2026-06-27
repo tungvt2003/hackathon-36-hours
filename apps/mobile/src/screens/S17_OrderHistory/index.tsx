@@ -1,3 +1,4 @@
+// apps/mobile/src/screens/S17_OrderHistory/index.tsx
 import React from 'react';
 import {
   FlatList,
@@ -18,6 +19,9 @@ import {
   FilterValue,
 } from './orderHistory.service';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { theme } from '../../theme/theme';
+import { SuaraLogo } from '../../components/SuaraLogo';
+import { BrandedBackground } from '../../components/BrandedBackground';
 
 const OrderHistoryScreen = () => {
   const insets = useSafeAreaInsets();
@@ -36,21 +40,17 @@ const OrderHistoryScreen = () => {
   const renderItem = ({ item }: { item: HistoryOrder }) => (
     <TouchableOpacity
       onPress={() => onViewDetail(item)}
-      style={styles.orderCard}
+      style={[styles.orderCard, styles.shadow]}
       accessibilityRole="button"
-      accessibilityLabel={`Đơn ${item.title}, ${item.subtitle}, ${(
-        item.total / 1000
-      ).toFixed(0)}k đồng, ${STATUS_LABELS[item.status]}, ${item.dateLabel}`}
+      accessibilityLabel={`Đơn ${item.title}, ${item.subtitle}, ${(item.total / 1000).toFixed(0)}k đồng, ${STATUS_LABELS[item.status]}, ${item.dateLabel}`}
       accessibilityHint="Nhấn đúp để xem chi tiết đơn hàng"
     >
       <View style={styles.cardHeader}>
         <View style={styles.iconBox}>
           <MaterialCommunityIcons
-            name={item.type === 'food' ? 'food' : 'car'}
-            size={22}
-            color="#00B14F"
-            accessibilityElementsHidden={true}
-            importantForAccessibility="no-hide-descendants"
+            name={item.type === 'food' ? 'food' : 'car-side'}
+            size={24}
+            color={theme.colors.primary}
           />
         </View>
         <View style={styles.headerInfo}>
@@ -99,250 +99,296 @@ const OrderHistoryScreen = () => {
   );
 
   return (
-    <SafeAreaView edges={['top', 'bottom']} style={styles.root}>
-      <ScreenHeader title="Lịch sử đơn hàng" onBack={onBack} />
+    <BrandedBackground variant="default">
+      <SafeAreaView edges={['top', 'bottom']} style={styles.root}>
+        <ScreenHeader title="Lịch sử đơn hàng" showLogo={false} onBack={onBack} />
 
-      {/* SEARCH BAR */}
-      <View style={styles.searchBar}>
-        <MaterialCommunityIcons name="magnify" size={20} color="#9CA3AF" />
-        <TextInput
-          style={styles.searchInput}
-          value={searchQuery}
-          onChangeText={onSearchChange}
-          placeholder="Tìm kiếm đơn hàng..."
-          placeholderTextColor="#9CA3AF"
-          returnKeyType="search"
-          accessibilityLabel="Tìm kiếm đơn hàng"
-          accessibilityHint="Nhập tên nhà hàng hoặc món ăn"
-        />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity
-            onPress={() => onSearchChange('')}
-            style={styles.clearBtn}
-            accessibilityRole="button"
-            accessibilityLabel="Xoá tìm kiếm"
-          >
-            <MaterialCommunityIcons name="close-circle" size={18} color="#9CA3AF" />
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* FILTER CHIPS */}
-      <View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterScroll}
-        >
-          {filterOptions.map((opt) => (
+        {/* SEARCH BAR */}
+        <View style={[styles.searchBar, styles.shadowSm]}>
+          <MaterialCommunityIcons name="magnify" size={22} color={theme.colors.textMuted} />
+          <TextInput
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={onSearchChange}
+            placeholder="Tìm theo tên nhà hàng, món ăn..."
+            placeholderTextColor={theme.colors.textMuted}
+            returnKeyType="search"
+            accessibilityLabel="Tìm kiếm đơn hàng"
+          />
+          {searchQuery.length > 0 && (
             <TouchableOpacity
-              key={opt.value}
-              onPress={() => onFilterChange(opt.value as FilterValue)}
-              style={[
-                styles.filterChip,
-                activeFilter === opt.value && styles.filterChipActive,
-              ]}
-              accessibilityRole="radio"
-              accessibilityState={{ checked: activeFilter === opt.value }}
-              accessibilityLabel={opt.label}
+              onPress={() => onSearchChange('')}
+              style={styles.clearBtn}
             >
-              <Text
-                style={[
-                  styles.filterChipText,
-                  activeFilter === opt.value && styles.filterChipTextActive,
-                ]}
-              >
-                {opt.label}
-              </Text>
+              <MaterialCommunityIcons name="close-circle" size={18} color={theme.colors.textMuted} />
             </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+          )}
+        </View>
 
-      <FlatList
-        data={filtered}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={[
-          styles.listContent,
-          { paddingBottom: insets.bottom + 20 },
-        ]}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <MaterialCommunityIcons
-              name="receipt-text-outline"
-              size={64}
-              color="#D1D5DB"
-            />
-            <Text style={styles.emptyTitle}>Không có đơn hàng</Text>
-            <Text style={styles.emptySubtitle}>
-              Thử thay đổi bộ lọc hoặc tìm kiếm
-            </Text>
-          </View>
-        }
-      />
-    </SafeAreaView>
+        {/* FILTER CHIPS */}
+        <View style={styles.filterWrapper}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterScroll}
+          >
+            {filterOptions.map((opt) => {
+              const isActive = activeFilter === opt.value;
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  onPress={() => onFilterChange(opt.value as FilterValue)}
+                  style={[
+                    styles.filterChip,
+                    isActive && styles.filterChipActive,
+                  ]}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: isActive }}
+                >
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      isActive && styles.filterChipTextActive,
+                    ]}
+                  >
+                    {opt.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: insets.bottom + 100 },
+          ]}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <SuaraLogo size="md" />
+              <View style={styles.mt24}>
+                <Text style={styles.emptyTitle}>Không có đơn hàng nào</Text>
+                <Text style={styles.emptySubtitle}>
+                  Thử tìm kiếm từ khoá khác hoặc đổi bộ lọc nhé
+                </Text>
+              </View>
+            </View>
+          }
+        />
+
+        {/* Floating Mic FAB */}
+        <TouchableOpacity 
+          style={[styles.micFab, { bottom: Math.max(insets.bottom, 24) + 16 }]}
+          accessibilityRole="button"
+          accessibilityLabel="Voice Assistant"
+        >
+          <MaterialCommunityIcons name="microphone" size={36} color="white" />
+        </TouchableOpacity>
+      </SafeAreaView>
+    </BrandedBackground>
   );
 };
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F9F9FF',
+    backgroundColor: 'transparent',
   },
   searchBar: {
     flexDirection: 'row',
-    backgroundColor: '#F3F4F6',
-    borderRadius: 999,
-    height: 48,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.full,
+    height: 52,
     alignItems: 'center',
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     marginHorizontal: 20,
-    marginBottom: 8,
-    marginTop: 4,
+    marginBottom: 12,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#111827',
+    color: theme.colors.textPrimary,
     marginLeft: 8,
+    fontWeight: '500',
   },
   clearBtn: {
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 4,
+  },
+  filterWrapper: {
+    marginBottom: 8,
   },
   filterScroll: {
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingBottom: 12,
   },
   filterChip: {
-    height: 36,
-    paddingHorizontal: 16,
-    borderRadius: 999,
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    height: 40,
+    paddingHorizontal: 20,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1.5,
+    borderColor: theme.colors.border,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
+    marginRight: 10,
   },
   filterChipActive: {
-    backgroundColor: '#00B14F',
-    borderColor: '#00B14F',
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
   },
   filterChipText: {
-    fontSize: 13,
-    color: '#374151',
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    fontWeight: '600',
   },
   filterChipTextActive: {
     color: 'white',
-    fontWeight: '600',
+    fontWeight: '800',
   },
   listContent: {
     flexGrow: 1,
+    paddingTop: 8,
   },
   orderCard: {
-    backgroundColor: 'white',
-    borderRadius: 20,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.card,
     marginHorizontal: 20,
-    marginBottom: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  shadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  shadowSm: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowRadius: 6,
+    elevation: 2,
   },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 14,
+    padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: theme.colors.borderSoft,
   },
   iconBox: {
-    width: 44,
-    height: 44,
-    backgroundColor: '#E8F8EF',
-    borderRadius: 12,
+    width: 48,
+    height: 48,
+    backgroundColor: theme.colors.primarySoft,
+    borderRadius: theme.radius.md,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerInfo: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 14,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#111827',
+    color: theme.colors.textPrimary,
   },
   cardSubtitle: {
-    fontSize: 13,
-    color: '#6B7280',
+    fontSize: 14,
+    color: theme.colors.textSecondary,
     marginTop: 2,
+    fontWeight: '500',
   },
   statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: theme.radius.full,
     marginLeft: 8,
   },
   statusText: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
   },
   cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
   },
   dateText: {
     fontSize: 13,
-    color: '#9CA3AF',
+    color: theme.colors.textMuted,
     flex: 1,
+    fontWeight: '500',
   },
   totalText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#111827',
+    fontSize: 16,
+    fontWeight: '800',
+    color: theme.colors.textPrimary,
     marginRight: 12,
   },
   reorderBtn: {
-    height: 36,
-    paddingHorizontal: 14,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: '#00B14F',
+    height: 40,
+    paddingHorizontal: 16,
+    borderRadius: theme.radius.full,
+    borderWidth: 1.5,
+    borderColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   reorderText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#00B14F',
+    fontWeight: '700',
+    color: theme.colors.primary,
   },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 60,
+    paddingTop: 80,
+  },
+  mt24: {
+    marginTop: 24,
+    alignItems: 'center',
+    paddingHorizontal: 40,
   },
   emptyTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#374151',
-    marginTop: 16,
+    fontWeight: '800',
+    color: theme.colors.textPrimary,
+    textAlign: 'center',
   },
   emptySubtitle: {
-    fontSize: 14,
-    color: '#9CA3AF',
+    fontSize: 16,
+    color: theme.colors.textSecondary,
     marginTop: 8,
     textAlign: 'center',
+    lineHeight: 22,
+  },
+  micFab: {
+    position: 'absolute',
+    right: 20,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
   },
 });
 

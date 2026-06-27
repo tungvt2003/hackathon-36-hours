@@ -37,7 +37,7 @@ export const RootNavigator = () => {
       <Stack.Screen name="Onboarding" component={OnboardingScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ConnectGrabAccount" component={LoginScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ headerShown: false }} />
       
       <Stack.Screen
         name="VoiceAssistant"
