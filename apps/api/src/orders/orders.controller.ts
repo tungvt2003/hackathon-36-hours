@@ -1,7 +1,14 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 import { OrdersService } from './orders.service';
 import { VoiceOrderDto } from './dto/voice-order.dto';
 import { ConfirmOrderDto } from './dto/confirm-order.dto';
+
+class ReviewDto {
+  @IsInt() @Min(1) @Max(5) restaurantRating!: number;
+  @IsInt() @Min(1) @Max(5) driverRating!: number;
+  @IsOptional() @IsString() voiceText?: string;
+}
 import { Inject } from '@nestjs/common';
 import { STT_PROVIDER } from '../stt/stt.provider';
 import type { SttProvider } from '../stt/stt.provider';
@@ -37,6 +44,18 @@ export class OrdersController {
   @Post('orders/confirm')
   async confirmOrder(@Body() dto: ConfirmOrderDto) {
     return this.ordersService.confirmOrder(dto.orderId, dto.partner);
+  }
+
+  /** Lấy trạng thái đơn hàng + responseText để TTS đọc */
+  @Get('orders/:id/status')
+  orderStatus(@Param('id') id: string) {
+    return this.ordersService.getOrderStatus(id);
+  }
+
+  /** Phase 6 — review sau khi giao */
+  @Post('orders/:id/review')
+  submitReview(@Param('id') id: string, @Body() body: ReviewDto) {
+    return this.ordersService.submitReview(id, body);
   }
 
   // ---- Endpoint test riêng từng bước ----

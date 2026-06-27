@@ -7,6 +7,7 @@ import SplashScreen from '../screens/S01_Splash';
 import OnboardingScreen from '../screens/S02_Onboarding';
 import LoginScreen from '../screens/S03_Login';
 import ProfileSetupScreen from '../screens/S04_ProfileSetup';
+import VoiceAssistantScreen from '../screens/S06_VoiceAssistant';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -25,10 +26,10 @@ export const RootNavigator = () => {
       <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
       
-      <Stack.Screen 
-        name="VoiceAssistant" 
-        component={() => <Placeholder name="VoiceAssistant" />} 
-        options={{ presentation: 'transparentModal', animation: 'fade', headerShown: false }}
+      <Stack.Screen
+        name="VoiceAssistant"
+        component={VoiceAssistantScreen}
+        options={{ headerShown: false }}
       />
       
       <Stack.Screen 

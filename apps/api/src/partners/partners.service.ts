@@ -22,7 +22,10 @@ export class PartnersService {
     ]);
 
     return results
-      .filter((r): r is PromiseFulfilledResult<PartnerQuote> => r.status === 'fulfilled')
+      .filter(
+        (r): r is PromiseFulfilledResult<PartnerQuote> =>
+          r.status === 'fulfilled',
+      )
       .map((r) => r.value);
   }
 
@@ -31,9 +34,11 @@ export class PartnersService {
     orderId: string,
   ): Promise<{ externalId: string; message: string }> {
     const adapter =
-      partner === PartnerCode.GRAB ? this.grab
-      : partner === PartnerCode.BE ? this.be
-      : this.xanhSm;
+      partner === PartnerCode.GRAB
+        ? this.grab
+        : partner === PartnerCode.BE
+          ? this.be
+          : this.xanhSm;
 
     return adapter.confirm(orderId);
   }
