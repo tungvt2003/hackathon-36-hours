@@ -18,10 +18,12 @@ import { ASSETS } from '../../assets';
 import { PartnerCode } from '../../types';
 import { theme } from '../../theme/theme';
 import { BrandedBackground } from '../../components/BrandedBackground';
+import { useVoice } from '../../contexts/VoiceContext';
 
 export default function OrderConfirmationScreen() {
   const insets = useSafeAreaInsets();
   const { order, isViewMode, onConfirm, onBack } = useOrderConfirmation();
+  const { openVoice } = useVoice();
 
   return (
     <BrandedBackground variant="default">
@@ -170,6 +172,15 @@ export default function OrderConfirmationScreen() {
             </View>
           )}
         </View>
+
+        <TouchableOpacity
+          style={[styles.voiceFab, { bottom: 100 + insets.bottom }]}
+          onPress={() => openVoice('home', 'Bạn cần trợ giúp gì? Tôi có thể đặt lại hoặc thay đổi đơn hàng cho bạn.')}
+          accessibilityRole="button"
+          accessibilityLabel="Nhấn để nói với AI"
+        >
+          <MaterialCommunityIcons name="microphone" size={32} color="white" />
+        </TouchableOpacity>
       </SafeAreaView>
     </BrandedBackground>
   );
@@ -395,5 +406,22 @@ const styles = StyleSheet.create({
   headerLogo: {
     width: 64,
     height: 24,
+  },
+  voiceFab: {
+    position: 'absolute',
+    right: 20,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.32,
+    shadowRadius: 20,
+    elevation: 10,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.25)',
   },
 });

@@ -108,10 +108,16 @@ export const api = {
     start: (userId?: string): Promise<ConversationStartResponse> =>
       request('/conversation/start', { method: 'POST', body: JSON.stringify({ userId }) }),
 
-    input: (sessionId: string, transcript: string): Promise<ConversationInputResponse> =>
+    input: (
+      sessionId: string,
+      transcript: string,
+      userLat?: number,
+      userLng?: number,
+      preferredPartner?: PartnerCode,
+    ): Promise<ConversationInputResponse> =>
       request('/conversation/input', {
         method: 'POST',
-        body: JSON.stringify({ sessionId, transcript }),
+        body: JSON.stringify({ sessionId, transcript, userLat, userLng, preferredPartner }),
       }),
 
     confirm: (sessionId: string, partner: PartnerCode): Promise<ConversationConfirmResponse> =>

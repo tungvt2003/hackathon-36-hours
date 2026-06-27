@@ -1,26 +1,36 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
-import { loginService } from './login.service';
+import { loginService, PLATFORM_AI_GREETING } from './login.service';
 
 export interface LoginViewModel {
   loading: boolean;
-  micEnabled: boolean;
-  toggleMic: () => void;
-  handleBack: () => void;
+  autoOpenedVoice: boolean;
   handleConnect: () => void;
   handleSkip: () => void;
+  handleBack: () => void;
 }
 
 export const useLogin = (): LoginViewModel => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [loading, setLoading] = useState(false);
-  const [micEnabled, setMicEnabled] = useState(true);
+  const [autoOpenedVoice, setAutoOpenedVoice] = useState(false);
 
-  const handleBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigation.navigate('VoiceAssistantIntent', {
+        context: 'platform_select',
+        aiGreeting: PLATFORM_AI_GREETING,
+      });
+      setAutoOpenedVoice(true);
+      AccessibilityInfo.announceForAccessibility(PLATFORM_AI_GREETING);
+    }, 600);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleConnect = useCallback(async () => {
     setLoading(true);
@@ -33,16 +43,15 @@ export const useLogin = (): LoginViewModel => {
     navigation.navigate('ProfileSetup');
   }, [navigation]);
 
-  const toggleMic = useCallback(() => {
-    setMicEnabled(prev => !prev);
-  }, []);
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   return {
     loading,
-    micEnabled,
-    toggleMic,
-    handleBack,
+    autoOpenedVoice,
     handleConnect,
     handleSkip,
+    handleBack,
   };
 };

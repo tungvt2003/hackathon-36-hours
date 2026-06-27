@@ -15,11 +15,12 @@ async function main() {
 
   const grabPho = await prisma.grabRestaurant.upsert({
     where: { id: 'grab-rest-pho' },
-    update: {},
+    update: { lat: 10.7682, lng: 106.6947 },
     create: {
       id: 'grab-rest-pho',
       name: 'Phở Hà Nội',
       address: '25 Nguyễn Trãi, Quận 1, TP.HCM',
+      lat: 10.7682, lng: 106.6947,
       openHour: 6,
       closeHour: 22,
       cuisineType: 'vietnamese',
@@ -33,11 +34,12 @@ async function main() {
 
   const grabComTam = await prisma.grabRestaurant.upsert({
     where: { id: 'grab-rest-com-tam' },
-    update: {},
+    update: { lat: 10.7795, lng: 106.7010 },
     create: {
       id: 'grab-rest-com-tam',
       name: 'Cơm Tấm Thuận Kiều',
       address: '12 Lê Thánh Tôn, Quận 1, TP.HCM',
+      lat: 10.7795, lng: 106.7010,
       openHour: 7,
       closeHour: 21,
       cuisineType: 'vietnamese',
@@ -70,11 +72,12 @@ async function main() {
 
   const grabKfc = await prisma.grabRestaurant.upsert({
     where: { id: 'grab-rest-kfc' },
-    update: {},
+    update: { lat: 10.7736, lng: 106.6955 },
     create: {
       id: 'grab-rest-kfc',
       name: 'KFC Bến Thành',
       address: '4 Nam Kỳ Khởi Nghĩa, Quận 1, TP.HCM',
+      lat: 10.7736, lng: 106.6955,
       openHour: 9,
       closeHour: 22,
       cuisineType: 'fastfood',
@@ -83,6 +86,44 @@ async function main() {
       keywords: ['kfc', 'kfc bến thành', 'gà rán kfc', 'kentucky', 'ga ran', 'burger', 'fast food'],
       deliveryFeeVnd: 20000,
       minOrderVnd: 50000,
+    },
+  });
+
+  const grabPhoThuDuc = await prisma.grabRestaurant.upsert({
+    where: { id: 'grab-rest-pho-thuduc' },
+    update: { lat: 10.8488, lng: 106.7549 },
+    create: {
+      id: 'grab-rest-pho-thuduc',
+      name: 'Phở Hà Nội (Thủ Đức)',
+      address: '12 Võ Văn Ngân, Thủ Đức, TP.HCM',
+      lat: 10.8488, lng: 106.7549,
+      openHour: 6,
+      closeHour: 22,
+      cuisineType: 'vietnamese',
+      rating: 4.6,
+      reviewCount: 430,
+      keywords: ['phở hà nội', 'phở', 'pho ha noi', 'quán phở', 'pho', 'pho bo', 'pho ga', 'thủ đức', 'thu duc'],
+      deliveryFeeVnd: 15000,
+      minOrderVnd: 30000,
+    },
+  });
+
+  const grabComTamThuDuc = await prisma.grabRestaurant.upsert({
+    where: { id: 'grab-rest-com-tam-thuduc' },
+    update: { lat: 10.8520, lng: 106.7600 },
+    create: {
+      id: 'grab-rest-com-tam-thuduc',
+      name: 'Cơm Tấm Sài Gòn (Thủ Đức)',
+      address: '45 Kha Vạn Cân, Thủ Đức, TP.HCM',
+      lat: 10.8520, lng: 106.7600,
+      openHour: 7,
+      closeHour: 21,
+      cuisineType: 'vietnamese',
+      rating: 4.5,
+      reviewCount: 310,
+      keywords: ['cơm tấm', 'com tam', 'cơm gà', 'com ga', 'sườn', 'suon', 'thủ đức', 'thu duc'],
+      deliveryFeeVnd: 15000,
+      minOrderVnd: 30000,
     },
   });
 
@@ -111,6 +152,16 @@ async function main() {
       { id: 'grab-mi-kfc-pepsi',    grabRestaurantId: grabKfc.id, categoryName: 'Đồ uống', name: 'Pepsi', priceVnd: 20000, keywords: ['pepsi', 'cola'] },
       // Cơm Tấm Phúc Lộc Thọ
       { id: 'grab-mi-com-suon-trung', grabRestaurantId: 'grab-rest-plt', categoryName: 'Cơm Tấm', name: 'Cơm Tấm Sườn Trứng', priceVnd: 45000, keywords: ['cơm sườn trứng', 'cơm tấm sườn trứng', 'suon trung', 'sườn trứng'] },
+      // Pho Ha Noi - Thu Duc
+      { id: 'grab-mi-pho-td-bo-tai',   grabRestaurantId: grabPhoThuDuc.id, categoryName: 'Pho', name: 'Pho Bo Tai', priceVnd: 65000, keywords: ['pho bo tai', 'pho bo', 'bo tai', 'pho'] },
+      { id: 'grab-mi-pho-td-ga',       grabRestaurantId: grabPhoThuDuc.id, categoryName: 'Pho', name: 'Pho Ga', priceVnd: 55000, keywords: ['pho ga', 'ga', 'pho'] },
+      { id: 'grab-mi-pho-td-dac-biet', grabRestaurantId: grabPhoThuDuc.id, categoryName: 'Pho', name: 'Pho Dac Biet', priceVnd: 85000, keywords: ['pho dac biet', 'dac biet'] },
+      { id: 'grab-mi-pho-td-tra-da',   grabRestaurantId: grabPhoThuDuc.id, categoryName: 'Do uong', name: 'Tra da', priceVnd: 10000, keywords: ['tra da'] },
+      // Com Tam Sai Gon - Thu Duc
+      { id: 'grab-mi-ct-td-suon',      grabRestaurantId: grabComTamThuDuc.id, categoryName: 'Com Tam', name: 'Com Tam Suon', priceVnd: 55000, keywords: ['com tam suon', 'suon', 'com tam'] },
+      { id: 'grab-mi-ct-td-sbc',       grabRestaurantId: grabComTamThuDuc.id, categoryName: 'Com Tam', name: 'Com Tam Suon Bi Cha', priceVnd: 70000, keywords: ['sbc', 'suon bi cha', 'com dac biet', 'com tam'] },
+      { id: 'grab-mi-ct-td-ga',        grabRestaurantId: grabComTamThuDuc.id, categoryName: 'Com Tam', name: 'Com Ga', priceVnd: 55000, keywords: ['com ga', 'ga'] },
+      { id: 'grab-mi-ct-td-tra-da',    grabRestaurantId: grabComTamThuDuc.id, categoryName: 'Do uong', name: 'Tra da', priceVnd: 10000, keywords: ['tra da'] },
     ],
   });
 
@@ -150,11 +201,12 @@ async function main() {
 
   const beBunBo = await prisma.beRestaurant.upsert({
     where: { id: 'be-rest-bun-bo' },
-    update: {},
+    update: { lat: 10.7679, lng: 106.6907 },
     create: {
       id: 'be-rest-bun-bo',
       name: 'Bún Bò Huế Bà Mỹ',
       address: '34 Bùi Viện, Quận 1, TP.HCM',
+      lat: 10.7679, lng: 106.6907,
       openHour: 6,
       closeHour: 20,
       cuisineType: 'vietnamese',
@@ -168,17 +220,37 @@ async function main() {
 
   const beComTam = await prisma.beRestaurant.upsert({
     where: { id: 'be-rest-com-tam' },
-    update: {},
+    update: { lat: 10.7795, lng: 106.7010 },
     create: {
       id: 'be-rest-com-tam',
       name: 'Cơm Tấm Thuận Kiều',
       address: '12 Lê Thánh Tôn, Quận 1, TP.HCM',
+      lat: 10.7795, lng: 106.7010,
       openHour: 7,
       closeHour: 21,
       cuisineType: 'vietnamese',
       rating: 4.5,
       reviewCount: 410,
       keywords: ['thuận kiều', 'cơm tấm', 'com tam', 'thuan kieu', 'cơm gà', 'com ga'],
+      deliveryFeeVnd: 10000,
+      minOrderVnd: 20000,
+    },
+  });
+
+  const beBunBoThuDuc = await prisma.beRestaurant.upsert({
+    where: { id: 'be-rest-bun-bo-thuduc' },
+    update: { lat: 10.8505, lng: 106.7575 },
+    create: {
+      id: 'be-rest-bun-bo-thuduc',
+      name: 'Bun Bo Hue (Thu Duc)',
+      address: '89 Le Van Viet, Thu Duc, TP.HCM',
+      lat: 10.8505, lng: 106.7575,
+      openHour: 6,
+      closeHour: 20,
+      cuisineType: 'vietnamese',
+      rating: 4.6,
+      reviewCount: 280,
+      keywords: ['bun bo', 'bun bo hue', 'bà mỹ', 'ba my', 'bun bo thu duc'],
       deliveryFeeVnd: 10000,
       minOrderVnd: 20000,
     },
@@ -197,7 +269,12 @@ async function main() {
       { id: 'be-mi-com-suon',      beRestaurantId: beComTam.id, categoryName: 'Cơm Tấm', name: 'Cơm Tấm Sườn',  priceVnd: 53000, keywords: ['cơm tấm sườn', 'com tam suon', 'suon'] },
       { id: 'be-mi-com-sbc',       beRestaurantId: beComTam.id, categoryName: 'Cơm Tấm', name: 'Cơm Tấm Sườn Bì Chả', priceVnd: 68000, keywords: ['sườn bì chả', 'com dac biet', 'sbc'] },
       { id: 'be-mi-com-ga',        beRestaurantId: beComTam.id, categoryName: 'Cơm Tấm', name: 'Cơm Gà',         priceVnd: 53000, keywords: ['cơm gà', 'com ga', 'ga'] },
-      { id: 'be-mi-com-tra-da',    beRestaurantId: beComTam.id, categoryName: 'Đồ uống', name: 'Trà đá', priceVnd: 8000, keywords: ['trà đá'] },
+      { id: 'be-mi-com-tra-da',    beRestaurantId: beComTam.id, categoryName: 'Com Tam', name: 'Tra da', priceVnd: 8000, keywords: ['tra da'] },
+      // Bun Bo - Thu Duc
+      { id: 'be-mi-td-bun-bo',    beRestaurantId: beBunBoThuDuc.id, categoryName: 'Bun Bo', name: 'Bun Bo Hue', priceVnd: 58000, keywords: ['bun bo', 'bun bo hue', 'bun bo thu duc'] },
+      { id: 'be-mi-td-bun-bo-db', beRestaurantId: beBunBoThuDuc.id, categoryName: 'Bun Bo', name: 'Bun Bo Dac Biet', priceVnd: 72000, keywords: ['bun bo dac biet'] },
+      { id: 'be-mi-td-bun-gio',   beRestaurantId: beBunBoThuDuc.id, categoryName: 'Bun Bo', name: 'Bun Gio Heo', priceVnd: 62000, keywords: ['bun gio', 'gio heo'] },
+      { id: 'be-mi-td-tra-da',    beRestaurantId: beBunBoThuDuc.id, categoryName: 'Do uong', name: 'Tra da', priceVnd: 8000, keywords: ['tra da'] },
     ],
   });
 
@@ -257,17 +334,18 @@ async function main() {
 
   const shopeePho = await prisma.shopeeRestaurant.upsert({
     where: { id: 'shopee-rest-pho' },
-    update: {},
+    update: { lat: 10.7682, lng: 106.6947 },
     create: {
       id: 'shopee-rest-pho',
-      name: 'Phở Hà Nội',
-      address: '25 Nguyễn Trãi, Quận 1, TP.HCM',
+      name: 'Pho Ha Noi',
+      address: '25 Nguyen Trai, Quan 1, TP.HCM',
+      lat: 10.7682, lng: 106.6947,
       openHour: 6,
       closeHour: 22,
       cuisineType: 'vietnamese',
       rating: 4.6,
       reviewCount: 830,
-      keywords: ['phở hà nội', 'phở', 'pho ha noi', 'pho', 'pho bo', 'pho ga'],
+      keywords: ['pho ha noi', 'pho', 'pho bo', 'pho ga'],
       deliveryFeeVnd: 12000,
       minOrderVnd: 25000,
     },
@@ -275,17 +353,18 @@ async function main() {
 
   const shopeeBunBo = await prisma.shopeeRestaurant.upsert({
     where: { id: 'shopee-rest-bun-bo' },
-    update: {},
+    update: { lat: 10.7679, lng: 106.6907 },
     create: {
       id: 'shopee-rest-bun-bo',
-      name: 'Bún Bò Huế Bà Mỹ',
-      address: '34 Bùi Viện, Quận 1, TP.HCM',
+      name: 'Bun Bo Hue Ba My',
+      address: '34 Bui Vien, Quan 1, TP.HCM',
+      lat: 10.7679, lng: 106.6907,
       openHour: 6,
       closeHour: 20,
       cuisineType: 'vietnamese',
       rating: 4.9,
       reviewCount: 1100,
-      keywords: ['bà mỹ', 'bún bò', 'bún bò huế', 'bun bo hue', 'ba my', 'bun bo'],
+      keywords: ['ba my', 'bun bo', 'bun bo hue', 'bun bo hue ba my'],
       deliveryFeeVnd: 12000,
       minOrderVnd: 25000,
     },
@@ -293,11 +372,12 @@ async function main() {
 
   const shopeeKfc = await prisma.shopeeRestaurant.upsert({
     where: { id: 'shopee-rest-kfc' },
-    update: {},
+    update: { lat: 10.7736, lng: 106.6955 },
     create: {
       id: 'shopee-rest-kfc',
-      name: 'KFC Bến Thành',
-      address: '4 Nam Kỳ Khởi Nghĩa, Quận 1, TP.HCM',
+      name: 'KFC Ben Thanh',
+      address: '4 Nam Ky Khoi Nghia, Quan 1, TP.HCM',
+      lat: 10.7736, lng: 106.6955,
       openHour: 9,
       closeHour: 22,
       cuisineType: 'fastfood',
@@ -309,10 +389,30 @@ async function main() {
     },
   });
 
+  const shopeePhoThuDuc = await prisma.shopeeRestaurant.upsert({
+    where: { id: 'shopee-rest-pho-thuduc' },
+    update: { lat: 10.8488, lng: 106.7549 },
+    create: {
+      id: 'shopee-rest-pho-thuduc',
+      name: 'Pho Ha Noi (Thu Duc)',
+      address: '56 Vo Van Ngan, Thu Duc, TP.HCM',
+      lat: 10.8488,
+      lng: 106.7549,
+      openHour: 6,
+      closeHour: 22,
+      cuisineType: 'vietnamese',
+      rating: 4.5,
+      reviewCount: 210,
+      keywords: ['pho ha noi', 'pho', 'pho bo', 'pho ga', 'thu duc'],
+      deliveryFeeVnd: 12000,
+      minOrderVnd: 25000,
+    },
+  });
+
   await prisma.shopeeMenuItem.createMany({
     skipDuplicates: true,
     data: [
-      // Phở Hà Nội — Shopee giá hơn Grab 3k
+      // Pho Ha Noi - Shopee
       { id: 'shopee-mi-pho-bo-tai',   shopeeRestaurantId: shopeePho.id, categoryName: 'Phở', name: 'Phở Bò Tái',      priceVnd: 68000, keywords: ['phở bò tái', 'pho bo tai', 'bo tai'] },
       { id: 'shopee-mi-pho-bo-chin',  shopeeRestaurantId: shopeePho.id, categoryName: 'Phở', name: 'Phở Bò Chín',     priceVnd: 68000, keywords: ['phở bò chín', 'bo chin'] },
       { id: 'shopee-mi-pho-ga',       shopeeRestaurantId: shopeePho.id, categoryName: 'Phở', name: 'Phở Gà',           priceVnd: 57000, keywords: ['phở gà', 'pho ga', 'ga'] },
@@ -327,7 +427,12 @@ async function main() {
       { id: 'shopee-mi-kfc-ga1',      shopeeRestaurantId: shopeeKfc.id, categoryName: 'Gà Rán', name: 'Gà Rán Original 1 miếng', priceVnd: 47000, keywords: ['gà rán', 'ga ran', 'kfc'] },
       { id: 'shopee-mi-kfc-ga2',      shopeeRestaurantId: shopeeKfc.id, categoryName: 'Gà Rán', name: 'Gà Rán 2 miếng',          priceVnd: 88000, keywords: ['gà rán 2', '2 miếng'] },
       { id: 'shopee-mi-kfc-burger',   shopeeRestaurantId: shopeeKfc.id, categoryName: 'Burger', name: 'Burger Gà Giòn',           priceVnd: 57000, keywords: ['burger gà', 'burger'] },
-      { id: 'shopee-mi-kfc-khoai',    shopeeRestaurantId: shopeeKfc.id, categoryName: 'Phụ', name: 'Khoai Tây Chiên',             priceVnd: 37000, keywords: ['khoai tây', 'fries'] },
+      { id: 'shopee-mi-kfc-khoai',    shopeeRestaurantId: shopeeKfc.id, categoryName: 'Phu', name: 'Khoai Tay Chien', priceVnd: 37000, keywords: ['khoai tay', 'fries'] },
+      // Pho Ha Noi - Thu Duc Shopee
+      { id: 'shopee-td-pho-bo-tai',   shopeeRestaurantId: shopeePhoThuDuc.id, categoryName: 'Pho', name: 'Pho Bo Tai', priceVnd: 68000, keywords: ['pho bo tai', 'pho bo', 'bo tai', 'pho'] },
+      { id: 'shopee-td-pho-ga',       shopeeRestaurantId: shopeePhoThuDuc.id, categoryName: 'Pho', name: 'Pho Ga', priceVnd: 57000, keywords: ['pho ga', 'ga', 'pho'] },
+      { id: 'shopee-td-pho-dac-biet', shopeeRestaurantId: shopeePhoThuDuc.id, categoryName: 'Pho', name: 'Pho Dac Biet', priceVnd: 88000, keywords: ['pho dac biet', 'dac biet'] },
+      { id: 'shopee-td-tra-da',       shopeeRestaurantId: shopeePhoThuDuc.id, categoryName: 'Do uong', name: 'Tra da', priceVnd: 10000, keywords: ['tra da'] },
     ],
   });
 

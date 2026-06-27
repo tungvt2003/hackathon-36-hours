@@ -11,6 +11,9 @@ class InputDto {
   @IsString() sessionId!: string;
   @IsString() transcript!: string;
   @IsOptional() @IsString() userId?: string;
+  @IsOptional() userLat?: number;
+  @IsOptional() userLng?: number;
+  @IsOptional() @IsEnum(PartnerCode) preferredPartner?: PartnerCode;
 }
 
 class ConfirmDto {
@@ -33,6 +36,9 @@ export class ConversationController {
       sessionId: dto.sessionId,
       transcript: dto.transcript,
       userId: dto.userId,
+      userLat: dto.userLat,
+      userLng: dto.userLng,
+      preferredPartner: dto.preferredPartner,
     });
   }
 

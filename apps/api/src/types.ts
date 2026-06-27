@@ -38,6 +38,8 @@ export interface PlaceStatus {
   address?: string;
   latitude?: number;
   longitude?: number;
+  /** false khi không tìm thấy địa điểm khớp trong DB/fixtures — chỉ là fallback echo lại query */
+  matched?: boolean;
 }
 
 export interface WeatherInfo {

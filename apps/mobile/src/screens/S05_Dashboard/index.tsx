@@ -1,279 +1,200 @@
 // apps/mobile/src/screens/S05_Dashboard/index.tsx
 import React from 'react';
 import {
-  Dimensions,
-  FlatList,
-  Image,
-  ImageBackground,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useDashboard } from './useDashboard.hook';
-import { MicButton } from '../../components/MicButton';
+import { FloatingMicButton } from '../../components/FloatingMicButton';
+import { AIBubble } from '../../components/AIBubble';
+import { AudioVisualizer } from '../../components/AudioVisualizer';
 import { BottomNavBar } from '../../components/BottomNavBar';
-import { DashboardAction } from './dashboard.service';
+import { BrandedBackground } from '../../components/BrandedBackground';
+import { SuaraLogo } from '../../components/SuaraLogo';
 import { theme } from '../../theme/theme';
-import { ASSETS } from '../../assets';
-
-const { width } = Dimensions.get('window');
-// Two columns, 20px edge padding each side, 12px gap between
-const CARD_WIDTH = (width - 40 - 12) / 2;
 
 export default function DashboardScreen() {
-  const { userName, actions, micState, onMicPress, onActionPress, onTabPress } = useDashboard();
-
-  const renderHeader = () => (
-    <View style={styles.header}>
-      {/* Suara wordmark — left */}
-      <View style={styles.brandMark}>
-        {ASSETS.images.suaraLogo ? (
-          <Image
-            source={ASSETS.images.suaraLogo}
-            style={styles.suaraLogoSmall}
-            resizeMode="contain"
-            accessibilityLabel="Suara"
-          />
-        ) : (
-          <Text style={styles.suaraWordmark}>Suara</Text>
-        )}
-      </View>
-
-      {/* Greeting — center */}
-      <View style={styles.headerGreeting}>
-        <Text style={styles.greetingTop} numberOfLines={1}>
-          Good morning
-        </Text>
-        <Text style={styles.greetingName} numberOfLines={1}>
-          {userName}
-        </Text>
-      </View>
-
-      {/* Notification bell — right */}
-      <TouchableOpacity
-        style={styles.iconButton}
-        accessibilityRole="button"
-        accessibilityLabel="Notifications"
-      >
-        <MaterialCommunityIcons name="bell-outline" size={24} color={theme.colors.textPrimary} />
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderAction = ({ item }: { item: DashboardAction }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => onActionPress(item)}
-      accessibilityRole="button"
-      accessibilityLabel={item.title}
-      accessibilityHint={item.hint}
-      activeOpacity={0.85}
-    >
-      <View style={styles.iconBadge}>
-        <MaterialCommunityIcons
-          name={item.icon as any}
-          size={28}
-          color={theme.colors.primary}
-        />
-      </View>
-      <Text style={styles.cardTitle}>{item.title}</Text>
-      <Text style={styles.cardHint} numberOfLines={2}>
-        {item.hint}
-      </Text>
-    </TouchableOpacity>
-  );
+  const {
+    aiText,
+    userText,
+    stage,
+    sttAvailable,
+    manualInput,
+    setManualInput,
+    submitManualInput,
+    onMicPress,
+    onTabPress,
+    onHistoryPress,
+  } = useDashboard();
 
   return (
-    <ImageBackground
-      source={ASSETS.images.bgTexture}
-      style={styles.root}
-      imageStyle={styles.bgImage}
-      resizeMode="repeat"
-    >
-      {/* Gradient overlay on top of texture */}
-      <LinearGradient
-        colors={['rgba(240,250,245,0.92)', 'rgba(245,246,250,0.96)']}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
+    <BrandedBackground variant="default">
+      <StatusBar barStyle="dark-content" />
+      <KeyboardAvoidingView
+        style={styles.root}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'android' ? 24 : 0}
+      >
+      <SafeAreaView edges={['top']} style={styles.root}>
+        <View style={styles.topBar}>
+          <SuaraLogo size="sm" />
+          <TouchableOpacity
+            style={styles.historyButton}
+            onPress={onHistoryPress}
+            accessibilityRole="button"
+            accessibilityLabel="Lịch sử đơn hàng"
+          >
+            <MaterialCommunityIcons name="history" size={24} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
 
-      <SafeAreaView style={styles.safeTop} edges={['top']}>
-        {renderHeader()}
+        <View style={styles.conversationArea}>
+          <AIBubble key={aiText} text={aiText} variant="light" />
 
-        <Text style={styles.sectionLabel}>QUICK ACTIONS</Text>
+          {userText !== '' && (
+            <View style={styles.userEcho}>
+              <Text style={styles.userEchoLabel}>BẠN NÓI</Text>
+              <Text style={styles.userEchoText}>{userText}</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.center}>
+          {stage === 'listening' && (
+            <>
+              <AudioVisualizer active={sttAvailable} />
+              <Text style={styles.statusLabel}>
+                {sttAvailable ? 'Đang lắng nghe...' : 'Nhập yêu cầu'}
+              </Text>
+              {sttAvailable && (
+                <View style={styles.statusHint}>
+                  <View style={[styles.statusDot, styles.statusDotActive]} />
+                  <Text style={styles.statusText}>Đang ghi âm — chạm mic để dừng</Text>
+                </View>
+              )}
+            </>
+          )}
+
+          {stage === 'thinking' && <Text style={styles.statusLabel}>AI đang xử lý...</Text>}
+
+          {!sttAvailable && stage === 'listening' && (
+            <View style={styles.manualInputRow}>
+              <TextInput
+                style={styles.manualInput}
+                value={manualInput}
+                onChangeText={setManualInput}
+                placeholder="Nhập yêu cầu..."
+                placeholderTextColor={theme.colors.textMuted}
+                autoFocus
+                returnKeyType="send"
+                onSubmitEditing={submitManualInput}
+                accessibilityLabel="Nhập yêu cầu"
+              />
+              <TouchableOpacity
+                style={styles.sendBtn}
+                onPress={submitManualInput}
+                accessibilityRole="button"
+                accessibilityLabel="Gửi"
+              >
+                <MaterialCommunityIcons name="send" size={20} color="white" />
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <View
+            style={styles.micZone}
+            accessibilityLabel="Nhấn mic và nói điều bạn cần"
+          >
+            {stage === 'thinking' ? (
+              <ActivityIndicator color={theme.colors.primary} size="large" />
+            ) : (
+              <FloatingMicButton onPress={onMicPress} size={128} />
+            )}
+          </View>
+        </View>
       </SafeAreaView>
+      </KeyboardAvoidingView>
 
-      <FlatList
-        data={actions}
-        renderItem={renderAction}
-        numColumns={2}
-        columnWrapperStyle={styles.columnWrapper}
-        contentContainerStyle={styles.listContent}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-      />
-
-      {/* ── Voice zone ── */}
-      <View style={styles.voiceZone}>
-        {/* Subtle radial glow behind mic */}
-        <View style={styles.micGlow} />
-        <MicButton state={micState} onPress={onMicPress} />
-        <Text style={styles.micLabel}>Tap to speak</Text>
-      </View>
-
-      <SafeAreaView style={styles.safeBottom} edges={['bottom']}>
+      <SafeAreaView edges={['bottom']}>
         <BottomNavBar activeTab="home" onTabPress={onTabPress} />
       </SafeAreaView>
-    </ImageBackground>
+    </BrandedBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  bgImage: {
-    opacity: 0.18,  // texture subtle, not overpowering
-  },
-
-  // ── Header ────────────────────────────────────────────
-  safeTop: {
-    // transparent so gradient shows through
-  },
-  header: {
-    height: 64,
+  root: { flex: 1, backgroundColor: 'transparent' },
+  topBar: {
+    height: 56,
     paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    justifyContent: 'space-between',
   },
-  brandMark: {
-    width: 70,
-    justifyContent: 'center',
+  historyButton: { width: 48, height: 48, justifyContent: 'center', alignItems: 'center' },
+  conversationArea: { paddingHorizontal: 20, marginTop: 32 },
+  userEcho: {
+    marginTop: 10,
+    backgroundColor: 'rgba(0,0,0,0.04)',
+    borderRadius: 16,
+    padding: 14,
   },
-  suaraLogoSmall: {
-    width: 64,
-    height: 28,
-  },
-  suaraWordmark: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: theme.colors.textPrimary,
-    letterSpacing: -0.3,
-  },
-  headerGreeting: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  greetingTop: {
-    fontSize: 13,
-    color: theme.colors.textSecondary,
-    fontWeight: '400',
-  },
-  greetingName: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: theme.colors.textPrimary,
-  },
-  iconButton: {
-    width: 48,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-  },
-
-  // ── Section label ─────────────────────────────────────
-  sectionLabel: {
-    fontSize: 11,
+  userEchoLabel: {
+    fontSize: 10,
     fontWeight: '700',
     color: theme.colors.textMuted,
-    letterSpacing: 0.9,
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
-    paddingHorizontal: 20,
-    marginTop: 8,
     marginBottom: 4,
   },
-
-  // ── Cards ─────────────────────────────────────────────
-  columnWrapper: {
-    paddingHorizontal: 20,
-    gap: 12,
-    marginBottom: 12,
+  userEchoText: { fontSize: 15, color: theme.colors.textSecondary },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
+  subGreeting: {
+    fontSize: 17,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 36,
   },
-  listContent: {
-    paddingTop: 8,
-    paddingBottom: 200,  // space for voice zone + nav
-  },
-  card: {
-    width: CARD_WIDTH,
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.card,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    // Subtle shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  iconBadge: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: theme.colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 14,
-  },
-  cardTitle: {
+  statusLabel: {
     fontSize: 16,
     fontWeight: '700',
-    color: theme.colors.textPrimary,
-    marginBottom: 4,
+    color: theme.colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginTop: 12,
+    marginBottom: 24,
   },
-  cardHint: {
-    fontSize: 13,
-    color: theme.colors.textSecondary,
-    lineHeight: 18,
-  },
-
-  // ── Voice zone ────────────────────────────────────────
-  voiceZone: {
-    position: 'absolute',
-    bottom: 88,   // sits above BottomNavBar (80px) + 8px gap
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    paddingBottom: 8,
-  },
-  micGlow: {
-    position: 'absolute',
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: theme.colors.primaryGlow,
-    top: -32,
-  },
-  micLabel: {
-    fontSize: 13,
-    color: theme.colors.textSecondary,
-    marginTop: 10,
-    fontWeight: '500',
-  },
-
-  // ── Bottom nav ────────────────────────────────────────
-  safeBottom: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+  manualInputRow: { flexDirection: 'row', gap: 10, width: '100%', marginBottom: 24 },
+  manualInput: {
+    flex: 1,
     backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
+    borderWidth: 1.5,
+    borderColor: theme.colors.border,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: theme.colors.textPrimary,
   },
+  sendBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  micZone: { width: 240, height: 240, justifyContent: 'center', alignItems: 'center' },
+  statusHint: { marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(0,177,79,0.6)' },
+  statusDotActive: { backgroundColor: '#EF4444' },
+  statusText: { fontSize: 14, color: theme.colors.textMuted },
 });

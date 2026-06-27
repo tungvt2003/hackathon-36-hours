@@ -1,5 +1,5 @@
 import * as Speech from 'expo-speech';
-import { requireOptionalNativeModule } from 'expo';
+import * as Location from 'expo-location';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
@@ -25,20 +25,12 @@ import { BrandedBackground } from '../../components/BrandedBackground';
 import { SuaraLogo } from '../../components/SuaraLogo';
 import { ASSETS } from '../../assets';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { getSpeechRecognitionModule, STT_AVAILABLE } from '../../services/speechRecognition';
+import { DEV_FORCE_TEXT_INPUT } from '../../constants/devFlags';
 
-// true only in a dev build — false in Expo Go
-type SpeechRecognitionModule = typeof import('expo-speech-recognition').ExpoSpeechRecognitionModule;
-
-let speechRecognitionModule: SpeechRecognitionModule | null | undefined;
-
-function getSpeechRecognitionModule() {
-  if (speechRecognitionModule === undefined) {
-    speechRecognitionModule = requireOptionalNativeModule<SpeechRecognitionModule>('ExpoSpeechRecognition');
-  }
-  return speechRecognitionModule;
-}
-
-const STT_AVAILABLE = !!getSpeechRecognitionModule();
+// Ép modal nhập text khi không nói được (simulator) hoặc DEV_FORCE_TEXT_INPUT=true.
+// Voice flow gốc giữ nguyên — chỉ tắt cờ này khi build Android thiết bị thật.
+const USE_TEXT_INPUT = !STT_AVAILABLE || DEV_FORCE_TEXT_INPUT;
 
 type Stage =
   | 'IDLE'
@@ -56,10 +48,56 @@ const PARTNER_LABEL: Record<PartnerCode, string> = {
   [PartnerCode.SHOPEE]: 'Shopee Food',
 };
 
-function tts(text: string) {
+function tts(text: string, onDone?: () => void) {
   Speech.stop();
-  Speech.speak(text, { language: 'vi-VN' });
+  Speech.speak(text, { language: 'vi-VN', onDone, onStopped: onDone });
   AccessibilityInfo.announceForAccessibility(text);
+}
+
+const PARTNER_VOICE_KEYWORDS: { code: PartnerCode; words: string[] }[] = [
+  { code: PartnerCode.BE, words: ['be'] },
+  { code: PartnerCode.GRAB, words: ['grab'] },
+  { code: PartnerCode.XANH_SM, words: ['xanh sm', 'xanh'] },
+  { code: PartnerCode.SHOPEE, words: ['shopee', 'shopee food'] },
+];
+
+const ORDINAL_WORDS = ['mot', 'nhat', '1', 'hai', '2', 'ba', '3', 'bon', '4', 'nam', '5'];
+
+/** Map câu trả lời bằng giọng ("Be", "số 1", "rẻ nhất"...) sang partner trong list quote đang hiển thị (đã sort theo giá tăng dần) */
+function matchPartnerFromVoice(
+  rawText: string,
+  quotes: { partner: PartnerCode }[],
+): PartnerCode | null {
+  const text = rawText
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[đĐ]/g, 'd');
+
+  if (quotes.length === 0) return null;
+
+  // ưu tiên match tên đối tác trực tiếp (chỉ trong số đối tác đang được quote)
+  for (const { code, words } of PARTNER_VOICE_KEYWORDS) {
+    if (!quotes.some((q) => q.partner === code)) continue;
+    if (words.some((w) => text.includes(w))) return code;
+  }
+
+  // "rẻ nhất" / "đầu tiên" -> phần tử đầu (đã sort tăng dần theo giá)
+  if (/re\s*nhat|dau\s*tien|so\s*1\b|thu\s*nhat/.test(text)) {
+    return quotes[0].partner;
+  }
+  // "đắt nhất" / "cuối" -> phần tử cuối
+  if (/dat\s*nhat|cuoi\s*cung|cuoi/.test(text)) {
+    return quotes[quotes.length - 1].partner;
+  }
+  // số thứ tự nói ra ("số 2", "thứ hai", "hai")
+  const ordinalIdx = ORDINAL_WORDS.findIndex((w) => new RegExp(`\\b${w}\\b`).test(text));
+  if (ordinalIdx >= 0) {
+    const idx = Math.floor(ordinalIdx / 2); // mỗi số có 2 dạng chữ/số trong ORDINAL_WORDS
+    if (quotes[idx]) return quotes[idx].partner;
+  }
+
+  return null;
 }
 
 export default function VoiceAssistantScreen() {
@@ -75,32 +113,93 @@ export default function VoiceAssistantScreen() {
   const [orderStatus, setOrderStatus] = useState<OrderStatus | null>(null);
   const [driverName, setDriverName] = useState<string | null>(null);
   const [accessibilityFlag, setAccessibilityFlag] = useState(false);
+  // dev text-input mode: luôn tự mở lại ô nhập sau mỗi câu hỏi, giống hành vi auto-chain mic của người khiếm thị
+  const autoChain = accessibilityFlag || USE_TEXT_INPUT;
   const [restaurantRating, setRestaurantRating] = useState(5);
   const [driverRating, setDriverRating] = useState(5);
   const [collectingInput, setCollectingInput] = useState('');
   const [liveTranscript, setLiveTranscript] = useState('');
+
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const prevStatusRef = useRef<OrderStatus | null>(null);
   const finalTranscriptRef = useRef('');
   const submitTranscriptRef = useRef<(text: string) => void>(() => {});
   const sessionIdRef = useRef<string | null>(null);
+  // fallback: nếu native 'end' không tự bắn sau khi im lặng (gặp trên 1 số Android), tự dừng
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const SILENCE_TIMEOUT_MS = 4000;
+  // mic đang mở nhưng chưa có tiếng nói nào (đang suy nghĩ / mic đã chết) -> báo người khiếm thị bấm tay
+  const noInputTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const NO_INPUT_TIMEOUT_MS = 3000;
 
   useEffect(() => { sessionIdRef.current = sessionId; }, [sessionId]);
 
+  function clearNoInputTimer() {
+    if (noInputTimerRef.current) {
+      clearTimeout(noInputTimerRef.current);
+      noInputTimerRef.current = null;
+    }
+  }
+
+  /** Mic mở rồi mà 3s không có tiếng nói nào -> coi như mic đã hết tác dụng, báo người dùng bấm tay */
+  function armNoInputTimer() {
+    clearNoInputTimer();
+    noInputTimerRef.current = setTimeout(() => {
+      const speechModule = getSpeechRecognitionModule();
+      try { speechModule?.stop(); } catch { /* ignore */ }
+      const cue = 'Tôi không nghe thấy gì. Bạn hãy chạm vào icon micro ở giữa màn hình để nói.';
+      setPromptText(cue);
+      tts(cue);
+      setStage('IDLE');
+    }, NO_INPUT_TIMEOUT_MS);
+  }
+
+  // get GPS once on mount — best-effort, never blocks the flow
+  useEffect(() => {
+    (async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') return;
+        const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      } catch { /* GPS not available — fall back to no-location search */ }
+    })();
+  }, []);
+
+  // ── STT event subscriptions (dev build only) ─────────────────
   useEffect(() => {
     const speechModule = getSpeechRecognitionModule();
     if (!speechModule) return;
+
+    const clearSilenceTimer = () => {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+    };
+
+    const armSilenceTimer = () => {
+      clearSilenceTimer();
+      silenceTimerRef.current = setTimeout(() => {
+        try { speechModule.stop(); } catch { /* ignore */ }
+      }, SILENCE_TIMEOUT_MS);
+    };
 
     let subs: { remove(): void }[] = [];
     try {
       subs = [
         speechModule.addListener('result', (event: any) => {
+          clearNoInputTimer(); // đã có tiếng nói -> hết nguy cơ "mic chết im lặng"
           const text: string = event.results?.[0]?.transcript ?? '';
           setLiveTranscript(text);
           if (event.isFinal && text) finalTranscriptRef.current = text;
+          armSilenceTimer();
         }),
         speechModule.addListener('end', () => {
+          clearSilenceTimer();
+          clearNoInputTimer();
           const text = finalTranscriptRef.current;
           finalTranscriptRef.current = '';
           setLiveTranscript('');
@@ -108,6 +207,8 @@ export default function VoiceAssistantScreen() {
           else setStage('IDLE');
         }),
         speechModule.addListener('error', (event: any) => {
+          clearSilenceTimer();
+          clearNoInputTimer();
           console.warn('STT error', event.error, event.message);
           setStage('IDLE');
         }),
@@ -117,6 +218,8 @@ export default function VoiceAssistantScreen() {
     }
 
     return () => {
+      clearSilenceTimer();
+      clearNoInputTimer();
       subs.forEach(s => s?.remove());
       try { speechModule.abort(); } catch { /* ignore */ }
     };
@@ -126,7 +229,44 @@ export default function VoiceAssistantScreen() {
     if (pollRef.current) clearInterval(pollRef.current);
   }, []);
 
+  // ── Helpers ─────────────────────────────────────────────────
+
+  /** Quotes hợp nhất ride+food, sort tăng dần theo giá — dùng cả cho render và match voice */
+  function getAllQuotes() {
+    return [
+      ...rideQuotes.filter(q => q.available).map(q => ({
+        partner: q.partner, price: q.price, etaMinutes: q.etaMinutes,
+        driverName: q.driverName, label: `${q.price.toLocaleString('vi-VN')}d`,
+      })),
+      ...foodQuotes.filter(q => q.available).map(q => ({
+        partner: q.partner, price: q.totalVnd, etaMinutes: q.etaMinutes,
+        driverName: q.driverName,
+        label: `${q.totalVnd.toLocaleString('vi-VN')}d${q.promoDescription ? ` (${q.promoDescription})` : ''}`,
+      })),
+    ].sort((a, b) => a.price - b.price);
+  }
+
+  /** Nghe xong khi đang ở QUOTING -> hiểu câu trả lời là chọn đối tác, không gửi qua conversation API */
+  async function handleVoicePartnerChoice(text: string) {
+    const quotes = getAllQuotes();
+    const partner = matchPartnerFromVoice(text, quotes);
+    if (partner) {
+      await handleConfirm(partner);
+      return;
+    }
+    const retryText = 'Xin lỗi, tôi chưa nghe rõ bạn chọn đối tác nào. Bạn có thể nói lại tên đối tác, ví dụ Be hoặc Grab.';
+    setPromptText(retryText);
+    if (accessibilityFlag) {
+      tts(retryText, () => startListening(true));
+    } else {
+      tts(retryText);
+    }
+  }
+
   async function submitTranscript(text: string) {
+    if (stage === 'QUOTING') {
+      return handleVoicePartnerChoice(text);
+    }
     setLoading(true);
     try {
       let sid = sessionIdRef.current;
@@ -135,20 +275,28 @@ export default function VoiceAssistantScreen() {
         sid = s.sessionId;
         setSessionId(sid);
       }
-      const res = await api.conversation.input(sid, text);
+      const res = await api.conversation.input(sid, text, userLocation?.lat, userLocation?.lng);
 
       if (res.state === 'COLLECTING') {
         setPromptText(res.promptText);
-        tts(res.promptText);
         setCollectingInput('');
         setStage('COLLECTING');
+        if (autoChain) {
+          tts(res.promptText, () => startListening(true));
+        } else {
+          tts(res.promptText);
+        }
       } else if (res.state === 'ORDERING') {
         setPromptText(res.promptText);
-        tts(res.promptText);
         setRideQuotes(res.quotes ?? []);
         setFoodQuotes(res.foodQuotes ?? []);
         setOrderId(res.orderId ?? null);
         setStage('QUOTING');
+        if (accessibilityFlag) {
+          tts(res.promptText, () => startListening(true));
+        } else {
+          tts(res.promptText);
+        }
       }
     } catch (err) {
       Alert.alert('Lỗi', (err as Error).message);
@@ -160,12 +308,14 @@ export default function VoiceAssistantScreen() {
 
   submitTranscriptRef.current = submitTranscript;
 
-  async function startListening() {
+  /** autoCue=true: đọc "Bạn có thể bắt đầu nói" rồi mới mở mic — dùng cho luồng tự động chain theo voice.
+   *  autoCue=false (mặc định, nút bấm tay): mở mic ngay, giữ nguyên hành vi cũ. Nút bấm luôn còn để backup. */
+  async function startListening(autoCue = false) {
     setLiveTranscript('');
     finalTranscriptRef.current = '';
     setStage('LISTENING');
 
-    if (!STT_AVAILABLE) {
+    if (USE_TEXT_INPUT) {
       tts('Hãy nhập yêu cầu của bạn');
       return;
     }
@@ -181,8 +331,21 @@ export default function VoiceAssistantScreen() {
         setStage('IDLE');
         return;
       }
-      tts('Đang lắng nghe');
-      speechModule.start({ lang: 'vi-VN', continuous: false, interimResults: true });
+      const begin = () => {
+        try {
+          speechModule.start({ lang: 'vi-VN', continuous: false, interimResults: true });
+          armNoInputTimer();
+        } catch (e) {
+          console.warn('STT start failed', e);
+          setStage('IDLE');
+        }
+      };
+      if (autoCue) {
+        tts('Bạn có thể bắt đầu nói.', begin);
+      } else {
+        tts('Dang lang nghe');
+        begin();
+      }
     } catch (e) {
       console.warn('STT start failed', e);
       setStage('IDLE');
@@ -191,7 +354,7 @@ export default function VoiceAssistantScreen() {
 
   function stopListening() {
     const speechModule = getSpeechRecognitionModule();
-    if (speechModule) {
+    if (speechModule && !USE_TEXT_INPUT) {
       try { speechModule.stop(); } catch { /* ignore */ }
     } else {
       const text = liveTranscript.trim();
@@ -281,74 +444,55 @@ export default function VoiceAssistantScreen() {
     setDriverRating(5);
   }
 
-  const allQuotes = [
-    ...rideQuotes.filter(q => q.available).map(q => ({
-      partner: q.partner, price: q.price, etaMinutes: q.etaMinutes,
-      driverName: q.driverName, label: `${q.price.toLocaleString('vi-VN')}đ`,
-    })),
-    ...foodQuotes.filter(q => q.available).map(q => ({
-      partner: q.partner, price: q.totalVnd, etaMinutes: q.etaMinutes,
-      driverName: q.driverName,
-      label: `${q.totalVnd.toLocaleString('vi-VN')}đ${q.promoDescription ? ` (${q.promoDescription})` : ''}`,
-    })),
-  ].sort((a, b) => a.price - b.price);
+  const allQuotes = getAllQuotes();
 
   const isDarkStage = stage === 'LISTENING' || stage === 'COLLECTING';
 
   return (
     <BrandedBackground variant={isDarkStage ? "voice" : "default"}>
       <SafeAreaView edges={['top', 'bottom']} style={s.root}>
-        <ScreenHeader 
-          title="Trợ lý giọng nói" 
-          showLogo={stage === 'IDLE'} 
+        <ScreenHeader
+          title="Trợ lý giọng nói"
+          showLogo={stage === 'IDLE'}
           onBack={() => navigation.goBack()}
-          dark={isDarkStage}
         />
 
-        <ScrollView 
-          style={s.scroll} 
-          contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 40 }]} 
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={[s.toggleRow, isDarkStage && s.toggleRowDark]}>
-            <MaterialCommunityIcons name="eye-off-outline" size={20} color={isDarkStage ? "rgba(255,255,255,0.7)" : theme.colors.textSecondary} />
-            <Text style={[s.toggleLabel, isDarkStage && s.toggleLabelDark]}>Hỗ trợ khiếm thị</Text>
-            <Switch 
-              value={accessibilityFlag} 
-              onValueChange={setAccessibilityFlag}
-              trackColor={{ false: '#D1D5DB', true: theme.colors.primary }}
-              accessibilityLabel="Bật chế độ hỗ trợ người khiếm thị" 
-            />
+      <ScrollView style={s.scroll} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+        <View style={s.toggleRow}>
+          <MaterialCommunityIcons name="eye-off-outline" size={20} color="#6B7280" />
+          <Text style={s.toggleLabel}>Ho tro nguoi khiem thi</Text>
+          <Switch value={accessibilityFlag} onValueChange={setAccessibilityFlag}
+            trackColor={{ false: '#D1D5DB', true: '#00B14F' }}
+            accessibilityLabel="Bat che do ho tro nguoi khiem thi" />
+        </View>
+
+        {/* ── IDLE ── */}
+        {stage === 'IDLE' && (
+          <View style={s.centerBlock}>
+            <TouchableOpacity style={s.bigMic} onPress={() => startListening()}
+              accessibilityLabel="Nhan de bat dau noi" accessibilityRole="button">
+              <MaterialCommunityIcons name="microphone-outline" size={56} color="#fff" />
+            </TouchableOpacity>
+            <Text style={s.idleHint}>Nhấn để nói</Text>
+            <Text style={s.idleSub}>Đặt xe · Đồ ăn · Bằng giọng nói</Text>
           </View>
+        )}
 
-          {/* ── IDLE ── */}
-          {stage === 'IDLE' && (
-            <View style={s.centerBlock}>
-              <TouchableOpacity style={s.bigMic} onPress={startListening}
-                accessibilityLabel="Nhấn để bắt đầu nói" accessibilityRole="button">
-                <MaterialCommunityIcons name="microphone" size={56} color="#fff" />
-              </TouchableOpacity>
-              <Text style={s.idleHint}>Nhấn để nói</Text>
-              <Text style={s.idleSub}>Đặt xe · Đồ ăn · Bằng giọng nói</Text>
-            </View>
-          )}
-
-          {/* ── LISTENING ── */}
+        {/* ── LISTENING ── */}
           {stage === 'LISTENING' && (
             <View style={s.centerBlock}>
-              <AudioVisualizer active={STT_AVAILABLE} />
+              <AudioVisualizer active={!USE_TEXT_INPUT} />
               <Text style={s.listeningLabel}>
-                {STT_AVAILABLE ? 'Đang lắng nghe...' : 'Nhập yêu cầu'}
+                {USE_TEXT_INPUT ? 'Nhập yêu cầu' : 'Đang lắng nghe...'}
               </Text>
 
-              {STT_AVAILABLE && liveTranscript !== '' && (
+              {!USE_TEXT_INPUT && liveTranscript !== '' && (
                 <View style={s.liveBox}>
                   <Text style={s.liveText}>{liveTranscript}</Text>
                 </View>
               )}
 
-              {!STT_AVAILABLE && (
+              {USE_TEXT_INPUT && (
                 <TextInput
                   style={[s.input, { width: '100%', backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.2)', color: 'white' }]}
                   value={liveTranscript}
@@ -361,8 +505,8 @@ export default function VoiceAssistantScreen() {
               )}
 
               <TouchableOpacity style={s.stopBtn} onPress={stopListening}>
-                <MaterialCommunityIcons name={STT_AVAILABLE ? 'stop' : 'send'} size={24} color="#fff" />
-                <Text style={s.stopBtnText}>{STT_AVAILABLE ? 'Dừng' : 'Gửi'}</Text>
+                <MaterialCommunityIcons name={USE_TEXT_INPUT ? 'send' : 'stop'} size={24} color="#fff" />
+                <Text style={s.stopBtnText}>{USE_TEXT_INPUT ? 'Gửi' : 'Dừng'}</Text>
               </TouchableOpacity>
               {loading && <ActivityIndicator color={theme.colors.primary} style={{ marginTop: 16 }} />}
             </View>
@@ -377,9 +521,9 @@ export default function VoiceAssistantScreen() {
                   <Text style={s.promptTextDark}>{promptText}</Text>
                 </View>
               )}
-              <TouchableOpacity style={s.voiceReBtnDark} onPress={startListening}>
+              <TouchableOpacity style={s.voiceReBtnDark} onPress={() => startListening()}>
                 <MaterialCommunityIcons name="microphone" size={22} color={theme.colors.primary} />
-                <Text style={s.voiceReBtnTextDark}>{STT_AVAILABLE ? 'Nói' : 'Nhập'}</Text>
+                <Text style={s.voiceReBtnTextDark}>{USE_TEXT_INPUT ? 'Nhập' : 'Nói'}</Text>
               </TouchableOpacity>
               <TextInput 
                 style={s.inputDark} 
@@ -528,7 +672,7 @@ const s = StyleSheet.create({
   },
   toggleRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.lg, padding: 16, marginBottom: 24, borderSize: 1, borderColor: theme.colors.border,
+    borderRadius: theme.radius.lg, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: theme.colors.border,
   },
   toggleRowDark: {
     backgroundColor: 'rgba(255,255,255,0.08)',

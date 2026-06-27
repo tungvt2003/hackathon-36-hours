@@ -54,6 +54,7 @@ export class OrdersService {
     currentLat?: number;
     currentLng?: number;
     accessibilityFlag?: boolean;
+    preferredPartner?: PartnerCode;
   }): Promise<VoiceOrderResponse> {
     // 1. STT
     let transcript = params.transcript ?? '';
@@ -74,7 +75,10 @@ export class OrdersService {
         userId: params.userId,
         transcript,
         intent,
+        currentLat: params.currentLat,
+        currentLng: params.currentLng,
         accessibilityFlag: params.accessibilityFlag,
+        preferredPartner: params.preferredPartner,
       });
     }
     return this.processRideOrder({
@@ -84,6 +88,7 @@ export class OrdersService {
       currentLat: params.currentLat,
       currentLng: params.currentLng,
       accessibilityFlag: params.accessibilityFlag,
+      preferredPartner: params.preferredPartner,
     });
   }
 
@@ -92,18 +97,27 @@ export class OrdersService {
     userId?: string;
     transcript: string;
     intent: Intent;
+    currentLat?: number;
+    currentLng?: number;
     accessibilityFlag?: boolean;
+    preferredPartner?: PartnerCode;
   }): Promise<VoiceOrderResponse> {
     const { intent, transcript } = params;
 
     const restaurantQuery = [intent.restaurant, ...(intent.items ?? [])]
       .filter(Boolean)
       .join(' ');
-    const matches =
-      await this.restaurantsService.searchRestaurants(restaurantQuery);
+    const matches = await this.restaurantsService.searchRestaurants(
+      restaurantQuery,
+      params.currentLat,
+      params.currentLng,
+    );
 
     if (matches.length === 0) {
-      const responseText = `Tôi không tìm thấy quán nào phù hợp với "${restaurantQuery}". Bạn có thể nói rõ hơn tên quán không?`;
+      const hasLocation = params.currentLat != null && params.currentLng != null;
+      const responseText = hasLocation
+        ? `Không có quán "${restaurantQuery}" nào gần bạn trong vòng 20km. Bạn có muốn tìm món khác không?`
+        : `Tôi không tìm thấy quán nào phù hợp với "${restaurantQuery}". Bạn có thể nói rõ hơn tên quán không?`;
       const order = await this.prisma.order.create({
         data: {
           userId: params.userId,
@@ -153,7 +167,17 @@ export class OrdersService {
       .filter((q): q is QuoteWithMeta => q !== null)
       .sort((a, b) => a.totalVnd - b.totalVnd);
 
-    const best = rawQuotes[0] as QuoteWithMeta | undefined;
+    const preferredQuotes = params.preferredPartner
+      ? rawQuotes.filter((q) => q.partner === params.preferredPartner)
+      : [];
+    const scopedQuotes =
+      preferredQuotes.length > 0 ? preferredQuotes : rawQuotes;
+    const unavailablePreferredPartner =
+      params.preferredPartner && preferredQuotes.length === 0
+        ? params.preferredPartner
+        : undefined;
+
+    const best = scopedQuotes[0] as QuoteWithMeta | undefined;
     const primaryRestaurant = best?.restaurant ?? matches[0];
     const resolvedItems: OrderedItem[] = best?.items ?? [];
 
@@ -168,7 +192,7 @@ export class OrdersService {
     };
 
     // Strip meta fields trước khi trả response
-    const cleanQuotes: FoodQuote[] = rawQuotes.map(
+    const cleanQuotes: FoodQuote[] = scopedQuotes.map(
       ({ restaurant: _r, items: _i, ...q }) => q,
     );
 
@@ -178,6 +202,7 @@ export class OrdersService {
       resolvedItems,
       cleanQuotes,
       matches.length > 1,
+      unavailablePreferredPartner,
     );
 
     const order = await this.prisma.order.create({
@@ -233,6 +258,7 @@ export class OrdersService {
     currentLat?: number;
     currentLng?: number;
     accessibilityFlag?: boolean;
+    preferredPartner?: PartnerCode;
   }): Promise<VoiceOrderResponse> {
     const { intent, transcript } = params;
 
@@ -243,6 +269,29 @@ export class OrdersService {
     ]);
 
     const enrichment: Enrichment = { place: placeStatus, weather: weatherInfo };
+
+    if (placeStatus.matched === false) {
+      const responseText = `Tôi không tìm thấy địa điểm "${locationQuery}" trên bản đồ. Bạn có thể nói rõ tên địa điểm hoặc địa chỉ cụ thể hơn không?`;
+      const order = await this.prisma.order.create({
+        data: {
+          userId: params.userId,
+          type: OrderType.RIDE,
+          origin: intent.origin,
+          destination: intent.destination,
+          status: OrderStatus.QUOTED,
+          responseText,
+          accessibilityFlag: params.accessibilityFlag ?? false,
+        },
+      });
+      return {
+        orderId: order.id,
+        transcript,
+        intent,
+        enrichment,
+        quotes: [],
+        responseText,
+      };
+    }
 
     // Tính khoảng cách địa lý (đường chim bay) nếu có GPS từ client
     let distance: number | undefined;
@@ -263,7 +312,18 @@ export class OrdersService {
       );
     }
 
-    const quotes = await this.partners.quoteAll(intent);
+    const allQuotes = await this.partners.quoteAll(intent);
+
+    // Chỉ giữ quote của partner người dùng đã chọn ở đầu phiên (nếu có và còn khả dụng)
+    const partnerAvailable = params.preferredPartner
+      ? allQuotes.some(
+          (q) => q.partner === params.preferredPartner && q.available,
+        )
+      : false;
+    const quotes =
+      params.preferredPartner && partnerAvailable
+        ? allQuotes.filter((q) => q.partner === params.preferredPartner)
+        : allQuotes;
 
     // Dynamic pricing: giá cơ bản + khoảng cách * 12k/km, surge +20% nếu mưa
     if (distance !== undefined) {
@@ -281,6 +341,9 @@ export class OrdersService {
       enrichment,
       quotes,
       distance,
+      params.preferredPartner && !partnerAvailable
+        ? params.preferredPartner
+        : undefined,
     );
 
     const order = await this.saveRideOrder({
@@ -492,6 +555,7 @@ export class OrdersService {
     items: { name: string; qty: number; priceVnd: number }[],
     quotes: FoodQuote[],
     multiMatch = false,
+    unavailablePreferredPartner?: PartnerCode,
   ): string {
     if (!isOpen) {
       return `${restaurant.name} hiện đã đóng cửa. Bạn có muốn chọn quán khác không?`;
@@ -504,11 +568,22 @@ export class OrdersService {
     }
 
     const itemList = items.map((i) => `${i.qty} ${i.name}`).join(', ');
-    const prefix = multiMatch
-      ? `Tôi tìm thấy ${quotes.length} lựa chọn cho ${itemList}. `
-      : `Đặt ${itemList} từ ${restaurant.name}. `;
+    const note = unavailablePreferredPartner
+      ? `${unavailablePreferredPartner} hiện không có lựa chọn này, đây là các lựa chọn khác. `
+      : '';
+    const prefix =
+      note ||
+      (multiMatch
+        ? `Tôi tìm thấy ${quotes.length} lựa chọn cho ${itemList}. `
+        : `Đặt ${itemList} từ ${restaurant.name}. `);
 
     let text = prefix;
+    if (quotes.length === 1) {
+      const q = quotes[0];
+      const promoNote = q.promoDescription ? ` (${q.promoDescription})` : '';
+      text += `${q.partner}: ${q.totalVnd.toLocaleString('vi-VN')}đ${promoNote}, khoảng ${q.etaMinutes} phút. Bạn có muốn đặt không?`;
+      return text;
+    }
     quotes.forEach((q, idx) => {
       const promoNote = q.promoDescription ? ` (${q.promoDescription})` : '';
       text += `${idx + 1}. ${q.partner}: ${q.totalVnd.toLocaleString('vi-VN')}đ${promoNote}, khoảng ${q.etaMinutes} phút. `;
@@ -522,6 +597,7 @@ export class OrdersService {
     enrichment: Enrichment,
     quotes: PartnerQuote[],
     distance?: number,
+    unavailablePreferredPartner?: PartnerCode,
   ): string {
     const available = quotes.filter((q) => q.available);
     if (available.length === 0)
@@ -541,8 +617,16 @@ export class OrdersService {
       text += ` Lưu ý: ${enrichment.place.name} có thể đã đóng cửa.`;
     }
 
-    text += ` Giá rẻ nhất: ${cheapest.partner} — ${cheapest.price.toLocaleString('vi-VN')}đ, khoảng ${cheapest.etaMinutes} phút.`;
-    text += ` Có ${available.length} lựa chọn. Bạn muốn chọn đối tác nào?`;
+    if (unavailablePreferredPartner) {
+      text += ` ${unavailablePreferredPartner} hiện không khả dụng, đây là các lựa chọn khác.`;
+    }
+
+    if (available.length === 1) {
+      text += ` Giá: ${cheapest.price.toLocaleString('vi-VN')}đ, khoảng ${cheapest.etaMinutes} phút. Bạn có muốn đặt không?`;
+    } else {
+      text += ` Giá rẻ nhất: ${cheapest.partner} — ${cheapest.price.toLocaleString('vi-VN')}đ, khoảng ${cheapest.etaMinutes} phút.`;
+      text += ` Có ${available.length} lựa chọn. Bạn muốn chọn đối tác nào?`;
+    }
     return text;
   }
 

@@ -22,6 +22,7 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { theme } from '../../theme/theme';
 import { SuaraLogo } from '../../components/SuaraLogo';
 import { BrandedBackground } from '../../components/BrandedBackground';
+import { useVoice } from '../../contexts/VoiceContext';
 
 const OrderHistoryScreen = () => {
   const insets = useSafeAreaInsets();
@@ -36,6 +37,7 @@ const OrderHistoryScreen = () => {
     onViewDetail,
     onBack,
   } = useOrderHistory();
+  const { openVoice } = useVoice();
 
   const renderItem = ({ item }: { item: HistoryOrder }) => (
     <TouchableOpacity
@@ -182,8 +184,9 @@ const OrderHistoryScreen = () => {
         />
 
         {/* Floating Mic FAB */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.micFab, { bottom: Math.max(insets.bottom, 24) + 16 }]}
+          onPress={() => openVoice('home', 'Bạn cần trợ giúp gì? Tôi có thể đặt lại hoặc thay đổi đơn hàng cho bạn.')}
           accessibilityRole="button"
           accessibilityLabel="Voice Assistant"
         >

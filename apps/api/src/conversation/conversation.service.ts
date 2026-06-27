@@ -50,6 +50,9 @@ export class ConversationService {
     sessionId: string;
     transcript: string;
     userId?: string;
+    userLat?: number;
+    userLng?: number;
+    preferredPartner?: PartnerCode;
   }): Promise<ConversationInputResult> {
     const session = await this.prisma.conversationSession.findUnique({
       where: { id: params.sessionId },
@@ -99,6 +102,9 @@ export class ConversationService {
     const result = await this.orders.processVoice({
       userId: params.userId ?? session.userId ?? undefined,
       transcript: params.transcript,
+      currentLat: params.userLat,
+      currentLng: params.userLng,
+      preferredPartner: params.preferredPartner,
     });
 
     await this.prisma.conversationSession.update({
@@ -173,13 +179,22 @@ export class ConversationService {
         missing.push('food_query'); // cần ít nhất tên quán hoặc tên món
       }
     } else {
-      if (!intent.destination) missing.push('destination');
+      // confidence thấp + không có gì để bám (không origin/destination) -> NLU không hiểu câu nói,
+      // đừng mặc định hỏi "đến đâu" như thể chắc chắn là ride
+      const unclear =
+        (intent.confidence ?? 1) < 0.5 &&
+        !intent.destination &&
+        !intent.origin;
+      if (unclear) missing.push('unclear_intent');
+      else if (!intent.destination) missing.push('destination');
     }
     return missing;
   }
 
   private promptForField(field: string, _intent: Intent): string {
     const prompts: Record<string, string> = {
+      unclear_intent:
+        'Xin lỗi, tôi chưa hiểu yêu cầu này. Bạn có thể nói rõ hơn, ví dụ "Đặt xe đến sân bay" hoặc "Đặt phở bò"?',
       food_query:
         'Bạn muốn đặt ở quán nào? Hoặc cho tôi biết bạn muốn ăn món gì?',
       items: 'Bạn muốn gọi món gì? Tôi có thể đọc menu cho bạn nghe.',

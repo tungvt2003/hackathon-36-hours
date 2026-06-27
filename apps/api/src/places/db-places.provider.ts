@@ -15,7 +15,12 @@ export class DbPlacesProvider implements PlacesProvider {
     const match = places.find((p) => p.keywords.some((k) => q.includes(k)));
 
     if (!match) {
-      return { name: query, isOpen: true, address: 'Địa chỉ chưa xác định' };
+      return {
+        name: query,
+        isOpen: true,
+        address: 'Địa chỉ chưa xác định',
+        matched: false,
+      };
     }
 
     const hour = new Date().getHours();
@@ -25,6 +30,7 @@ export class DbPlacesProvider implements PlacesProvider {
       name: match.name,
       isOpen,
       address: match.address,
+      matched: true,
     };
   }
 }

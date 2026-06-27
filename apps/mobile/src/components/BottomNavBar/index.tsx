@@ -5,16 +5,18 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { theme } from '../../theme/theme';
 import { styles } from './styles';
 
+export type BottomNavTab = 'home' | 'stats' | 'settings';
+
 interface BottomNavBarProps {
-  activeTab: 'home' | 'history' | 'account';
-  onTabPress: (tab: 'home' | 'history' | 'account') => void;
+  activeTab: BottomNavTab;
+  onTabPress: (tab: BottomNavTab) => void;
 }
 
 export const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeTab, onTabPress }) => {
-  const tabs: { id: 'home' | 'history' | 'account'; label: string; icon: string }[] = [
-    { id: 'home',    label: 'Home',    icon: 'home' },
-    { id: 'history', label: 'History', icon: 'receipt' },
-    { id: 'account', label: 'Account', icon: 'account-circle' },
+  const tabs: { id: BottomNavTab; label: string; icon: string }[] = [
+    { id: 'home', label: 'Trang chủ', icon: 'home' },
+    { id: 'stats', label: 'Thống kê', icon: 'chart-box' },
+    { id: 'settings', label: 'Cài đặt', icon: 'cog' },
   ];
 
   return (
@@ -33,8 +35,8 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeTab, onTabPres
           >
             {isActive && <View style={styles.activeDot} />}
             <MaterialCommunityIcons
-              name={isActive ? tab.icon as any : `${tab.icon}-outline` as any}
-              size={24}
+              name={isActive ? (tab.icon as any) : (`${tab.icon}-outline` as any)}
+              size={26}
               color={isActive ? theme.colors.primary : theme.colors.textSecondary}
             />
             <Text

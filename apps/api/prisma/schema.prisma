@@ -102,6 +102,8 @@ model GrabRestaurant {
   id             String          @id @default(cuid())
   name           String
   address        String
+  lat            Float?
+  lng            Float?
   openHour       Int
   closeHour      Int
   cuisineType    String
@@ -171,6 +173,8 @@ model BeRestaurant {
   id             String        @id @default(cuid())
   name           String
   address        String
+  lat            Float?
+  lng            Float?
   openHour       Int
   closeHour      Int
   cuisineType    String
@@ -266,6 +270,8 @@ model ShopeeRestaurant {
   id             String             @id @default(cuid())
   name           String
   address        String
+  lat            Float?
+  lng            Float?
   openHour       Int
   closeHour      Int
   cuisineType    String

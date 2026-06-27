@@ -1,14 +1,23 @@
 import { Intent, PartnerCode } from '../types';
 
+export type VoiceIntentContext = 'platform_select' | 'home' | 'food' | 'ride';
+
 export type RootStackParamList = {
   Splash: undefined;
-  Onboarding: undefined;
   ConnectGrabAccount: undefined;
   ProfileSetup: undefined;
   Dashboard: undefined;
-  VoiceAssistant: { initialPromptHint?: string };
-  VoiceProcessing: { userText: string };
-  VoiceSpeaking: { userText: string; aiText: string };
+  VoiceAssistant: { initialPromptHint?: string; context?: string };
+  VoiceAssistantIntent: { context: VoiceIntentContext; aiGreeting: string };
+  VoiceProcessing: { userText: string; context?: string };
+  VoiceSpeaking: {
+    userText: string;
+    aiText: string;
+    context?: string;
+    sessionId?: string;
+    quotePartner?: PartnerCode;
+    canConfirmOrder?: boolean;
+  };
   VoiceError: undefined;
   RestaurantSelection: { intent: Intent };
   OrderConfirmation: { orderId: string; partner: PartnerCode; mode?: 'confirm' | 'view' };
@@ -18,4 +27,6 @@ export type RootStackParamList = {
   DeliverySuccess: { orderId: string };
   RatingScreen: { orderId: string };
   OrderHistory: undefined;
+  Settings: undefined;
+  Stats: undefined;
 };

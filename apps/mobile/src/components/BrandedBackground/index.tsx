@@ -11,7 +11,7 @@
  *   </BrandedBackground>
  */
 import React from 'react';
-import { ImageBackground, StyleSheet, View, ViewStyle } from 'react-native';
+import { ImageBackground, Platform, StyleSheet, View, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ASSETS } from '../../assets';
 import { theme } from '../../theme/theme';
@@ -35,6 +35,22 @@ export const BrandedBackground: React.FC<BrandedBackgroundProps> = ({
   variant = 'default',
 }) => {
   const gradientColors = GRADIENTS[variant] as [string, string];
+
+  // RN Image resizeMode="repeat" only tiles reliably on iOS — on Android it can
+  // render as a stretched/solid block, throwing off the background color. Skip
+  // the texture tiling on Android and keep just the gradient + base color.
+  if (Platform.OS === 'android') {
+    return (
+      <View style={[styles.root, style]}>
+        <LinearGradient
+          colors={gradientColors}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+        <View style={styles.content}>{children}</View>
+      </View>
+    );
+  }
 
   return (
     <ImageBackground

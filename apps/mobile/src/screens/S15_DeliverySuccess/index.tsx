@@ -9,6 +9,7 @@ import { SecondaryButton } from '../../components/SecondaryButton';
 import { theme } from '../../theme/theme';
 import { SuaraLogo } from '../../components/SuaraLogo';
 import { BrandedBackground } from '../../components/BrandedBackground';
+import { useVoice } from '../../contexts/VoiceContext';
 
 const DeliverySuccessScreen = () => {
   const insets = useSafeAreaInsets();
@@ -20,6 +21,7 @@ const DeliverySuccessScreen = () => {
     onOrderAgain,
     onDone,
   } = useDeliverySuccess();
+  const { openVoice } = useVoice();
 
   return (
     <BrandedBackground variant="success">
@@ -102,6 +104,15 @@ const DeliverySuccessScreen = () => {
             <Text style={styles.doneText}>Xong</Text>
           </TouchableOpacity>
         </View>
+
+        <TouchableOpacity
+          style={styles.voiceFab}
+          onPress={() => openVoice('home', 'Bạn cần trợ giúp gì? Tôi có thể đặt lại hoặc thay đổi đơn hàng cho bạn.')}
+          accessibilityRole="button"
+          accessibilityLabel="Nhấn để nói với AI"
+        >
+          <MaterialCommunityIcons name="microphone" size={32} color="white" />
+        </TouchableOpacity>
       </SafeAreaView>
     </BrandedBackground>
   );
@@ -204,6 +215,24 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: theme.colors.textMuted,
     fontWeight: '700',
+  },
+  voiceFab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 20,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.32,
+    shadowRadius: 20,
+    elevation: 10,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.25)',
   },
 });
 
