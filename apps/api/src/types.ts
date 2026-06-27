@@ -32,6 +32,8 @@ export interface PlaceStatus {
   name: string;
   isOpen: boolean;
   address?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface WeatherInfo {

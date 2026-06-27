@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsNumber } from 'class-validator';
 
 export class VoiceOrderDto {
   @ApiPropertyOptional({ example: 'user-001' })
@@ -16,4 +16,14 @@ export class VoiceOrderDto {
   @IsOptional()
   @IsString()
   audioBase64?: string;
+
+  @ApiPropertyOptional({ example: 10.8494, description: 'Vĩ độ hiện tại của người dùng' })
+  @IsOptional()
+  @IsNumber()
+  currentLat?: number;
+
+  @ApiPropertyOptional({ example: 106.7537, description: 'Kinh độ hiện tại của người dùng' })
+  @IsOptional()
+  @IsNumber()
+  currentLng?: number;
 }
