@@ -1,4 +1,4 @@
-# **AccessAI — Product Context Document**
+# **Suara — Product Context Document**
 
 **Hackathon:** Grab the Future Hackathon | June 27–28, 2026 **Team Stack:** PostgreSQL · React Native · Node.js **Document type:** Product context & user case specification
 
@@ -67,15 +67,15 @@ Any user who prefers or requires hands-free interaction:
 
 ## **3\. Solution Overview**
 
-**AccessAI** is a third-party mobile application (React Native, iOS & Android) that sits on top of existing urban service platforms — Grab, Be, XanhSM, ShopeeFood — and provides a **fully voice-driven interface** for ordering food and booking rides.
+**Suara** is a third-party mobile application (React Native, iOS & Android) that sits on top of existing urban service platforms — Grab, Be, XanhSM, ShopeeFood — and provides a **fully voice-driven interface** for ordering food and booking rides.
 
-Rather than replacing these platforms, AccessAI acts as an **accessibility layer and intelligent agent**: the user speaks their intent, the AI validates and processes the request, and the order is placed through the partner platform's API. The partner platform handles fulfillment; AccessAI handles the human interface.
+Rather than replacing these platforms, Suara acts as an **accessibility layer and intelligent agent**: the user speaks their intent, the AI validates and processes the request, and the order is placed through the partner platform's API. The partner platform handles fulfillment; Suara handles the human interface.
 
 The experience is designed so that a blind person can, from unlock to delivery, **never have to touch a button** — every interaction is mediated by voice and conversational AI.
 
 **Core proposition in one sentence:**
 
-*AccessAI lets any person — blind, limbless, or simply hands-free — order food and book rides through natural conversation, while ensuring drivers and restaurants know exactly how to serve them.*
+*Suara lets any person — blind, limbless, or simply hands-free — order food and book rides through natural conversation, while ensuring drivers and restaurants know exactly how to serve them.*
 
 ---
 
@@ -85,7 +85,7 @@ The following assumptions underpin the product and must be validated or caveat-e
 
 | \# | Assumption | Risk Level | Mitigation |
 | ----- | ----- | ----- | ----- |
-| 1 | **API access:** Grab, Be, XanhSM, or ShopeeFood would enter a partnership to provide API access (menu data, order placement, driver data, tracking) to AccessAI | High | Demo uses mock data; pitch frames this as "pending partnership." Grab's presence as organizer makes this a direct pitch opportunity. |
+| 1 | **API access:** Grab, Be, XanhSM, or ShopeeFood would enter a partnership to provide API access (menu data, order placement, driver data, tracking) to Suara | High | Demo uses mock data; pitch frames this as "pending partnership." Grab's presence as organizer makes this a direct pitch opportunity. |
 | 2 | **Voice accuracy in Vietnamese:** AI voice recognition performs reliably in Vietnamese, including regional accents and disability-related speech patterns | Medium | Use Whisper or Google STT which have strong Vietnamese support; add manual fallback input |
 | 3 | **Driver willingness:** Grab/Be drivers will comply with accessibility notifications and deliver to the door when flagged | Medium | Incentive system (bonus points/rating boost) addresses compliance; platform enforcement is a partnership term |
 | 4 | **Restaurant compliance:** Restaurants notified of a disabled customer will take extra care with confirmation and communication | Medium | Notification is informational only; no workflow change required from the restaurant side initially |
@@ -129,8 +129,8 @@ Before confirming any order, the AI performs the following checks using data fro
 #### **M4 — Platform Linking (OAuth / Partner API)**
 
 * User links their existing Grab / ShopeeFood / Be account via OAuth or credential-sharing flow  
-* AccessAI retrieves: saved addresses, payment methods, order history, and live menu/driver data  
-* All actual payments are processed through the linked platform (AccessAI does not handle payments in MVP)
+* Suara retrieves: saved addresses, payment methods, order history, and live menu/driver data  
+* All actual payments are processed through the linked platform (Suara does not handle payments in MVP)
 
 #### **M5 — Real-Time Order Tracking via Voice**
 
@@ -161,7 +161,7 @@ If the assigned driver cancels after pickup:
 
 If a menu item becomes unavailable after order placement:
 
-1. Restaurant notifies platform; platform pushes update to AccessAI  
+1. Restaurant notifies platform; platform pushes update to Suara  
 2. AI alerts user: "The restaurant says \[item\] is no longer available. They suggest \[alternative\]. Shall I update your order?"  
 3. User can accept, choose differently, or cancel — all by voice
 
@@ -191,7 +191,7 @@ After delivery:
 ## **6\. System Architecture & Data Sources**
 
 ┌─────────────────────────────────────────────────────┐  
-│                  AccessAI Mobile App                │  
+│                  Suara Mobile App                │  
 │              (React Native — iOS & Android)         │  
 │                                                     │  
 │  ┌─────────────┐    ┌──────────────────────────┐   │  
@@ -200,7 +200,7 @@ After delivery:
 │  └─────────────┘    └──────────┬───────────────┘   │  
 │                                │                   │  
 │  ┌─────────────────────────────▼───────────────┐   │  
-│  │           AccessAI Backend (Node.js)        │   │  
+│  │           Suara Backend (Node.js)        │   │  
 │  │  Order logic · Notification dispatch ·      │   │  
 │  │  User profiles · Partner API orchestration  │   │  
 │  └─────────────┬───────────────────────────────┘   │  
@@ -220,7 +220,7 @@ After delivery:
    └────────┘  └───────────┘  └─────────────┘  
         (Menu data · Driver data · Order placement · Tracking)
 
-### **Data AccessAI Consumes from Partners**
+### **Data Suara Consumes from Partners**
 
 | Data Type | Used For |
 | ----- | ----- |
@@ -269,7 +269,7 @@ After delivery:
 
 ### **Integration Approach (For Demo: Simulated via Mock Data)**
 
-In the MVP demo, AccessAI simulates the partner API layer with realistic mock data:
+In the MVP demo, Suara simulates the partner API layer with realistic mock data:
 
 * Static JSON files representing Grab restaurant listings, menu items, and driver objects  
 * A mock order state machine that progresses through: `placed → accepted → in-transit → delivered`  
@@ -277,9 +277,9 @@ In the MVP demo, AccessAI simulates the partner API layer with realistic mock da
 
 **Pitch framing for judges:** "This is what the integration looks like with Grab's API. We've built the full flow — the only missing piece is a live API key, which would come from the partnership."
 
-### **What AccessAI Needs from Partners (Partnership Ask)**
+### **What Suara Needs from Partners (Partnership Ask)**
 
-| Data / Capability | Why AccessAI Needs It |
+| Data / Capability | Why Suara Needs It |
 | ----- | ----- |
 | Read access: restaurant catalog \+ menus | To let AI describe food options to blind users |
 | Read access: real-time item availability | To validate orders before confirming |
@@ -336,7 +336,7 @@ When a driver fulfills an order flagged as an accessibility order **and** the us
 | Completing 10 accessibility orders in a month | Bronze Accessibility Badge |
 | Completing 50 accessibility orders | Silver Accessibility Badge \+ platform bonus (partner-negotiated) |
 
-AccessPoints are tracked in the AccessAI backend and reported to the partner platform for reward redemption (pending partnership agreement). In the demo, this is shown as a driver-facing leaderboard UI.
+AccessPoints are tracked in the Suara backend and reported to the partner platform for reward redemption (pending partnership agreement). In the demo, this is shown as a driver-facing leaderboard UI.
 
 ### **Why This Works**
 
@@ -375,7 +375,7 @@ After a completed ride:
 
 ### **Step 4 — Loyalty & History**
 
-* Every completed order is logged in the user's AccessAI profile  
+* Every completed order is logged in the user's Suara profile  
 * User can ask: *"What did I order last week?"* or *"Reorder what I had on Monday"*  
 * Builds a personalized model of the user's preferences over time (preferred restaurants, dietary restrictions, common destinations)
 
@@ -431,7 +431,7 @@ All AI tools will be disclosed in `DISCLOSURE.md` in the GitHub repository per h
 
 ### **Phase 0 — Partnership & Setup (Pre-conditions)**
 
-AccessAI ←──────────── API Agreement ────────────→ Grab / Be / ShopeeFood / XanhSM  
+Suara ←──────────── API Agreement ────────────→ Grab / Be / ShopeeFood / XanhSM  
                 ↓  
     App receives: OAuth credentials · Menu API · Order placement API  
                   Driver notification API · Webhook subscriptions for order events
@@ -442,10 +442,10 @@ AccessAI ←──────────── API Agreement ─────�
 
 ### **Phase 1 — Onboarding**
 
-User opens AccessAI  
+User opens Suara  
         │  
         ▼  
-Voice welcome: "Welcome to AccessAI. Let's get you set up."  
+Voice welcome: "Welcome to Suara. Let's get you set up."  
         │  
         ▼  
 Link existing account: "Which platform do you use? Say: Grab, ShopeeFood, Be, or XanhSM."  
@@ -454,7 +454,7 @@ Link existing account: "Which platform do you use? Say: Grab, ShopeeFood, Be, or
 OAuth flow (or mock credential input in demo)  
         │  
         ▼  
-AccessAI retrieves: saved addresses · payment method · order history  
+Suara retrieves: saved addresses · payment method · order history  
         │  
         ▼  
 Disability toggle prompt: "Do you want drivers and restaurants to know you have a disability,  
@@ -502,7 +502,7 @@ User says: "Yes"
         │  
         ▼  
 \[IF DISABILITY TOGGLE ON\]  
-AccessAI places order via partner API with metadata:  
+Suara places order via partner API with metadata:  
   \- accessibility\_flag: true  
   \- delivery\_instruction: "Customer has disability. Deliver to door. Verbal confirmation required."  
   \- restaurant\_note: "Accessibility order. Confirm item availability and packaging."  
@@ -550,7 +550,7 @@ Driver arrives at door (not lobby — per accessibility instruction)
         │  
 Driver calls/messages user (as instructed by push notification)  
         │  
-\[Optional: Driver scans QR or enters code to confirm door delivery in AccessAI\]  
+\[Optional: Driver scans QR or enters code to confirm door delivery in Suara\]  
         │  
 AI notifies user: "Your driver \[Name\] is at your door."  
         │  
@@ -612,7 +612,7 @@ AI pings emergency contact: "\[User name\] has arrived at their destination."
 
 ## **14\. SDG & Sustainability Alignment**
 
-| SDG Goal | How AccessAI Contributes |
+| SDG Goal | How Suara Contributes |
 | ----- | ----- |
 | **SDG 10 — Reduced Inequalities** | Removes digital barriers for 6.2M+ disabled Vietnamese, enabling independent access to urban services |
 | **SDG 11 — Sustainable Cities and Communities** | Makes urban digital infrastructure inclusive; supports equitable access to smart city services |
@@ -621,8 +621,8 @@ AI pings emergency contact: "\[User name\] has arrived at their destination."
 
 ### **Grab & UNDP Alignment**
 
-* **Grab:** AccessAI extends Grab's platform reach to a previously inaccessible market segment. Each disabled user who can now independently use Grab's services is a new active customer.  
-* **UNDP:** AccessAI directly addresses SDG 10 and SDG 11 at the city level, with a model replicable across Southeast Asian cities with similar disability demographics and super-app ecosystems.
+* **Grab:** Suara extends Grab's platform reach to a previously inaccessible market segment. Each disabled user who can now independently use Grab's services is a new active customer.  
+* **UNDP:** Suara directly addresses SDG 10 and SDG 11 at the city level, with a model replicable across Southeast Asian cities with similar disability demographics and super-app ecosystems.
 
 ---
 
@@ -654,7 +654,7 @@ AI pings emergency contact: "\[User name\] has arrived at their destination."
 
 ### **Repository Structure**
 
-accessai/  
+Suara/  
 ├── README.md           ← Problem, solution, setup, tech stack, user guide  
 ├── DISCLOSURE.md       ← AI tools used: Claude, Copilot, Whisper, etc.  
 ├── /app                ← React Native source  

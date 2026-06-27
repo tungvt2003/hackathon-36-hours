@@ -1,7 +1,7 @@
 /**
  * PartnerSimService — giả lập backend của từng đối tác.
  * Mỗi method = 1 "API" độc lập của Grab/Be/XanhSM/Shopee.
- * Logic nằm đây; AccessAI gọi qua HTTP (không import service này trực tiếp).
+ * Logic nằm đây; Suara gọi qua HTTP (không import service này trực tiếp).
  */
 
 import { Injectable } from '@nestjs/common';
@@ -257,45 +257,45 @@ export class PartnerSimService {
 
   // ── CONFIRM (partner ghi nhận đơn, sinh mã đơn nội bộ) ───────
 
-  async grabConfirm(accessAiOrderId: string) {
+  async grabConfirm(SuaraOrderId: string) {
     const driver = await this.prisma.grabDriver.findFirst({
       where: { available: true },
     });
     return {
-      partnerOrderId: `GRAB-${accessAiOrderId.slice(-6).toUpperCase()}`,
+      partnerOrderId: `GRAB-${SuaraOrderId.slice(-6).toUpperCase()}`,
       driverName: driver?.name ?? 'Tài xế Grab',
       message: `Grab xác nhận đơn. Tài xế ${driver?.name ?? 'Grab'} đang đến.`,
     };
   }
 
-  async beConfirm(accessAiOrderId: string) {
+  async beConfirm(SuaraOrderId: string) {
     const driver = await this.prisma.beDriver.findFirst({
       where: { available: true },
     });
     return {
-      partnerOrderId: `BE-${accessAiOrderId.slice(-6).toUpperCase()}`,
+      partnerOrderId: `BE-${SuaraOrderId.slice(-6).toUpperCase()}`,
       driverName: driver?.name ?? 'Tài xế Be',
       message: `Be xác nhận đơn. Tài xế ${driver?.name ?? 'Be'} đang đến.`,
     };
   }
 
-  async xanhSmConfirm(accessAiOrderId: string) {
+  async xanhSmConfirm(SuaraOrderId: string) {
     const driver = await this.prisma.xanhSmDriver.findFirst({
       where: { available: true },
     });
     return {
-      partnerOrderId: `XSMSM-${accessAiOrderId.slice(-6).toUpperCase()}`,
+      partnerOrderId: `XSMSM-${SuaraOrderId.slice(-6).toUpperCase()}`,
       driverName: driver?.name ?? 'Tài xế Xanh SM',
       message: `Xanh SM xác nhận đơn. Tài xế ${driver?.name ?? 'Xanh SM'} đang đến.`,
     };
   }
 
-  async shopeeConfirm(accessAiOrderId: string) {
+  async shopeeConfirm(SuaraOrderId: string) {
     const driver = await this.prisma.shopeeDriver.findFirst({
       where: { available: true },
     });
     return {
-      partnerOrderId: `SPF-${accessAiOrderId.slice(-6).toUpperCase()}`,
+      partnerOrderId: `SPF-${SuaraOrderId.slice(-6).toUpperCase()}`,
       driverName: driver?.name ?? 'Shipper Shopee',
       message: `Shopee Food xác nhận đơn. Shipper ${driver?.name ?? 'Shopee'} đang lấy hàng.`,
     };

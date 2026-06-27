@@ -24,7 +24,7 @@ export const useVoiceProcessing = (): VoiceProcessingViewModel => {
   }, [navigation]);
 
   useEffect(() => {
-    AccessibilityInfo.announceForAccessibility('Đang xử lý yêu cầu của bạn.');
+    AccessibilityInfo.announceForAccessibility('Processing your request.');
 
     (async () => {
       try {

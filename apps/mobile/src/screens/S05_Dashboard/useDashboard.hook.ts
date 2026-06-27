@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Alert } from 'react-native';
+import { Alert } from 'react-native';
 import * as Speech from 'expo-speech';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -7,19 +7,19 @@ import { RootStackParamList } from '../../navigation/types';
 import { BottomNavTab } from '../../components/BottomNavBar';
 import { getSpeechRecognitionModule, STT_AVAILABLE } from '../../services/speechRecognition';
 import { DEV_FORCE_TEXT_INPUT } from '../../constants/devFlags';
-import { api } from '../../api';
-import { PartnerCode } from '../../types';
-import { getCurrentLocation } from '../../services/location';
+import { PartnerCode, OrderType } from '../../types';
+import { PLATFORM_SELECT_GREETING } from './dashboard.service';
 import {
-  PLATFORM_SELECT_GREETING,
-  HOME_AI_GREETING,
-  PARTNER_LABEL,
-  matchPlatformFromVoice,
-} from './dashboard.service';
+  parseVoiceInput,
+  isYes,
+  isNo,
+  VoiceNluContext,
+} from '../../services/voice/voice-nlu.service';
+import { voiceNlg } from '../../services/voice/voice-nlg.service';
+import { tts } from '../../services/voice/tts';
 
 // simulator k voice được -> ép hiện modal nhập text thay vì tự mở mic
 const TEXT_INPUT_MODE = DEV_FORCE_TEXT_INPUT || !STT_AVAILABLE;
-const LISTEN_CUE = ' Bạn có thể bắt đầu nói.';
 
 export type DashboardStage = 'idle' | 'listening' | 'thinking';
 
@@ -47,21 +47,23 @@ export const useDashboard = (): DashboardViewModel => {
   const [stage, setStage] = useState<DashboardStage>('idle');
   const [manualInput, setManualInput] = useState('');
 
-  const sessionIdRef = useRef<string | null>(null);
   const platformRef = useRef<PartnerCode | null>(null);
+  const voiceContextRef = useRef<VoiceNluContext>('platform_select');
+  const awaitingGrabRef = useRef(false);
+  const awaitingFoodRef = useRef(false);
+  const pendingFoodRef = useRef<{ restaurantId: string } | null>(null);
   const beginListeningRef = useRef<() => void>(() => { });
   useEffect(() => { platformRef.current = platform; }, [platform]);
 
-  // Đọc to mỗi khi aiText đổi — đồng bộ với text hiện trên card.
-  // Đọc xong tự mở mic nghe tiếp (hoặc mở modal nhập text nếu TEXT_INPUT_MODE).
   useEffect(() => {
-    Speech.stop();
-    Speech.speak(aiText + LISTEN_CUE, {
-      language: 'vi-VN',
-      onDone: () => beginListeningRef.current(),
-      onStopped: () => beginListeningRef.current(),
+    tts(aiText, () => {
+      if (!TEXT_INPUT_MODE) {
+        beginListeningRef.current();
+      }
     });
-    AccessibilityInfo.announceForAccessibility(aiText);
+    if (TEXT_INPUT_MODE) {
+      beginListeningRef.current();
+    }
     return () => { Speech.stop(); };
   }, [aiText]);
 
@@ -69,47 +71,146 @@ export const useDashboard = (): DashboardViewModel => {
     setUserText(transcript);
     setStage('thinking');
 
-    if (!platformRef.current) {
-      const matched = matchPlatformFromVoice(transcript);
-      if (matched) {
-        setPlatform(matched);
-        setAiText(`Đã kết nối với ${PARTNER_LABEL[matched]}. ${HOME_AI_GREETING}`);
-      } else {
-        setAiText('Xin lỗi, tôi chưa nghe rõ. Bạn hãy nói tên nền tảng, ví dụ Grab hoặc Be.');
+    if (awaitingFoodRef.current && pendingFoodRef.current) {
+      if (isYes(transcript)) {
+        const pending = pendingFoodRef.current;
+        pendingFoodRef.current = null;
+        awaitingFoodRef.current = false;
+        navigation.navigate('OrderConfirmation', {
+          orderId: `mock-${pending.restaurantId}`,
+          partner: PartnerCode.GRAB,
+          mode: 'confirm',
+        });
+        setStage('idle');
+        return;
       }
+      if (isNo(transcript)) {
+        pendingFoodRef.current = null;
+        awaitingFoodRef.current = false;
+        voiceContextRef.current = 'food';
+        setAiText(voiceNlg.foodDeclined());
+        setStage('idle');
+        return;
+      }
+    }
+
+    if (awaitingGrabRef.current) {
+      if (isYes(transcript)) {
+        awaitingGrabRef.current = false;
+        setPlatform(PartnerCode.GRAB);
+        platformRef.current = PartnerCode.GRAB;
+        voiceContextRef.current = 'home';
+        setAiText(voiceNlg.platformGrabConfirmedAfterFallback());
+        setStage('idle');
+        return;
+      }
+      if (isNo(transcript)) {
+        awaitingGrabRef.current = false;
+        voiceContextRef.current = 'platform_select';
+        setAiText(voiceNlg.platformRetryPrompt());
+        setStage('idle');
+        return;
+      }
+    }
+
+    const ctx = voiceContextRef.current;
+    const nlu = parseVoiceInput(transcript, ctx);
+    const aiResponse = voiceNlg.fromNlu(ctx, nlu, 0);
+
+    if (nlu.intent === 'PLATFORM_UNSUPPORTED') {
+      awaitingGrabRef.current = true;
+      setAiText(aiResponse);
       setStage('idle');
       return;
     }
 
-    // cho phép đổi nền tảng giữa hội thoại — nói tên đối tác khác là tự chuyển
-    const switched = matchPlatformFromVoice(transcript);
-    if (switched && switched !== platformRef.current) {
-      setPlatform(switched);
-      platformRef.current = switched;
+    if (nlu.intent === 'SELECT_PLATFORM') {
+      setPlatform(PartnerCode.GRAB);
+      platformRef.current = PartnerCode.GRAB;
+      voiceContextRef.current = 'home';
+      setAiText(aiResponse);
+      setStage('idle');
+      return;
     }
 
-    try {
-      let sid = sessionIdRef.current;
-      if (!sid) {
-        const s = await api.conversation.start();
-        sid = s.sessionId;
-        sessionIdRef.current = sid;
-      }
-      const loc = await getCurrentLocation();
-      const res = await api.conversation.input(
-        sid,
-        transcript,
-        loc.lat,
-        loc.lng,
-        platformRef.current ?? undefined,
-      );
-      setAiText(res.promptText);
-    } catch (err) {
-      Alert.alert('Lỗi', (err as Error).message);
-    } finally {
+    if (nlu.intent === 'SELECT_SERVICE_FOOD') {
+      voiceContextRef.current = 'food';
+      setAiText(aiResponse);
       setStage('idle');
+      return;
     }
-  }, []);
+
+    if (nlu.intent === 'SELECT_SERVICE_RIDE') {
+      voiceContextRef.current = 'ride';
+      setAiText(aiResponse);
+      setStage('idle');
+      return;
+    }
+
+    if (nlu.intent === 'SELECT_FOOD_DISH') {
+      if (Number(nlu.slots.restaurantCount) > 1) {
+        navigation.navigate('RestaurantSelection', {
+          intent: {
+            type: OrderType.FOOD,
+            restaurant: String(nlu.slots.dishName),
+            items: [String(nlu.slots.dishName)],
+          },
+        });
+        setStage('idle');
+        return;
+      }
+      pendingFoodRef.current = { restaurantId: String(nlu.slots.restaurantId) };
+      awaitingFoodRef.current = true;
+      setAiText(aiResponse);
+      setStage('idle');
+      return;
+    }
+
+    if (nlu.intent === 'FOOD_NOT_FOUND' || (nlu.intent === 'UNKNOWN' && ctx === 'food')) {
+      setAiText(nlu.intent === 'FOOD_NOT_FOUND' ? aiResponse : voiceNlg.foodUnclear());
+      setStage('idle');
+      return;
+    }
+
+    if (nlu.intent === 'SELECT_DESTINATION') {
+      navigation.navigate('OrderConfirmation', {
+        orderId: `mock-ride-${nlu.slots.placeId}`,
+        partner: PartnerCode.GRAB,
+        mode: 'confirm',
+      });
+      setStage('idle');
+      return;
+    }
+
+    if (nlu.intent === 'DESTINATION_INVALID' || (nlu.intent === 'UNKNOWN' && ctx === 'ride')) {
+      setAiText(
+        nlu.intent === 'DESTINATION_INVALID' ? aiResponse : voiceNlg.rideUnclear(),
+      );
+      setStage('idle');
+      return;
+    }
+
+    if (nlu.intent === 'UNKNOWN' && ctx === 'platform_select') {
+      setAiText(aiResponse);
+      setStage('idle');
+      return;
+    }
+
+    if (nlu.intent === 'UNKNOWN' && ctx === 'home') {
+      setAiText(aiResponse);
+      setStage('idle');
+      return;
+    }
+
+    if (nlu.intent === 'GLOBAL_CANCEL') {
+      voiceContextRef.current = 'home';
+      setAiText(aiResponse);
+      setStage('idle');
+      return;
+    }
+
+    setStage('idle');
+  }, [navigation]);
 
   useEffect(() => {
     const speechModule = getSpeechRecognitionModule();
@@ -160,11 +261,11 @@ export const useDashboard = (): DashboardViewModel => {
       }
       const perm = await speechModule.requestPermissionsAsync();
       if (!perm.granted) {
-        Alert.alert('Cần quyền microphone');
+        Alert.alert('Microphone permission required');
         setStage('idle');
         return;
       }
-      speechModule.start({ lang: 'vi-VN', continuous: false, interimResults: true });
+      speechModule.start({ lang: 'en-US', continuous: false, interimResults: true });
     } catch (e) {
       console.warn('STT start failed', e);
       setStage('idle');

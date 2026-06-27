@@ -16,7 +16,7 @@ export default function SettingsScreen() {
   return (
     <BrandedBackground variant="default">
       <SafeAreaView style={styles.container} edges={['top']}>
-        <ScreenHeader title="Cài đặt" showLogo={false} onBack={onBack} />
+        <ScreenHeader title="Settings" showLogo={false} onBack={onBack} />
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <Text style={styles.sectionHeading}>Trợ năng</Text>
@@ -74,7 +74,7 @@ export default function SettingsScreen() {
           style={styles.voiceFab}
           onPress={onMicPress}
           accessibilityRole="button"
-          accessibilityLabel="Nhấn để nói với AI"
+          accessibilityLabel="Tap to speak with AI"
         >
           <MaterialCommunityIcons name="microphone" size={32} color="white" />
         </TouchableOpacity>

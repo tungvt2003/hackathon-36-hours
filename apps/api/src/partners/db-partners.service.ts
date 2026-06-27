@@ -2,7 +2,7 @@
  * DbPartnersService — RIDE quote fan-out.
  *
  * Gửi HTTP tới 3 partner-sim ride/quote endpoints song song.
- * Giả lập: AccessAI KHÔNG query DB trực tiếp — mỗi partner có API riêng.
+ * Giả lập: Suara KHÔNG query DB trực tiếp — mỗi partner có API riêng.
  */
 
 import { HttpService } from '@nestjs/axios';
@@ -103,7 +103,7 @@ export class DbPartnersService {
       partnerOrderId: string;
       driverName?: string;
       message: string;
-    }>(endpoint, { accessAiOrderId: orderId });
+    }>(endpoint, { SuaraOrderId: orderId });
 
     return {
       externalId: result.partnerOrderId,

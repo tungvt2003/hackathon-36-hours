@@ -86,7 +86,7 @@ export interface PartnerRestaurant {
   name: string;
   address: string;
   rating: number; // partner seed rating (cold-start fallback)
-  displayRating: number; // accessAiAvgRating ?? partnerRating
+  displayRating: number; // SuaraAvgRating ?? partnerRating
   reviewCount: number;
   deliveryFeeVnd: number;
   minOrderVnd: number;

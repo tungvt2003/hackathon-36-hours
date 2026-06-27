@@ -71,7 +71,7 @@ export const FloatingMicButton: React.FC<FloatingMicButtonProps> = ({ onPress, s
           ]}
           onPress={onPress}
           accessibilityRole="button"
-          accessibilityLabel="Nhấn để nói với AI"
+          accessibilityLabel="Tap to speak with AI"
         >
           <MaterialCommunityIcons name="microphone" size={size * 0.45} color="white" />
         </TouchableOpacity>

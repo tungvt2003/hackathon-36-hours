@@ -29,7 +29,7 @@ export default function OrderConfirmationScreen() {
     <BrandedBackground variant="default">
       <SafeAreaView edges={['top', 'bottom']} style={styles.root}>
         <ScreenHeader
-          title={isViewMode ? 'Chi tiết đơn hàng' : 'Xác nhận đơn hàng'}
+          title={isViewMode ? 'Order details' : 'Confirm order'}
           showLogo={false}
           onBack={onBack}
           rightElement={
@@ -155,7 +155,7 @@ export default function OrderConfirmationScreen() {
         <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
           {!isViewMode ? (
             <PrimaryButton
-              label={`Đặt ngay - ${order.total.toLocaleString()}đ`}
+              label={`Place order - ${order.total.toLocaleString()} dong`}
               onPress={onConfirm}
             />
           ) : (
@@ -165,7 +165,7 @@ export default function OrderConfirmationScreen() {
               </View>
               <View style={[styles.flex1, styles.ml12]}>
                 <PrimaryButton
-                  label="Đặt lại"
+                  label="Order again"
                   onPress={() => onConfirm()}
                 />
               </View>
@@ -177,7 +177,7 @@ export default function OrderConfirmationScreen() {
           style={[styles.voiceFab, { bottom: 100 + insets.bottom }]}
           onPress={() => openVoice('home', 'Bạn cần trợ giúp gì? Tôi có thể đặt lại hoặc thay đổi đơn hàng cho bạn.')}
           accessibilityRole="button"
-          accessibilityLabel="Nhấn để nói với AI"
+          accessibilityLabel="Tap to speak with AI"
         >
           <MaterialCommunityIcons name="microphone" size={32} color="white" />
         </TouchableOpacity>

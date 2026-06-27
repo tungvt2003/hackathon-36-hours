@@ -14,9 +14,9 @@ interface BottomNavBarProps {
 
 export const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeTab, onTabPress }) => {
   const tabs: { id: BottomNavTab; label: string; icon: string }[] = [
-    { id: 'home', label: 'Trang chủ', icon: 'home' },
-    { id: 'stats', label: 'Thống kê', icon: 'chart-box' },
-    { id: 'settings', label: 'Cài đặt', icon: 'cog' },
+    { id: 'home', label: 'Home', icon: 'home' },
+    { id: 'stats', label: 'Stats', icon: 'chart-box' },
+    { id: 'settings', label: 'Settings', icon: 'cog' },
   ];
 
   return (

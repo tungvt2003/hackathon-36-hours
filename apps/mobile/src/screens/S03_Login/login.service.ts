@@ -1,5 +1,5 @@
 export const PLATFORM_AI_GREETING =
-  'Xin chào! Tôi là AccessAI. Vui lòng chọn nền tảng bạn muốn dùng: Grab, Be, Xanh SM, hoặc ShopeeFood.';
+  "Hello! I'm Suara, your voice assistant. Which platform would you like to use? You can say Grab, Be, Xanh SM, or Shopee Food.";
 
 export const loginService = {
   mockGrabAuth: async (): Promise<boolean> => {

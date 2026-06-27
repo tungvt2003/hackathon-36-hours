@@ -76,7 +76,7 @@ export default function VoiceSpeakingScreen() {
             accessibilityRole="button"
             accessibilityLabel="Cancel"
           >
-            <Text style={styles.cancelBtnText}>Huỷ</Text>
+            <Text style={styles.cancelBtnText}>Cancel</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -89,7 +89,7 @@ export default function VoiceSpeakingScreen() {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.confirmBtnText}>Xác nhận</Text>
+              <Text style={styles.confirmBtnText}>Confirm</Text>
             )}
           </TouchableOpacity>
         </View>

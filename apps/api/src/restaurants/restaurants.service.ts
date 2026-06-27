@@ -27,7 +27,7 @@ export class RestaurantsService {
 
   /**
    * Fan-out HTTP tới 3 partner-sim search endpoints song song.
-   * Giả lập: AccessAI gửi 3 request đồng thời → chờ cả 3 → aggregate.
+   * Giả lập: Suara gửi 3 request đồng thời → chờ cả 3 → aggregate.
    */
   async searchRestaurants(query: string, userLat?: number, userLng?: number): Promise<PartnerRestaurant[]> {
     if (!query || query.trim().length < 2) return [];
@@ -132,7 +132,7 @@ export class RestaurantsService {
 
   /**
    * Gửi HTTP tới đúng partner-sim food/quote endpoint.
-   * Giả lập: AccessAI gửi 1 request tới partner với giỏ hàng → partner tính giá + promo.
+   * Giả lập: Suara gửi 1 request tới partner với giỏ hàng → partner tính giá + promo.
    */
   async calcQuote(
     restaurant: PartnerRestaurant,
@@ -286,11 +286,11 @@ export class RestaurantsService {
         order: { partnerRestaurantId: r.restaurantId, partner: r.partner },
       },
     });
-    const accessAiAvg = agg._avg.restaurantRating;
+    const SuaraAvg = agg._avg.restaurantRating;
     return {
       ...r,
       displayRating:
-        accessAiAvg !== null ? Math.round(accessAiAvg * 10) / 10 : r.rating,
+        SuaraAvg !== null ? Math.round(SuaraAvg * 10) / 10 : r.rating,
       reviewCount: r.reviewCount + (agg._count.restaurantRating ?? 0),
     };
   }

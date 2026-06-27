@@ -8,25 +8,39 @@ import {
 import { VoiceEnvService } from './voice-env.service';
 
 const GLOBAL_PATTERNS: [RegExp, VoiceIntent][] = [
-  [/(huy|hủy|cancel)/i, 'GLOBAL_CANCEL'],
-  [/(quay lai|quay lại|lui|lùi|back)/i, 'GLOBAL_BACK'],
-  [/(lap lai|lặp lại|noi lai|nói lại|nhac lai|nhắc lại)/i, 'GLOBAL_REPEAT'],
+  [/(cancel|stop|quit|abort)/i, 'GLOBAL_CANCEL'],
+  [/(go back|back|return|previous)/i, 'GLOBAL_BACK'],
+  [/(repeat|say again|again|what did you say|come again|read again)/i, 'GLOBAL_REPEAT'],
   [
-    /(doc lai lua chon|đọc lại lựa chọn|doc lai danh sach|đọc lại danh sách)/i,
+    /(read options|list options|what are my options|choices)/i,
     'GLOBAL_REPEAT_OPTIONS',
   ],
-  [/(nghe them|nghe thêm|con gi nua|còn gì nữa|xem them|xem thêm)/i, 'GLOBAL_MORE_OPTIONS'],
-  [/(tro giup|trợ giúp|huong dan|hướng dẫn|lam sao|làm sao|help)/i, 'GLOBAL_HELP'],
-  [/(doc lai don|đọc lại đơn|gio hang co gi|giỏ hàng có gì)/i, 'GLOBAL_READ_ORDER'],
-  [/(tam dung|tạm dừng|pause)/i, 'GLOBAL_PAUSE'],
-  [/(tiep tuc|tiếp tục|resume)/i, 'GLOBAL_RESUME'],
-  [/(dung lai|dừng lại|dung|dừng|stop)/i, 'GLOBAL_STOP'],
+  [/(more|more options|show more)/i, 'GLOBAL_MORE_OPTIONS'],
+  [/(help|what can i say|how does this work|instructions)/i, 'GLOBAL_HELP'],
+  [/(my order|what's in my order|cart|what did i order)/i, 'GLOBAL_READ_ORDER'],
+  [/(pause|hold on|wait)/i, 'GLOBAL_PAUSE'],
+  [/(resume|continue|go on|keep going)/i, 'GLOBAL_RESUME'],
+  [/(stop listening|mute|be quiet)/i, 'GLOBAL_STOP'],
 ];
 
 const YES_PATTERN =
-  /^(dung|đúng|u|ừ|uh|ờ|ok|vang|vâng|roi|rồi|dong y|đồng ý|xac nhan|xác nhận|phai|phải|co|có|yes|yep|dat|đặt|di|đi|dung roi|đúng rồi|ok roi|ok rồi)$/i;
+  /^(yes|yeah|yep|yup|ok|okay|sure|confirm|correct|right|go ahead|do it|book it|order|absolutely|definitely|please|of course|grab|alright)$/i;
 const NO_PATTERN =
-  /^(khong|không|sai|khoan|chua|chưa|no|nope|thoi|thôi|dung|đừng|hong|hông|ko|khong phai|không phải|sai roi|sai rồi)$/i;
+  /^(no|nope|nah|cancel|stop|don't|back|return|never mind|not now|skip|go back|negative)$/i;
+
+const PLATFORM_KEYWORDS: { code: string; words: string[] }[] = [
+  { code: 'GRAB', words: ['grab'] },
+  { code: 'BE', words: ['be', 'bê'] },
+  { code: 'XANH_SM', words: ['xanh sm', 'xanh'] },
+  { code: 'SHOPEE', words: ['shopee', 'shopee food', 'shopee fud'] },
+];
+
+const SUPPORTED_PLATFORMS = new Set(['GRAB']);
+
+const FOOD_SERVICE_PATTERN =
+  /food|eat|hungry|order food|order|pho|rice|noodle|chicken|burger|meal|lunch|dinner|breakfast|snack/i;
+const RIDE_SERVICE_PATTERN =
+  /ride|car|taxi|drive|take me|book a ride|go to|transport|airport|destination/i;
 
 const NUMBER_MAP: Record<string, number> = {
   mot: 1,
@@ -64,6 +78,10 @@ const VALID_INTENTS = new Set<string>([
   'GLOBAL_STOP',
   'CONFIRM_YES',
   'CONFIRM_NO',
+  'SELECT_PLATFORM',
+  'PLATFORM_UNSUPPORTED',
+  'SELECT_SERVICE_FOOD',
+  'SELECT_SERVICE_RIDE',
   'NAVIGATE',
   'SELECT_OPTION',
   'REQUEST_SUGGESTIONS',
@@ -138,21 +156,47 @@ export class VoiceNluService {
     }
 
     if (!isGlobal && intent === 'UNKNOWN') {
-      if (
+      const voiceStep = String(session.slots_filled.voice_step ?? '');
+
+      if (voiceStep === 'platform_selection' || voiceStep === '') {
+        const platform = this.matchPlatformKeyword(text);
+        if (platform) {
+          slots.platform = platform;
+          if (SUPPORTED_PLATFORMS.has(platform)) {
+            intent = 'SELECT_PLATFORM';
+            confidence = 0.92;
+          } else {
+            intent = 'PLATFORM_UNSUPPORTED';
+            confidence = 0.9;
+          }
+        }
+      }
+
+      if (intent === 'UNKNOWN' && (voiceStep === 'service_selection' || session.slots_filled.platform)) {
+        if (FOOD_SERVICE_PATTERN.test(text)) {
+          intent = 'SELECT_SERVICE_FOOD';
+          confidence = 0.9;
+        } else if (RIDE_SERVICE_PATTERN.test(text)) {
+          intent = 'SELECT_SERVICE_RIDE';
+          confidence = 0.9;
+        }
+      }
+
+      if (intent === 'UNKNOWN' && (
         session.current_flow === null ||
         session.current_state === 'IDLE' ||
         session.current_state === 'GREETING'
-      ) {
+      )) {
         this.parseEntryIntent(text, slots, (nextIntent, nextConfidence) => {
           intent = nextIntent;
           confidence = nextConfidence;
         });
-      } else if (session.current_flow === 'NAV') {
+      } else if (intent === 'UNKNOWN' && session.current_flow === 'NAV') {
         this.parseNavIntent(text, slots, (nextIntent, nextConfidence) => {
           intent = nextIntent;
           confidence = nextConfidence;
         });
-      } else if (session.current_flow === 'FOOD') {
+      } else if (intent === 'UNKNOWN' && session.current_flow === 'FOOD') {
         this.parseFoodIntent(text, slots, (nextIntent, nextConfidence) => {
           intent = nextIntent;
           confidence = nextConfidence;
@@ -193,6 +237,18 @@ export class VoiceNluService {
       alternatives: [],
       timestamp: new Date().toISOString(),
     };
+  }
+
+  private matchPlatformKeyword(text: string): string | null {
+    const normalized = text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[đĐ]/g, 'd');
+    for (const { code, words } of PLATFORM_KEYWORDS) {
+      if (words.some((w) => normalized.includes(w))) return code;
+    }
+    return null;
   }
 
   private parseEntryIntent(

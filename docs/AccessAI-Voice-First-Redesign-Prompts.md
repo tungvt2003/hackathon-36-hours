@@ -1,4 +1,4 @@
-# AccessAI — Master Copilot Prompt Pack (Voice-First Redesign)
+# Suara — Master Copilot Prompt Pack (Voice-First Redesign)
 > **Read before using:** Paste each prompt in order, one at a time. Wait for full output and integrate before moving to the next. Each prompt is self-contained with a GOAL, CONTEXT, and OUTPUT.
 
 ---
@@ -173,7 +173,7 @@ Then verify no remaining import of S02_Onboarding or 'Onboarding' route exists i
 **CONTEXT:**
 - Current `S03_Login/index.tsx` shows a visual grid of 4 partner tiles (Grab, Be, XanhSM, ShopeeFood) and a "Connect with Grab" button
 - Current `useLogin.hook.ts` has `handleConnect → ProfileSetup` and `handleSkip → ProfileSetup`
-- The new experience: when the screen mounts, the AI voice says: *"Xin chào! Tôi là AccessAI. Vui lòng chọn nền tảng bạn dùng: Grab, Be, Xanh SM, hoặc ShopeeFood."* Then waits for voice input
+- The new experience: when the screen mounts, the AI voice says: *"Xin chào! Tôi là Suara. Vui lòng chọn nền tảng bạn dùng: Grab, Be, Xanh SM, hoặc ShopeeFood."* Then waits for voice input
 - The screen must auto-open the VoiceAssistant modal with context `'platform_select'` after a 600ms delay (to let the screen render)
 - Visual fallback: still show the 4 platform tiles for users who want to tap instead of speak
 - After any platform tap or voice recognition of a platform name → `navigation.navigate('ProfileSetup')`
@@ -184,7 +184,7 @@ Then verify no remaining import of S02_Onboarding or 'Onboarding' route exists i
 FILE 1: src/screens/S03_Login/login.service.ts
 Add:
   export const PLATFORM_AI_GREETING = 
-    'Xin chào! Tôi là AccessAI. Vui lòng chọn nền tảng bạn muốn dùng: Grab, Be, Xanh SM, hoặc ShopeeFood.';
+    'Xin chào! Tôi là Suara. Vui lòng chọn nền tảng bạn muốn dùng: Grab, Be, Xanh SM, hoặc ShopeeFood.';
   
   Keep: mockGrabAuth() as-is
 
@@ -222,7 +222,7 @@ Structure:
         Row (alignItems center, marginBottom 10):
           View 32×32 bg='rgba(0,177,79,0.15)' borderRadius 16:
             MaterialCommunityIcons 'robot' 18px #00B14F
-          Text "ACCESSAI NÓI" — 11px weight:700 #00B14F letterSpacing:1.2 textTransform uppercase, marginLeft 8
+          Text "Suara NÓI" — 11px weight:700 #00B14F letterSpacing:1.2 textTransform uppercase, marginLeft 8
         Text PLATFORM_AI_GREETING — fontSize:18 fontWeight:'500' color theme.colors.textPrimary lineHeight:27
 
   PLATFORM TILES (4 tiles in 2×2 grid):
@@ -302,7 +302,7 @@ LIQUID GLASS AI CARD (position at upper-center, appears when phase==='ai_speakin
     Row alignItems center mb 12:
       Animated pulsing green dot (8×8, bg #00B14F, borderRadius 4, opacity 0.4→1 loop 800ms) when phase='ai_speaking'
       Animated static dot when phase='listening'
-      Text 'ACCESSAI NÓI' — 11px weight:700 color:'rgba(0,177,79,0.9)' letterSpacing:1.5 uppercase, ml 10
+      Text 'Suara NÓI' — 11px weight:700 color:'rgba(0,177,79,0.9)' letterSpacing:1.5 uppercase, ml 10
     Text aiGreeting — fontSize:22 fontWeight:'500' color:'rgba(255,255,255,0.95)' lineHeight:33
 
 MIC AREA (flex:1 justifyContent:center alignItems:center):
@@ -500,7 +500,7 @@ FILE: src/components/AIBubble/index.tsx
 Props:
   text: string                          — the AI's message
   variant?: 'light' | 'dark'           — 'light' = on white bg, 'dark' = on dark overlay bg (default: 'light')
-  label?: string                        — overrides the "ACCESSAI NÓI" label (optional)
+  label?: string                        — overrides the "Suara NÓI" label (optional)
   style?: ViewStyle                     — outer container override
   animated?: boolean                    — if true, text fades in word-by-word (default: false for now, use simple fade-in)
   accessibilityLiveRegion?: 'polite' | 'assertive'   (default: 'polite')
@@ -669,7 +669,7 @@ No explanation. Full file only. Note: if expo-speech-recognition API differs fro
 - Current `useProfileSetup.hook.ts` has `modes`, `speed`, `toggleMode`, `setSpeed`, `handleSave`
 - New: on mount, after 500ms, navigate to VoiceAssistantIntent with:
     `context: 'home'`
-    `aiGreeting: 'Chào mừng bạn đến với AccessAI! Tôi sẽ điều chỉnh giao diện theo nhu cầu của bạn. Bạn có bị khiếm thị không?'`
+    `aiGreeting: 'Chào mừng bạn đến với Suara! Tôi sẽ điều chỉnh giao diện theo nhu cầu của bạn. Bạn có bị khiếm thị không?'`
 - After the voice overlay closes (back to ProfileSetup), the user sees the visual toggles to confirm/adjust
 - The "Save & Continue" button navigates to Dashboard
 
@@ -683,7 +683,7 @@ On mount after 500ms:
     setHasGreeted(true)
     navigation.navigate('VoiceAssistantIntent', {
       context: 'home',
-      aiGreeting: 'Chào mừng bạn đến với AccessAI! Tôi sẽ điều chỉnh giao diện theo nhu cầu của bạn. Bạn có bị khiếm thị không?'
+      aiGreeting: 'Chào mừng bạn đến với Suara! Tôi sẽ điều chỉnh giao diện theo nhu cầu của bạn. Bạn có bị khiếm thị không?'
     })
 
 handleSave: save to useProfileStore → navigation.replace('Dashboard')
@@ -714,7 +714,7 @@ export const SETTINGS_SECTIONS = {
   voice: 'Giọng nói',
   about: 'Giới thiệu',
 }
-export const ABOUT_TEXT = 'AccessAI v1.0 — Được xây dựng cho Grab the Future Hackathon 2026. Giải pháp đặt xe và đồ ăn bằng giọng nói cho người khuyết tật.'
+export const ABOUT_TEXT = 'Suara v1.0 — Được xây dựng cho Grab the Future Hackathon 2026. Giải pháp đặt xe và đồ ăn bằng giọng nói cho người khuyết tật.'
 
 FILE 2: src/screens/S_Settings/useSettings.hook.ts
 Read/write useProfileStore.
