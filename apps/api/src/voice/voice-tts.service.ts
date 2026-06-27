@@ -142,7 +142,7 @@ export class VoiceTtsService {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.env.get('VNPT_ACCESS_TOKEN')}`,
+        Authorization: this.authorizationHeader(this.env.get('VNPT_ACCESS_TOKEN')),
         'Token-id': this.env.get('VNPT_TOKEN_ID'),
         'Token-key': this.env.get('VNPT_TOKEN_KEY'),
       },
@@ -191,5 +191,11 @@ export class VoiceTtsService {
       voice: voice ?? this.env.get('TTS_VOICE', 'female_north'),
       error,
     };
+  }
+
+  private authorizationHeader(accessToken: string): string {
+    return /^bearer\s+/i.test(accessToken)
+      ? accessToken.replace(/^bearer/i, 'Bearer')
+      : `Bearer ${accessToken}`;
   }
 }

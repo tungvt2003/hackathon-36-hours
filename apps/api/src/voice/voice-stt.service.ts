@@ -23,9 +23,11 @@ export class VoiceSttService {
       return this.mockAsr(sessionId);
     }
 
+    const cleanAudio = this.stripDataUrl(audioBase64);
+    const effectiveSampleRate = this.readWavSampleRate(cleanAudio) ?? sampleRate;
     const paddedAudio = this.padSilence(
-      this.stripDataUrl(audioBase64),
-      sampleRate,
+      cleanAudio,
+      effectiveSampleRate,
       SILENCE_PAD_MS,
     );
 
@@ -34,8 +36,8 @@ export class VoiceSttService {
       const startMs = Date.now();
       const result =
         provider === 'vnpt'
-          ? await this.transcribeVnpt(paddedAudio, sessionId, sampleRate, startMs)
-          : await this.transcribeGoogle(paddedAudio, sessionId, sampleRate, startMs);
+          ? await this.transcribeVnpt(paddedAudio, sessionId, effectiveSampleRate, startMs)
+          : await this.transcribeGoogle(paddedAudio, sessionId, effectiveSampleRate, startMs);
 
       if (result.confidence >= STT_MIN_CONFIDENCE && result.transcript) {
         return result;
@@ -118,7 +120,7 @@ export class VoiceSttService {
     const response = await fetch(`${baseUrl}/stt-service/v3/standard`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: this.authorizationHeader(accessToken),
         'Token-id': tokenId,
         'Token-key': tokenKey,
         'Sample-Rate': String(sampleRate),
@@ -215,9 +217,26 @@ export class VoiceSttService {
       : audioBase64;
   }
 
+  private readWavSampleRate(audioBase64: string): number | null {
+    const audioBytes = Buffer.from(audioBase64, 'base64');
+    const isWav =
+      audioBytes.length > 28 &&
+      audioBytes[0] === 0x52 &&
+      audioBytes[1] === 0x49 &&
+      audioBytes[2] === 0x46 &&
+      audioBytes[3] === 0x46;
+    return isWav ? audioBytes.readUInt32LE(24) : null;
+  }
+
   private estimateAudioDuration(base64: string, sampleRate: number): number {
     const bytes = (base64.length * 3) / 4;
     const samples = bytes / 2;
     return Math.round((samples / sampleRate) * 1000);
+  }
+
+  private authorizationHeader(accessToken: string): string {
+    return /^bearer\s+/i.test(accessToken)
+      ? accessToken.replace(/^bearer/i, 'Bearer')
+      : `Bearer ${accessToken}`;
   }
 }
