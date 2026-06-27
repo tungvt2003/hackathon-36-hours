@@ -1,4 +1,4 @@
-// Types nội bộ của API — nguồn sự thật cho OpenAPI spec
+// Types nội bộ của API - nguồn sự thật cho OpenAPI spec
 // Mobile codegen từ /api-json, không dùng file này trực tiếp
 
 export enum OrderType {

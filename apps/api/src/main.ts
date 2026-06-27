@@ -10,7 +10,7 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-  // OpenAPI spec — expose tại /api (UI) và /api-json (JSON cho codegen)
+  // OpenAPI spec - expose tại /api (UI) và /api-json (JSON cho codegen)
   const config = new DocumentBuilder()
     .setTitle('Voice Mobility API')
     .setDescription('API đặt xe / đồ ăn bằng giọng nói')

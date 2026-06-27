@@ -3,7 +3,7 @@ import { Intent, OrderType } from '../types';
 import { NluProvider } from './nlu.provider';
 
 // TODO: team AI thay bằng LLM (GPT-4o, Claude, Gemini) hoặc Rasa NLU
-// Rule-based đơn giản — match từ khoá tiếng Việt
+// Rule-based đơn giản - match từ khoá tiếng Việt
 @Injectable()
 export class MockNluProvider implements NluProvider {
   async parse(transcript: string): Promise<Intent> {

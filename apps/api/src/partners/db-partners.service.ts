@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 /** Đọc báo giá từ bảng PartnerRate trong DB thay fixture file */
 @Injectable()
 export class DbPartnersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async quoteAll(_intent: Intent): Promise<PartnerQuote[]> {
     const rates = await this.prisma.partnerRate.findMany({
@@ -29,7 +29,7 @@ export class DbPartnersService {
       where: { partner },
     });
 
-    // Sinh mã đơn giả — sau này thay bằng gọi API đối tác thật
+    // Sinh mã đơn giả - sau này thay bằng gọi API đối tác thật
     const externalId = `${partner}-${orderId.slice(-6).toUpperCase()}`;
     const driverName = rate?.driverName ?? 'Tài xế';
 

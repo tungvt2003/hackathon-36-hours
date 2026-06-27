@@ -1,6 +1,6 @@
 // ============================================================
 // COPY từ packages/shared/src/index.ts
-// Giữ đồng bộ với packages/shared — khi sửa type ở shared,
+// Giữ đồng bộ với packages/shared - khi sửa type ở shared,
 // cập nhật file này cùng nội dung.
 // apps/mobile là standalone nên không import trực tiếp shared package.
 // ============================================================

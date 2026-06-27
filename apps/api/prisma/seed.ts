@@ -1,4 +1,4 @@
-// Seed dữ liệu mẫu vào Postgres — chạy: npm run prisma:seed (trong apps/api)
+// Seed dữ liệu mẫu vào Postgres - chạy: npm run prisma:seed (trong apps/api)
 // Dùng upsert để chạy lại nhiều lần không bị lỗi duplicate
 
 import 'dotenv/config';
@@ -23,7 +23,7 @@ async function main() {
   });
   console.log('✓ Users');
 
-  // ── Places — địa điểm + quán ăn ──────────────────────────────
+  // ── Places - địa điểm + quán ăn ──────────────────────────────
   // deleteMany trước để re-seed không bị trùng keywords
   await prisma.place.deleteMany();
   await prisma.place.createMany({
@@ -103,7 +103,7 @@ async function main() {
   });
   console.log('✓ Places');
 
-  // ── PartnerRates — báo giá mô phỏng từng đối tác ─────────────
+  // ── PartnerRates - báo giá mô phỏng từng đối tác ─────────────
   await prisma.partnerRate.deleteMany();
   await prisma.partnerRate.createMany({
     data: [

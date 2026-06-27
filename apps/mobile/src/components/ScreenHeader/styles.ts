@@ -11,17 +11,31 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
   },
+  headerItem: {
+    width: 48,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   backButton: {
     width: 48,
     height: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  title: {
+  titleContainer: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  title: {
     fontSize: 20,
     fontWeight: '700',
     color: theme.colors.textPrimary,
     textAlign: 'center',
+  },
+  rightContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

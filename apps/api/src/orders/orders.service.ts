@@ -20,7 +20,7 @@ import type { WeatherProvider } from '../weather/weather.provider';
 import { PARTNERS_IMPL } from '../partners/partners.module';
 import { PrismaService } from '../prisma/prisma.service';
 
-/** Interface tối giản — cả DbPartnersService lẫn PartnersService đều implement */
+/** Interface tối giản - cả DbPartnersService lẫn PartnersService đều implement */
 interface IPartnersService {
   quoteAll(intent: Intent): Promise<PartnerQuote[]>;
   confirm(partner: PartnerCode, orderId: string): Promise<{ externalId: string; message: string }>;
@@ -37,7 +37,7 @@ export class OrdersService {
     @Inject(WEATHER_PROVIDER) private readonly weather: WeatherProvider,
     @Inject(PARTNERS_IMPL) private readonly partners: IPartnersService,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   /** Pipeline chính: transcript -> NLU -> enrichment -> quotes -> lưu DB */
   async processVoice(params: {
@@ -127,7 +127,7 @@ export class OrdersService {
       text += ` Địa điểm ${enrichment.place.name} có thể đã đóng cửa.`;
     }
 
-    text += ` Giá rẻ nhất: ${cheapest.partner} — ${cheapest.price.toLocaleString('vi-VN')} đồng, khoảng ${cheapest.etaMinutes} phút.`;
+    text += ` Giá rẻ nhất: ${cheapest.partner} - ${cheapest.price.toLocaleString('vi-VN')} đồng, khoảng ${cheapest.etaMinutes} phút.`;
     text += ` Có ${available.length} lựa chọn. Bạn muốn chọn đối tác nào?`;
     return text;
   }

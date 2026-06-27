@@ -1,4 +1,4 @@
-// Prisma 7 schema — datasource URL cấu hình trong prisma.config.ts (không hardcode ở đây)
+// Prisma 7 schema - datasource URL cấu hình trong prisma.config.ts (không hardcode ở đây)
 
 generator client {
   provider   = "prisma-client-js"
@@ -11,7 +11,7 @@ datasource db {
 }
 
 // ============================================================
-// Dữ liệu CỦA MÌNH — không lưu response thô của đối tác
+// Dữ liệu CỦA MÌNH - không lưu response thô của đối tác
 // ============================================================
 
 model User {
@@ -50,10 +50,10 @@ model OrderEvent {
 }
 
 // ============================================================
-// Dữ liệu chuẩn bị sẵn — seed bằng data mẫu, provider đọc từ đây
+// Dữ liệu chuẩn bị sẵn - seed bằng data mẫu, provider đọc từ đây
 // ============================================================
 
-// Địa điểm / quán ăn — MockPlacesProvider đọc từ bảng này
+// Địa điểm / quán ăn - MockPlacesProvider đọc từ bảng này
 model Place {
   id        String   @id @default(cuid())
   name      String
@@ -64,7 +64,7 @@ model Place {
   createdAt DateTime @default(now())
 }
 
-// Báo giá mô phỏng từng đối tác — DbPartnersService đọc từ bảng này
+// Báo giá mô phỏng từng đối tác - DbPartnersService đọc từ bảng này
 // Sau này thay bằng gọi API thật, bảng này không cần nữa
 model PartnerRate {
   id          String   @id @default(cuid())

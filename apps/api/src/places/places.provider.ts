@@ -1,6 +1,6 @@
 import { PlaceStatus } from '../types';
 
-// Interface Places — team thay bằng Google Places API sau
+// Interface Places - team thay bằng Google Places API sau
 export interface PlacesProvider {
   getStatus(query: string): Promise<PlaceStatus>;
 }

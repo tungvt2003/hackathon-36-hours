@@ -1,0 +1,180 @@
+import React, { useEffect, useRef } from 'react';
+import { 
+  Animated, 
+  StyleSheet, 
+  Text, 
+  TouchableOpacity, 
+  View 
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useVoiceError } from './useVoiceError.hook';
+import { theme } from '../../theme/theme';
+
+export default function VoiceErrorScreen() {
+  const insets = useSafeAreaInsets();
+  const { onRetry, onCancel } = useVoiceError();
+
+  const pulse1 = useRef(new Animated.Value(0)).current;
+  const pulse2 = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.stagger(200, [
+      Animated.timing(pulse1, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.timing(pulse2, { toValue: 1, duration: 600, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
+  const createPulseStyle = (val: Animated.Value) => ({
+    transform: [{
+      scale: val.interpolate({
+        inputRange: [0, 1],
+        outputRange: [1, 1.4],
+      }),
+    }],
+    opacity: val.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.28, 0],
+    }),
+  });
+
+  return (
+    <View style={styles.root}>
+      <TouchableOpacity 
+        style={[styles.closeButton, { top: insets.top + 12 }]} 
+        onPress={onCancel}
+        accessibilityRole="button"
+        accessibilityLabel="Dismiss"
+      >
+        <MaterialCommunityIcons name="close" size={22} color="white" />
+      </TouchableOpacity>
+
+      <View style={styles.micArea}>
+        <Animated.View style={[styles.pulseCircle, styles.pulse1, createPulseStyle(pulse1)]} />
+        <Animated.View style={[styles.pulseCircle, styles.pulse2, createPulseStyle(pulse2)]} />
+        
+        <View style={styles.micCircle}>
+          <MaterialCommunityIcons name="microphone-off" size={40} color="#EF4444" />
+        </View>
+      </View>
+
+      <Text style={styles.title}>Không nghe rõ</Text>
+      <Text style={styles.subtitle}>{"Vui lòng nói rõ hơn hoặc thử lại"}</Text>
+
+      <View style={styles.buttonGroup}>
+        <TouchableOpacity 
+          style={styles.retryBtn} 
+          onPress={onRetry}
+          accessibilityRole="button"
+          accessibilityLabel="Retry listening"
+        >
+          <Text style={styles.retryBtnText}>Thử lại</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.cancelBtn} 
+          onPress={onCancel}
+          accessibilityRole="button"
+          accessibilityLabel="Cancel"
+        >
+          <Text style={styles.cancelBtnText}>Huỷ</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: 'rgba(17, 24, 39, 0.93)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  closeButton: {
+    position: 'absolute',
+    right: 20,
+    width: 48,
+    height: 48,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  micArea: {
+    width: 200,
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  pulseCircle: {
+    position: 'absolute',
+    borderRadius: 999,
+  },
+  pulse1: {
+    width: 140,
+    height: 140,
+    backgroundColor: 'rgba(239, 68, 68, 0.28)',
+  },
+  pulse2: {
+    width: 180,
+    height: 180,
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+  },
+  micCircle: {
+    width: 96,
+    height: 96,
+    backgroundColor: '#FEE2E2',
+    borderRadius: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  title: {
+    fontSize: 26,
+    color: '#FFFFFF',
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 32,
+  },
+  subtitle: {
+    fontSize: 17,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginTop: 12,
+    lineHeight: 24,
+  },
+  buttonGroup: {
+    width: '100%',
+    marginTop: 48,
+    gap: 12,
+  },
+  retryBtn: {
+    height: 56,
+    borderRadius: 999,
+    backgroundColor: '#00B14F',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  retryBtnText: {
+    color: 'white',
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  cancelBtn: {
+    height: 52,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#374151',
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cancelBtnText: {
+    color: '#9CA3AF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});

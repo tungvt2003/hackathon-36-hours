@@ -1,4 +1,4 @@
-// Interface STT — team voice implement sau bằng provider thật (Google STT, Whisper, v.v.)
+// Interface STT - team voice implement sau bằng provider thật (Google STT, Whisper, v.v.)
 export interface SttProvider {
   /**
    * Chuyển audio base64 thành text.

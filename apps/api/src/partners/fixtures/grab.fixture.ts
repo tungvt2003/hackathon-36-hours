@@ -29,7 +29,7 @@ export interface GrabRawConfirm {
   otp: string;
 }
 
-// Dữ liệu mẫu — team thay bằng gọi API thật
+// Dữ liệu mẫu - team thay bằng gọi API thật
 export const GRAB_MOCK_QUOTE: GrabRawQuote = {
   estimatedFare: { currency: 'VND', value: 85000, displayAmount: '85.000đ' },
   eta: { pickUpEta: 180, dropOffEta: 900 },

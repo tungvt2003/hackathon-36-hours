@@ -1,5 +1,5 @@
 // Chạy: npx ts-node scripts/gen-openapi.ts
-// Output: openapi.json ở root apps/api/ — mobile dùng để codegen types
+// Output: openapi.json ở root apps/api/ - mobile dùng để codegen types
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { writeFileSync } from 'fs';

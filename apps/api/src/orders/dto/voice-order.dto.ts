@@ -12,7 +12,7 @@ export class VoiceOrderDto {
   @IsString()
   transcript?: string;
 
-  @ApiPropertyOptional({ description: 'Base64 audio — team voice implement sau' })
+  @ApiPropertyOptional({ description: 'Base64 audio - team voice implement sau' })
   @IsOptional()
   @IsString()
   audioBase64?: string;
