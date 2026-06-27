@@ -7,6 +7,7 @@ export type RootStackParamList = {
   ProfileSetup: undefined;
   Dashboard: undefined;
   VoiceAssistant: { initialPromptHint?: string };
+  VoiceProcessing: { userText: string };
   RestaurantSelection: { intent: Intent };
   OrderConfirmation: { orderId: string; partner: PartnerCode; mode?: 'confirm' | 'view' };
   FoodTracking: { orderId: string; intent: Intent };

@@ -7,6 +7,7 @@ import SplashScreen from '../screens/S01_Splash';
 import OnboardingScreen from '../screens/S02_Onboarding';
 import LoginScreen from '../screens/S03_Login';
 import ProfileSetupScreen from '../screens/S04_ProfileSetup';
+import VoiceListeningScreen from '../screens/S06_VoiceListening';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -27,7 +28,13 @@ export const RootNavigator = () => {
       
       <Stack.Screen 
         name="VoiceAssistant" 
-        component={() => <Placeholder name="VoiceAssistant" />} 
+        component={VoiceListeningScreen} 
+        options={{ presentation: 'transparentModal', animation: 'fade', headerShown: false }}
+      />
+
+      <Stack.Screen 
+        name="VoiceProcessing" 
+        component={() => <Placeholder name="VoiceProcessing" />} 
         options={{ presentation: 'transparentModal', animation: 'fade', headerShown: false }}
       />
       
