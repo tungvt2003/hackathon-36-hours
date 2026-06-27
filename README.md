@@ -6,7 +6,6 @@ App đặt xe / đồ ăn bằng giọng nói cho người khiếm thị.
 
 ```text
 voice-mobility/
-  packages/shared/    — types contract dùng chung FE/BE (node_modules riêng)
   apps/api/           — NestJS 11 + Prisma 7 (node_modules riêng)
   apps/mobile/        — Expo SDK 56 (node_modules riêng)
 ```
@@ -42,7 +41,7 @@ npm run prisma:setup
 > `prisma:setup` = `prisma migrate deploy` (áp migration có sẵn) + seed Places/PartnerRates vào DB.
 > Migration files đã commit sẵn trong `prisma/migrations/` — **không cần** `migrate dev`.
 
-### 4. Chạy API
+### 3. Chạy API
 
 ```bash
 # Từ thư mục gốc:
@@ -54,29 +53,38 @@ npm run start:dev
 
 API chạy tại `http://localhost:3000`
 
-Verify: `curl http://localhost:3000/health` → `{"ok":true}`
+- Verify: `curl http://localhost:3000/health` → `{"ok":true}`
+- Swagger UI: `http://localhost:3000/api`
+- OpenAPI JSON: `http://localhost:3000/api-json`
 
-### 5. Chạy Mobile
+### 4. Chạy Mobile
 
 ```bash
 cd apps/mobile
 npm install
-npx expo start
+npm start
 ```
 
-### 6. Codegen types cho Mobile (chạy sau khi API đang chạy)
+### 5. Codegen types cho Mobile
+
+**Cách 1 — từ API đang chạy:**
 
 ```bash
 cd apps/mobile
-
-# Từ API đang chạy ở localhost:3000:
-npm run gen:types
-
-# Hoặc từ file openapi.json đã commit (khi không có API):
-npm run gen:types:file
+npm run gen:types        # gọi http://localhost:3000/api-json
 ```
 
-> Sinh ra `src/api-types.ts` — import types từ đây, không viết tay. Khi tách 2 repo: chỉ cần copy `openapi.json` từ api repo sang mobile repo.
+**Cách 2 — từ file (khi không có API):** Chạy `gen:openapi` trong API trước để sinh file, rồi:
+
+```bash
+# Trong apps/api (API phải đang chạy):
+npm run gen:openapi      # → tạo openapi.json
+
+# Trong apps/mobile:
+npm run gen:types:file   # đọc ../api/openapi.json
+```
+
+> Sinh ra `src/api-types.ts` — import types từ đây, không viết tay.
 
 > **Test trên điện thoại thật:** Sửa `apps/mobile/app.json` → `extra.apiUrl` thành IP LAN của máy chạy API.
 >
@@ -129,7 +137,6 @@ curl "http://localhost:3000/weather?location=TP.HCM"
 2. Build và migrate:
 
    ```bash
-   npm run build:shared
    cd apps/api
    npm install
    npm run prisma:setup
