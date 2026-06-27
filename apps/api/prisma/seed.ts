@@ -336,13 +336,14 @@ async function main() {
   await prisma.place.createMany({
     skipDuplicates: true,
     data: [
-      { id: 'place-tsn',       name: 'Sân bay Tân Sơn Nhất',  address: '60 Trường Sơn, Tân Bình, TP.HCM',         openHour: 0,  closeHour: 24, keywords: ['tân sơn nhất', 'sân bay', 'tsn', 'airport', 'tan son nhat'] },
-      { id: 'place-ben-xe-md', name: 'Bến xe Miền Đông',       address: '292 Đinh Bộ Lĩnh, Bình Thạnh, TP.HCM',   openHour: 5,  closeHour: 22, keywords: ['bến xe miền đông', 'miền đông', 'ben xe'] },
-      { id: 'place-ben-thanh', name: 'Chợ Bến Thành',          address: 'Quảng trường Quách Thị Trang, Q1',       openHour: 6,  closeHour: 19, keywords: ['bến thành', 'chợ bến thành', 'ben thanh'] },
-      { id: 'place-bitexco',   name: 'Bitexco Financial Tower', address: '2 Hải Triều, Q1, TP.HCM',               openHour: 8,  closeHour: 22, keywords: ['bitexco', 'tháp bitexco'] },
-      { id: 'place-quan-1',    name: 'Quận 1',                  address: 'Quận 1, TP.HCM',                        openHour: 0,  closeHour: 24, keywords: ['quận 1', 'q1', 'quan 1'] },
+      { id: 'place-tsn',       name: 'Sân bay Tân Sơn Nhất',  address: '60 Trường Sơn, Tân Bình, TP.HCM',         openHour: 0,  closeHour: 24, keywords: ['tân sơn nhất', 'sân bay', 'tsn', 'airport', 'tan son nhat'], rainOverride: true },
+      { id: 'place-ben-xe-md', name: 'Bến xe Miền Đông',       address: '292 Đinh Bộ Lĩnh, Bình Thạnh, TP.HCM',   openHour: 5,  closeHour: 22, keywords: ['bến xe miền đông', 'miền đông', 'ben xe'], rainOverride: false },
+      { id: 'place-ben-thanh', name: 'Chợ Bến Thành',          address: 'Quảng trường Quách Thị Trang, Q1',       openHour: 6,  closeHour: 19, keywords: ['bến thành', 'chợ bến thành', 'ben thanh'], rainOverride: false },
+      { id: 'place-bitexco',   name: 'Bitexco Financial Tower', address: '2 Hải Triều, Q1, TP.HCM',               openHour: 8,  closeHour: 22, keywords: ['bitexco', 'tháp bitexco'], rainOverride: true },
+      { id: 'place-quan-1',    name: 'Quận 1',                  address: 'Quận 1, TP.HCM',                        openHour: 0,  closeHour: 24, keywords: ['quận 1', 'q1', 'quan 1'], rainOverride: false },
     ],
   });
+
 
   console.log('✓ Places seeded');
   console.log('✅ Seed complete!');

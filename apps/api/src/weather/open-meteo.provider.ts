@@ -1,10 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { WeatherProvider } from './weather.provider';
 import type { WeatherInfo } from '../types';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class OpenMeteoProvider implements WeatherProvider {
   private readonly logger = new Logger(OpenMeteoProvider.name);
+
+  constructor(private readonly prisma: PrismaService) {}
 
   async getCurrent(
     locationName: string,
@@ -12,6 +15,21 @@ export class OpenMeteoProvider implements WeatherProvider {
     lngParam?: number,
   ): Promise<WeatherInfo> {
     try {
+      const q = locationName.toLowerCase().trim();
+
+      // Check database local xem có địa điểm nào được cưỡng chế thời tiết không
+      try {
+        const places = await this.prisma.place.findMany();
+        const match = places.find((p) => p.keywords.some((k) => q.includes(k.toLowerCase())));
+
+        if (match && match.rainOverride) {
+          this.logger.log(`[open-meteo] rainOverride active for place: ${match.name}`);
+          return { tempC: 25, condition: 'Trời đang mưa', willRain: true };
+        }
+      } catch (dbErr) {
+        this.logger.error('Không đọc được rainOverride trong DB:', dbErr);
+      }
+
       let lat = latParam;
       let lng = lngParam;
 

@@ -176,3 +176,22 @@ Xem TODO trong `src/HomeScreen.tsx` để biết chính xác chỗ gắn.
 | `partners` | Grab/Be/Xanh SM - đọc từ DB (bảng PartnerRate) |
 | `orders` | Orchestrator - nối pipeline + lưu Prisma |
 | `prisma` | Database service - global, fail-safe khi DB chưa chạy |
+
+---
+
+## Kịch bản Test Cases Demo 
+### 1. Kịch Bản Đặt Xe (Ride Booking)
+
+| Kịch Bản | Đầu Vào (Giọng nói/Văn bản) | Phân Tích Hệ Thống & Trạng Thái Thời Tiết | Kết Quả Mong Đợi (Giá Cước & Đối Tác) |
+| :--- | :--- | :--- | :--- |
+| **Kịch bản 1: Đặt xe ngày nắng** *(Kiểm thử giá tiêu chuẩn)* | "Đặt xe đi Chợ Bến Thành" | • Tìm kiếm vị trí Chợ Bến Thành trong hệ thống maps.<br>• Phân tích thời tiết: **Trời quang / Không mưa** (`willRain: false`). | • Trả về danh sách giá cước tiêu chuẩn từ các đối tác (GrabCar, beCar, Xanh SM).<br>• Công thức cước: `Giá cơ bản + (Khoảng cách * 12.000đ)`. |
+| **Kịch bản 2: Đặt xe ngày mưa** *(Kiểm thử định giá động - Surge Pricing)* | "Đặt xe đi Sân bay Tân Sơn Nhất" hoặc "Bitexco" | • Xác định tọa độ Sân bay / Bitexco.<br>• Phân tích thời tiết: **Trời đang mưa** (`willRain: true`). | • Hệ thống tự động kích hoạt chế độ Surge Pricing do thời tiết bất lợi.<br>• **Tăng 20% giá cước (x1.2)** của tất cả các hãng Grab, Be, Xanh SM để phản ánh đúng thực tế cung/cầu ngày mưa. |
+
+### 2. Kịch Bản Đặt Đồ Ăn (Food Ordering)
+
+| Kịch Bản | Đầu Vào (Giọng nói/Văn bản) | Phân Tích Hệ Thống | Kết Quả Mong Đợi (Menu & Tổng Đơn) |
+| :--- | :--- | :--- | :--- |
+| **Kịch bản 1: Tìm kiếm & Đặt món** | "Tôi muốn ăn cơm" | • Tìm kiếm các quán cơm đối tác trong cơ sở dữ liệu.<br>• Trả về danh sách quán (Cơm Tấm Thuận Kiều...). | • AI gợi ý danh sách quán.<br>• Người dùng chọn quán -> hiển thị menu chi tiết.<br>• Chọn món -> Hệ thống tính tổng tiền (Món ăn + Phí ship đối tác) để chốt đơn. |
+| **Kịch bản 2: Thay đổi món ăn giữa chừng** | "Đổi sang cơm sườn chả" | • Hủy đơn hàng nháp cũ.<br>• Cập nhật món ăn mới từ menu quán đang chọn. | • Tính lại tổng tiền hóa đơn tức thì mà không làm gián đoạn cuộc hội thoại. |
+
+
