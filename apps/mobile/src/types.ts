@@ -83,3 +83,46 @@ export interface ConfirmOrderResponse {
   partner: PartnerCode;
   responseText: string;
 }
+
+export interface RestaurantMatch {
+  placeId: string;
+  name: string;
+  rating: number;
+  distanceKm: number;
+  etaMinutes: number;
+  priceFrom: number;
+  isOpen: boolean;
+}
+
+export interface OrderTrackingStatus {
+  orderId: string;
+  status: 'CONFIRMED' | 'PICKED_UP' | 'DELIVERING' | 'ARRIVING' | 'DELIVERED' | 'CANCELLED';
+  etaMinutes: number;
+  driver?: {
+    name: string;
+    rating: number;
+    vehicle: string;
+    plate: string;
+  };
+  confirmationCode?: string;
+}
+
+export interface OrderSummary {
+  orderId: string;
+  title: string;
+  totalPrice: number;
+  status: string;
+  source: 'GrabFood' | 'GrabCar' | 'GrabBike';
+  createdAt: string;
+}
+
+export interface RateOrderRequest {
+  stars: number;
+  tags?: string[];
+  comment?: string;
+}
+
+export interface AccessibilityProfile {
+  modes: ('VISUAL' | 'MOTOR' | 'HANDS_FREE')[];
+  aiSpeed: 'SLOW' | 'NORMAL' | 'FAST';
+}
