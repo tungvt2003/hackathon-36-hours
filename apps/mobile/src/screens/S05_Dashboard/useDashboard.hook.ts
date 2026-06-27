@@ -52,7 +52,7 @@ export const useDashboard = (): DashboardViewModel => {
   const awaitingGrabRef = useRef(false);
   const awaitingFoodRef = useRef(false);
   const pendingFoodRef = useRef<{ restaurantId: string } | null>(null);
-  const beginListeningRef = useRef<() => void>(() => {});
+  const beginListeningRef = useRef<() => void>(() => { });
   useEffect(() => { platformRef.current = platform; }, [platform]);
 
   useEffect(() => {

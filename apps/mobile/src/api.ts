@@ -134,4 +134,25 @@ export const api = {
     review: (orderId: string, body: ReviewRequest): Promise<ReviewResponse> =>
       request(`/orders/${orderId}/review`, { method: 'POST', body: JSON.stringify(body) }),
   },
+
+  voice: {
+    start: (userId?: string): Promise<any> =>
+      request('/voice/start', { method: 'POST', body: JSON.stringify({ userId }) }),
+
+    turn: (body: {
+      session_id?: string;
+      sessionId?: string;
+      transcript?: string;
+      audio_base64?: string;
+      audioBase64?: string;
+      sample_rate?: number;
+      sampleRate?: number;
+      user_id?: string;
+      userId?: string;
+      currentLat?: number;
+      currentLng?: number;
+      accessibilityFlag?: boolean;
+    }): Promise<any> =>
+      request('/voice/turn', { method: 'POST', body: JSON.stringify(body) }),
+  },
 };

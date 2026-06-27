@@ -1,9 +1,10 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
 import { api } from '../../api';
+import { getCurrentLocation } from '../../services/location';
 
 export interface VoiceProcessingViewModel {
   userText: string;
@@ -13,8 +14,9 @@ export interface VoiceProcessingViewModel {
 export const useVoiceProcessing = (): VoiceProcessingViewModel => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'VoiceProcessing'>>();
-  const { userText, context } = route.params;
+  const { audioBase64, context } = route.params;
   const cancelledRef = useRef(false);
+  const [userText, setUserText] = useState('Đang xử lý...');
 
   const onDismiss = useCallback(() => {
     cancelledRef.current = true;
@@ -26,8 +28,17 @@ export const useVoiceProcessing = (): VoiceProcessingViewModel => {
 
     (async () => {
       try {
-        const session = await api.conversation.start();
-        const res = await api.conversation.input(session.sessionId, userText);
+        // Lấy vị trí thực tế của người dùng
+        const loc = await getCurrentLocation();
+
+        // Gửi audio base64 trực tiếp lên VoiceController của NestJS kèm tọa độ thực tế
+        const res = await api.voice.turn({
+          audio_base64: audioBase64,
+          sample_rate: 16000, // Google STT / VNPT tiêu chuẩn
+          currentLat: loc.lat,
+          currentLng: loc.lng,
+        });
+
         if (cancelledRef.current) return;
 
         const firstQuote = res.quotes?.[0] ?? res.foodQuotes?.[0];

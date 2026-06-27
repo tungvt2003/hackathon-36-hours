@@ -42,7 +42,7 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
 
       <View style={styles.titleContainer}>
         {showLogo ? (
-          <SuaraLogo size="sm" />
+          <SuaraLogo size="md" />
         ) : title ? (
           <Text style={styles.title} accessibilityRole="header" numberOfLines={1}>
             {title}

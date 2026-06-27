@@ -282,6 +282,7 @@ export function useVoiceAssistantIntent() {
   useEffect(() => { handleTranscriptRef.current = handleTranscript; }, [handleTranscript]);
 
   useEffect(() => {
+    isCancelledRef.current = false;
     AccessibilityInfo.announceForAccessibility(aiGreeting);
     speakAndListen(aiGreeting);
 

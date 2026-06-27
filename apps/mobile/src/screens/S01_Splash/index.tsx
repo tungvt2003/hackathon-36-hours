@@ -18,22 +18,12 @@ export default function SplashScreen() {
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.centerContent}>
           <Animated.View style={[styles.logoContainer, logoScale]}>
-            <SuaraLogo size="lg" />
+            <SuaraLogo size="xl" />
           </Animated.View>
           
           <Animated.Text style={[styles.tagline, taglineOpacity]}>
             Your voice, your independence.
           </Animated.Text>
-        </View>
-
-        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
-          {ASSETS.images.grabLogo && (
-            <Image 
-              source={ASSETS.images.grabLogo} 
-              style={styles.grabLogoFooter} 
-              resizeMode="contain" 
-            />
-          )}
         </View>
       </SafeAreaView>
     </BrandedBackground>
