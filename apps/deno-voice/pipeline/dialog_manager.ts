@@ -391,6 +391,8 @@ function placeBookingAction(s: SessionContext) {
     eta_min: booking.eta_min,
     status: booking.status,
   };
+  s.slots_filled["last_order_id"] = booking.booking_id;
+  s.slots_filled["last_driver_name"] = booking.driver_name;
   s.pending_confirmation = null;
 
   return makeAction(s, "BOOKING_PLACED", {
@@ -950,6 +952,7 @@ function placeOrderAction(s: SessionContext) {
   if (!resp.ok || !resp.data) return fallback(s, "Lỗi đặt đơn. Thử lại nhé.");
 
   const order = resp.data;
+  s.slots_filled["last_order_id"] = order.order_id;
   s.active_cart = null;
   s.pending_confirmation = null;
 

@@ -1,4 +1,11 @@
 import { processGreeting, processTurn } from "./pipeline/orchestrator.ts";
+import {
+  conversationConfirm,
+  conversationInput,
+  conversationStart,
+  orderStatus,
+  reviewOrder,
+} from "./api/compat.ts";
 import { getSession, listSessions } from "./store/session.ts";
 import { getEnv } from "./config/env.ts";
 
@@ -30,6 +37,57 @@ async function handler(req: Request): Promise<Response> {
 
   if (path === "/health" && req.method === "GET") {
     return json({ ok: true, service: "voice-assistant", version: "0.2" });
+  }
+
+  // AccessAI mobile-compatible contract from docs/PLAN.md
+  if (path === "/conversation/start" && req.method === "POST") {
+    const body = await parseBody(req);
+    if (!body) return err("Request body required");
+    try {
+      return json(await conversationStart(body));
+    } catch (e) {
+      return err(errorMessage(e), 500);
+    }
+  }
+
+  if (path === "/conversation/input" && req.method === "POST") {
+    const body = await parseBody(req);
+    if (!body) return err("Request body required");
+    try {
+      return json(await conversationInput(body));
+    } catch (e) {
+      return err(errorMessage(e), 500);
+    }
+  }
+
+  if (path === "/conversation/confirm" && req.method === "POST") {
+    const body = await parseBody(req);
+    if (!body) return err("Request body required");
+    try {
+      return json(await conversationConfirm(body));
+    } catch (e) {
+      return err(errorMessage(e), 500);
+    }
+  }
+
+  const orderStatusMatch = path.match(/^\/orders\/([^/]+)\/status$/);
+  if (orderStatusMatch && req.method === "GET") {
+    try {
+      return json(orderStatus(orderStatusMatch[1]));
+    } catch (e) {
+      return err(errorMessage(e), 404);
+    }
+  }
+
+  const reviewMatch = path.match(/^\/orders\/([^/]+)\/review$/);
+  if (reviewMatch && req.method === "POST") {
+    const body = await parseBody(req);
+    if (!body) return err("Request body required");
+    try {
+      return json(reviewOrder(reviewMatch[1], body));
+    } catch (e) {
+      return err(errorMessage(e), 404);
+    }
   }
 
   // POST /session — start new session, get greeting + TTS
@@ -179,6 +237,18 @@ async function handler(req: Request): Promise<Response> {
     }
   }
 
+  // GET / or /demo — serve web demo
+  if ((path === "/" || path === "/demo") && req.method === "GET") {
+    try {
+      const html = await Deno.readTextFile(new URL("./web/demo.html", import.meta.url).pathname);
+      return new Response(html, {
+        headers: { "content-type": "text/html; charset=utf-8" },
+      });
+    } catch {
+      return err("Demo page not found", 404);
+    }
+  }
+
   return err("Not found", 404);
 }
 
@@ -193,6 +263,10 @@ async function parseBody(req: Request): Promise<Record<string, any> | null> {
   }
 }
 
+function errorMessage(e: unknown): string {
+  return e instanceof Error ? e.message : "Unknown error";
+}
+
 console.log(`Voice Assistant API running on http://localhost:${PORT}`);
 console.log(`Pipeline: Audio → STT → NLU → Dialog → NLG → TTS`);
 console.log(`Config:`);
@@ -200,11 +274,17 @@ console.log(`  NLU_MODE    = ${getEnv("NLU_MODE", "llm (default)")}`);
 console.log(`  STT_PROVIDER= ${getEnv("STT_PROVIDER", "google (default)")}`);
 console.log(`  ENABLE_TTS  = ${getEnv("ENABLE_TTS", "true (default)")}`);
 console.log(`Endpoints:`);
+console.log(`  POST /conversation/start — mobile-compatible session start`);
+console.log(`  POST /conversation/input — mobile-compatible text/audio turn`);
+console.log(`  POST /conversation/confirm — mobile-compatible confirmation`);
+console.log(`  GET  /orders/:id/status  — mobile-compatible order status`);
+console.log(`  POST /orders/:id/review  — mobile-compatible review`);
 console.log(`  POST /session          — greeting + TTS audio`);
 console.log(`  POST /turn             — text or audio → full pipeline`);
 console.log(`  POST /conversation     — convenience: auto-session`);
 console.log(`  GET  /session/:id      — session state`);
 console.log(`  GET  /sessions         — list sessions`);
 console.log(`  GET  /health           — health check`);
+console.log(`  GET  /                 — web demo`);
 
 Deno.serve({ port: PORT }, handler);
