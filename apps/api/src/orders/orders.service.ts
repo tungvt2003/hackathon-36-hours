@@ -9,10 +9,14 @@ import {
   PartnerQuote,
   VoiceOrderResponse,
 } from '../types';
-import { STT_PROVIDER, SttProvider } from '../stt/stt.provider';
-import { NLU_PROVIDER, NluProvider } from '../nlu/nlu.provider';
-import { PLACES_PROVIDER, PlacesProvider } from '../places/places.provider';
-import { WEATHER_PROVIDER, WeatherProvider } from '../weather/weather.provider';
+import { STT_PROVIDER } from '../stt/stt.provider';
+import type { SttProvider } from '../stt/stt.provider';
+import { NLU_PROVIDER } from '../nlu/nlu.provider';
+import type { NluProvider } from '../nlu/nlu.provider';
+import { PLACES_PROVIDER } from '../places/places.provider';
+import type { PlacesProvider } from '../places/places.provider';
+import { WEATHER_PROVIDER } from '../weather/weather.provider';
+import type { WeatherProvider } from '../weather/weather.provider';
 import { PARTNERS_IMPL } from '../partners/partners.module';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -40,6 +44,8 @@ export class OrdersService {
     userId?: string;
     transcript?: string;
     audioBase64?: string;
+    currentLat?: number;
+    currentLng?: number;
   }): Promise<VoiceOrderResponse> {
     // 1. STT: bỏ qua nếu đã có transcript
     let transcript = params.transcript ?? '';
@@ -58,18 +64,52 @@ export class OrdersService {
         ? (intent.destination ?? intent.origin ?? 'TP.HCM')
         : (intent.restaurant ?? 'TP.HCM');
 
-    const [placeStatus, weatherInfo] = await Promise.all([
-      this.places.getStatus(locationQuery),
-      this.weather.getCurrent(locationQuery),
-    ]);
+    const placeStatus = await this.places.getStatus(locationQuery);
+    const weatherInfo = await this.weather.getCurrent(
+      locationQuery,
+      placeStatus.latitude,
+      placeStatus.longitude,
+    );
 
     const enrichment: Enrichment = { place: placeStatus, weather: weatherInfo };
+
+    // Tính khoảng cách địa lý (đường chim bay) nếu có cả 2 tọa độ
+    let distance: number | undefined;
+    if (
+      params.currentLat !== undefined &&
+      params.currentLng !== undefined &&
+      placeStatus.latitude !== undefined &&
+      placeStatus.longitude !== undefined
+    ) {
+      distance = this.calculateDistance(
+        params.currentLat,
+        params.currentLng,
+        placeStatus.latitude,
+        placeStatus.longitude,
+      );
+      this.logger.log(`Calculated distance to ${placeStatus.name}: ${distance.toFixed(2)} km`);
+    }
 
     // 4. Lấy báo giá từ các đối tác (từ DB hoặc fixture tuỳ PROVIDER_PARTNER)
     const quotes = await this.partners.quoteAll(intent);
 
+    // Giả lập giá tiền động: Nhân thêm theo khoảng cách và phụ phí mưa nếu có
+    if (distance !== undefined) {
+      quotes.forEach((q) => {
+        // Giá cước mới = Giá cơ bản + (Khoảng cách * 12,000đ/km)
+        let computedPrice = q.price + Math.round(distance * 12000);
+        
+        // Nếu trời đang mưa -> phụ phí thêm 20% (surge pricing)
+        if (weatherInfo.willRain) {
+          computedPrice = Math.round(computedPrice * 1.2);
+        }
+        
+        q.price = computedPrice;
+      });
+    }
+
     // 5. Tạo câu trả lời tiếng Việt cho TTS đọc
-    const responseText = this.buildResponseText(intent, enrichment, quotes);
+    const responseText = this.buildResponseText(intent, enrichment, quotes, distance);
 
     // 6. Lưu Order vào DB
     const order = await this.saveOrder({ userId: params.userId, intent, quotes, responseText });
@@ -105,6 +145,7 @@ export class OrdersService {
     intent: Intent,
     enrichment: Enrichment,
     quotes: PartnerQuote[],
+    distance?: number,
   ): string {
     const available = quotes.filter((q) => q.available);
     if (available.length === 0) return 'Hiện không có xe nào khả dụng. Vui lòng thử lại sau.';
@@ -116,6 +157,10 @@ export class OrdersService {
         ? `Đặt xe đến ${intent.destination ?? 'điểm đến'}.`
         : `Đặt đồ ăn từ ${intent.restaurant ?? 'quán'}.`;
 
+    if (distance !== undefined) {
+      text += ` Quãng đường dài khoảng ${distance.toFixed(1)} km.`;
+    }
+
     if (enrichment.weather?.willRain) {
       text += ` Lưu ý trời đang ${enrichment.weather.condition}.`;
     }
@@ -126,6 +171,21 @@ export class OrdersService {
     text += ` Giá rẻ nhất: ${cheapest.partner} — ${cheapest.price.toLocaleString('vi-VN')} đồng, khoảng ${cheapest.etaMinutes} phút.`;
     text += ` Có ${available.length} lựa chọn. Bạn muốn chọn đối tác nào?`;
     return text;
+  }
+
+  /** Tính khoảng cách đường chim bay (Haversine formula) */
+  private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371; // Bán kính Trái Đất (km)
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
   }
 
   private async saveOrder(params: {

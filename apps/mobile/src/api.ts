@@ -1,41 +1,90 @@
 import Constants from 'expo-constants';
-import {
-  VoiceOrderRequest,
-  VoiceOrderResponse,
-  ConfirmOrderRequest,
-  ConfirmOrderResponse,
-} from './types';
 
-// BASE_URL lấy từ app.json extra.apiUrl
-// Khi test trên điện thoại thật: đổi thành IP LAN của máy chạy API
-// vd: http://192.168.1.x:3000 (KHÔNG dùng localhost)
-const BASE_URL: string =
-  (Constants.expoConfig?.extra as { apiUrl?: string } | undefined)?.apiUrl ??
-  'http://localhost:3000';
+type QueryValue = string | number | boolean | null | undefined;
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`API ${path} failed ${res.status}: ${body}`);
-  }
-
-  return res.json() as Promise<T>;
+export interface HttpHelperOptions {
+  baseUrl?: string;
+  defaultHeaders?: Record<string, string>;
 }
 
-export const api = {
-  /** Gửi yêu cầu đặt xe/đồ ăn bằng text (giai đoạn basic) */
-  voiceOrder: (body: VoiceOrderRequest): Promise<VoiceOrderResponse> =>
-    request('/orders/voice', { method: 'POST', body: JSON.stringify(body) }),
+export interface RequestOptions extends Omit<RequestInit, 'body' | 'headers'> {
+  headers?: Record<string, string>;
+  query?: Record<string, QueryValue>;
+  body?: unknown;
+}
 
-  /** Xác nhận chọn đối tác */
-  confirmOrder: (body: ConfirmOrderRequest): Promise<ConfirmOrderResponse> =>
-    request('/orders/confirm', { method: 'POST', body: JSON.stringify(body) }),
+function getDefaultBaseUrl(): string {
+  const configuredBaseUrl = (Constants.expoConfig?.extra as { apiUrl?: string } | undefined)?.apiUrl;
 
-  /** Kiểm tra API còn sống không */
-  health: (): Promise<{ ok: boolean }> => request('/health'),
-};
+  return configuredBaseUrl ?? 'http://localhost:3000';
+}
+
+function toQueryString(query?: Record<string, QueryValue>): string {
+  if (!query) {
+    return '';
+  }
+
+  const searchParams = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(query)) {
+    if (value === undefined || value === null) {
+      continue;
+    }
+
+    searchParams.append(key, String(value));
+  }
+
+  const queryString = searchParams.toString();
+  return queryString ? `?${queryString}` : '';
+}
+
+export class HttpHelper {
+  private readonly baseUrl: string;
+
+  private readonly defaultHeaders: Record<string, string>;
+
+  constructor(options: HttpHelperOptions = {}) {
+    this.baseUrl = (options.baseUrl ?? getDefaultBaseUrl()).replace(/\/$/, '');
+    this.defaultHeaders = {
+      'Content-Type': 'application/json',
+      ...(options.defaultHeaders ?? {}),
+    };
+  }
+
+  async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+    const { query, body, headers, ...requestInit } = options;
+
+    const response = await fetch(`${this.baseUrl}${path}${toQueryString(query)}`, {
+      ...requestInit,
+      headers: {
+        ...this.defaultHeaders,
+        ...(headers ?? {}),
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const responseBody = await response.text();
+      throw new Error(`API ${path} failed ${response.status}: ${responseBody}`);
+    }
+
+    return response.json() as Promise<T>;
+  }
+
+  get<T>(path: string, options: Omit<RequestOptions, 'body'> = {}): Promise<T> {
+    return this.request<T>(path, {
+      ...options,
+      method: 'GET',
+    });
+  }
+
+  post<T>(path: string, body?: unknown, options: Omit<RequestOptions, 'body'> = {}): Promise<T> {
+    return this.request<T>(path, {
+      ...options,
+      method: 'POST',
+      body,
+    });
+  }
+}
+
+export const httpHelper = new HttpHelper();
