@@ -1,3 +1,4 @@
+// apps/mobile/src/screens/S06_VoiceListening/index.tsx
 import React, { useEffect, useRef } from 'react';
 import { 
   Animated, 
@@ -87,7 +88,7 @@ export default function VoiceListeningScreen() {
           accessibilityRole="button"
           accessibilityLabel="Microphone"
         >
-          <MaterialCommunityIcons name="microphone" size={52} color="white" />
+          <MaterialCommunityIcons name="microphone" size={56} color="white" />
         </TouchableOpacity>
       </View>
 
@@ -103,7 +104,7 @@ export default function VoiceListeningScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: 'rgba(17, 24, 39, 0.93)',
+    backgroundColor: '#0A1F14',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -119,17 +120,20 @@ const styles = StyleSheet.create({
   },
   statusLabel: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#9CA3AF',
-    letterSpacing: 1.5,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 2,
     marginBottom: 16,
+    textTransform: 'uppercase',
   },
   transcriptHint: {
-    fontSize: 18,
-    color: '#9CA3AF',
+    fontSize: 20,
+    color: 'rgba(255,255,255,0.85)',
+    fontWeight: '500',
     marginBottom: 48,
     textAlign: 'center',
     paddingHorizontal: 40,
+    lineHeight: 28,
   },
   micArea: {
     width: 280,
@@ -142,7 +146,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     borderRadius: 999,
     borderWidth: 2,
-    borderColor: '#00B14F',
+    borderColor: theme.colors.primary,
   },
   ripple1: {
     width: 160,
@@ -160,17 +164,23 @@ const styles = StyleSheet.create({
     width: 116,
     height: 116,
     borderRadius: 58,
-    backgroundColor: '#00B14F',
+    backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
+    elevation: 8,
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
   },
   visualizerContainer: {
     marginTop: 40,
   },
   cancelHint: {
-    fontSize: 13,
-    color: '#6B7280',
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.5)',
     marginTop: 24,
+    fontWeight: '500',
   },
 });

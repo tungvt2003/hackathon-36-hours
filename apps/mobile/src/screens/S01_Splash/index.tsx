@@ -1,53 +1,49 @@
+// apps/mobile/src/screens/S01_Splash/index.tsx
 import React from 'react';
-import { StyleSheet, Text, View, Image } from 'react-native';
+import { StyleSheet, View, Image } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSplash } from './useSplash.hook';
 import { theme } from '../../theme/theme';
 import { ASSETS } from '../../assets';
+import { SuaraLogo } from '../../components/SuaraLogo';
+import { BrandedBackground } from '../../components/BrandedBackground';
 
 export default function SplashScreen() {
   const insets = useSafeAreaInsets();
   const { logoScale, taglineOpacity } = useSplash();
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <View style={styles.centerContent}>
-        <Animated.View style={[styles.logoContainer, logoScale]}>
-          <View style={styles.iconCircle}>
-            <MaterialCommunityIcons name="microphone" size={48} color="#FFFFFF" />
-          </View>
-          <Text style={styles.wordmark}>Suara</Text>
-        </Animated.View>
-        
-        <Animated.Text style={[styles.tagline, taglineOpacity]}>
-          Your voice, your independence.
-        </Animated.Text>
-      </View>
+    <BrandedBackground variant="default">
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <View style={styles.centerContent}>
+          <Animated.View style={[styles.logoContainer, logoScale]}>
+            <SuaraLogo size="lg" />
+          </Animated.View>
+          
+          <Animated.Text style={[styles.tagline, taglineOpacity]}>
+            Your voice, your independence.
+          </Animated.Text>
+        </View>
 
-      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
-        {ASSETS.images.grabLogo ? (
-          <Image 
-            source={ASSETS.images.grabLogo} 
-            style={styles.grabLogoFooter} 
-            resizeMode="contain" 
-          />
-        ) : (
-          <View style={styles.grabBadge}>
-            <View style={styles.grabDot} />
-            <Text style={styles.poweredBy}>Powered by Grab</Text>
-          </View>
-        )}
-      </View>
-    </SafeAreaView>
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
+          {ASSETS.images.grabLogo && (
+            <Image 
+              source={ASSETS.images.grabLogo} 
+              style={styles.grabLogoFooter} 
+              resizeMode="contain" 
+            />
+          )}
+        </View>
+      </SafeAreaView>
+    </BrandedBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'transparent',
   },
   centerContent: {
     flex: 1,
@@ -56,59 +52,20 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 24,
-  },
-  iconCircle: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: theme.colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  wordmark: {
-    fontSize: 44,
-    fontWeight: '800',
-    color: '#111827',
-    letterSpacing: -0.5,
+    marginBottom: 32,
   },
   tagline: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '400',
-    color: '#6B7280',
+    color: theme.colors.textSecondary,
     textAlign: 'center',
+    letterSpacing: 0.2,
   },
   footer: {
     alignItems: 'center',
   },
   grabLogoFooter: {
-    width: 100,
-    height: 40,
-  },
-  grabBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 99,
-  },
-  grabDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: theme.colors.primary,
-    marginRight: 8,
-  },
-  poweredBy: {
-    fontSize: 13,
-    color: '#9CA3AF',
-    fontWeight: '500',
+    width: 110,
+    height: 44,
   },
 });

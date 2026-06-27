@@ -1,3 +1,4 @@
+// apps/mobile/src/screens/S08_VoiceSpeaking/index.tsx
 import React, { useEffect, useRef } from 'react';
 import { 
   Animated, 
@@ -65,7 +66,7 @@ export default function VoiceSpeakingScreen() {
 
         <View style={styles.micContainer}>
           <Animated.View style={[styles.micCircle, { transform: [{ scale: pulseVal }] }]}>
-            <MaterialCommunityIcons name="volume-high" size={36} color="#00B14F" />
+            <MaterialCommunityIcons name="volume-high" size={40} color={theme.colors.primary} />
           </Animated.View>
         </View>
 
@@ -96,7 +97,7 @@ export default function VoiceSpeakingScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: 'rgba(17, 24, 39, 0.93)',
+    backgroundColor: '#0A1F14',
   },
   closeButton: {
     position: 'absolute',
@@ -113,52 +114,54 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     paddingHorizontal: 24,
-    paddingBottom: 24,
+    paddingBottom: 32,
   },
   userCard: {
-    backgroundColor: '#1F2937',
-    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: theme.radius.card,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   userCardLabel: {
     fontSize: 11,
-    color: '#6B7280',
-    letterSpacing: 1,
-    fontWeight: '500',
+    color: 'rgba(255,255,255,0.4)',
+    letterSpacing: 1.5,
+    fontWeight: '700',
+    textTransform: 'uppercase',
   },
   userText: {
     fontSize: 18,
-    color: '#E5E7EB',
+    color: 'rgba(255,255,255,0.7)',
     fontWeight: '400',
     lineHeight: 26,
     marginTop: 6,
   },
   aiCard: {
-    backgroundColor: '#0F2A18',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
+    backgroundColor: theme.colors.primarySoft,
+    borderRadius: theme.radius.card,
+    padding: 20,
+    borderWidth: 1.5,
     borderColor: 'rgba(0, 177, 79, 0.3)',
   },
   aiCardLabel: {
     fontSize: 11,
-    color: '#00B14F',
-    letterSpacing: 1,
-    fontWeight: '600',
+    color: theme.colors.primary,
+    letterSpacing: 1.5,
+    fontWeight: '700',
     marginBottom: 8,
+    textTransform: 'uppercase',
   },
   aiText: {
-    fontSize: 22,
-    color: '#FFFFFF',
+    fontSize: 26,
+    color: theme.colors.textPrimary,
     fontWeight: '600',
-    lineHeight: 32,
+    lineHeight: 38,
   },
   bottomZone: {
     paddingHorizontal: 24,
   },
   visualizerContainer: {
-    marginBottom: 20,
+    marginBottom: 24,
     alignItems: 'center',
   },
   micContainer: {
@@ -166,46 +169,52 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   micCircle: {
-    width: 96,
-    height: 96,
-    backgroundColor: '#E8F8EF',
+    width: 104,
+    height: 104,
+    backgroundColor: '#FFFFFF',
     borderWidth: 3,
-    borderColor: '#00B14F',
-    borderRadius: 48,
+    borderColor: theme.colors.primary,
+    borderRadius: 52,
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 8,
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
   },
   actionRow: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 24,
+    marginTop: 32,
+    marginBottom: 16,
   },
   cancelBtn: {
     flex: 1,
-    height: 52,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: '#374151',
+    height: 60,
+    borderRadius: theme.radius.full,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.2)',
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
   },
   cancelBtnText: {
-    color: '#9CA3AF',
+    color: 'rgba(255,255,255,0.6)',
     fontSize: 16,
     fontWeight: '600',
   },
   confirmBtn: {
     flex: 2,
-    height: 52,
-    borderRadius: 999,
-    backgroundColor: '#00B14F',
+    height: 60,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   confirmBtnText: {
     color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
   },
 });

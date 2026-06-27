@@ -17,6 +17,11 @@ import FoodTrackingScreen from '../screens/S12_FoodTracking';
 import RideTrackingScreen from '../screens/S13_RideTracking';
 import VoiceAssistantScreen from '../screens/S06_VoiceAssistant';
 
+import CancellationAlertScreen from '../screens/S14_CancellationAlert';
+import DeliverySuccessScreen from '../screens/S15_DeliverySuccess';
+import RatingScreen from '../screens/S16_RatingScreen';
+import OrderHistoryScreen from '../screens/S17_OrderHistory';
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const Placeholder = ({ name }: { name: string }) => (
@@ -32,7 +37,7 @@ export const RootNavigator = () => {
       <Stack.Screen name="Onboarding" component={OnboardingScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ConnectGrabAccount" component={LoginScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ headerShown: false }} />
       
       <Stack.Screen
         name="VoiceAssistant"
@@ -82,13 +87,13 @@ export const RootNavigator = () => {
 
       <Stack.Screen
         name="CancellationAlert"
-        component={() => <Placeholder name="CancellationAlert" />}
-        options={{ presentation: 'modal' }}
+        component={CancellationAlertScreen}
+        options={{ presentation: 'modal', headerShown: false, gestureEnabled: false }}
       />
 
-      <Stack.Screen name="DeliverySuccess" component={() => <Placeholder name="DeliverySuccess" />} />
-      <Stack.Screen name="RatingScreen" component={() => <Placeholder name="RatingScreen" />} />
-      <Stack.Screen name="OrderHistory" component={() => <Placeholder name="OrderHistory" />} />
+      <Stack.Screen name="DeliverySuccess" component={DeliverySuccessScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="RatingScreen" component={RatingScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 };

@@ -1,3 +1,4 @@
+// apps/mobile/src/screens/S07_VoiceProcessing/index.tsx
 import React, { useEffect, useRef } from 'react';
 import { 
   Animated, 
@@ -80,7 +81,7 @@ export default function VoiceProcessingScreen() {
       <View style={styles.processingContainer}>
         <Animated.View style={[styles.spinner, { transform: [{ rotate: spin }] }]} />
         <View style={styles.innerCircle}>
-          <MaterialCommunityIcons name="creation" size={32} color="#00B14F" />
+          <MaterialCommunityIcons name="creation" size={36} color={theme.colors.primary} />
         </View>
       </View>
 
@@ -98,7 +99,7 @@ export default function VoiceProcessingScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: 'rgba(17, 24, 39, 0.93)',
+    backgroundColor: '#0A1F14',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -114,68 +115,70 @@ const styles = StyleSheet.create({
   },
   userCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: theme.radius.card,
     paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingVertical: 16,
     marginHorizontal: 40,
-    marginBottom: 40,
-    width: '80%',
+    marginBottom: 64,
+    width: '85%',
     elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
   },
   cardLabel: {
     fontSize: 11,
-    fontWeight: '500',
-    color: '#9CA3AF',
-    letterSpacing: 1,
-    marginBottom: 6,
+    fontWeight: '700',
+    color: theme.colors.textMuted,
+    letterSpacing: 1.5,
+    marginBottom: 8,
   },
   userText: {
-    fontSize: 20,
-    color: '#111827',
-    fontWeight: '400',
+    fontSize: 26,
+    color: theme.colors.textPrimary,
+    fontWeight: '600',
+    lineHeight: 34,
   },
   processingContainer: {
-    width: 96,
-    height: 96,
+    width: 104,
+    height: 104,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
   },
   spinner: {
-    width: 96,
-    height: 96,
+    width: 104,
+    height: 104,
     borderWidth: 3,
-    borderColor: '#00B14F',
-    borderRadius: 48,
+    borderColor: theme.colors.primary,
+    borderRadius: 52,
     borderTopColor: 'transparent',
   },
   innerCircle: {
     position: 'absolute',
-    width: 80,
-    height: 80,
-    backgroundColor: '#1A2B1F',
-    borderRadius: 40,
+    width: 88,
+    height: 88,
+    backgroundColor: theme.colors.primarySoft,
+    borderRadius: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
   processingLabel: {
     fontSize: 18,
-    color: '#9CA3AF',
+    color: 'rgba(255,255,255,0.80)',
     marginTop: 24,
+    fontWeight: '500',
   },
   dotContainer: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
     marginTop: 16,
   },
   dot: {
-    width: 8,
-    height: 8,
-    backgroundColor: '#00B14F',
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    backgroundColor: theme.colors.primary,
+    borderRadius: 5,
   },
 });

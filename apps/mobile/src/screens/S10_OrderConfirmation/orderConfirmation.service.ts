@@ -1,3 +1,5 @@
+import { PartnerCode } from '../../types';
+
 export interface MockOrderItem {
   name: string;
   qty: number;
@@ -6,6 +8,7 @@ export interface MockOrderItem {
 
 export interface MockOrder {
   orderId: string;
+  partner: PartnerCode;
   restaurantName: string;
   restaurantRating: number;
   items: MockOrderItem[];
@@ -22,6 +25,7 @@ export const orderConfirmationService = {
   getMockOrder: (orderId: string): MockOrder => {
     return {
       orderId,
+      partner: PartnerCode.GRAB,
       restaurantName: 'Phở Hà Nội',
       restaurantRating: 4.8,
       items: [{ name: 'Phở Bò Tái', qty: 1, price: 65000 }],

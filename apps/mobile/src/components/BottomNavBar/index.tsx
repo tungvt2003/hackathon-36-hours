@@ -1,3 +1,4 @@
+// apps/mobile/src/components/BottomNavBar/index.tsx
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -10,10 +11,10 @@ interface BottomNavBarProps {
 }
 
 export const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeTab, onTabPress }) => {
-  const tabs: { id: 'home' | 'history' | 'account'; label: string; icon: any }[] = [
-    { id: 'home', label: 'Home', icon: 'home' },
-    { id: 'history', label: 'History', icon: 'history' },
-    { id: 'account', label: 'Account', icon: 'account' },
+  const tabs: { id: 'home' | 'history' | 'account'; label: string; icon: string }[] = [
+    { id: 'home',    label: 'Home',    icon: 'home' },
+    { id: 'history', label: 'History', icon: 'receipt' },
+    { id: 'account', label: 'Account', icon: 'account-circle' },
   ];
 
   return (
@@ -28,9 +29,11 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeTab, onTabPres
             accessibilityRole="tab"
             accessibilityLabel={tab.label}
             accessibilityState={{ selected: isActive }}
+            hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
           >
+            {isActive && <View style={styles.activeDot} />}
             <MaterialCommunityIcons
-              name={isActive ? tab.icon : `${tab.icon}-outline`}
+              name={isActive ? tab.icon as any : `${tab.icon}-outline` as any}
               size={24}
               color={isActive ? theme.colors.primary : theme.colors.textSecondary}
             />

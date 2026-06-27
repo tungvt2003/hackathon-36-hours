@@ -1,3 +1,4 @@
+// Legacy entry — prefer src/services/api.ts for new screens
 import Constants from 'expo-constants';
 import {
   ConversationConfirmResponse,

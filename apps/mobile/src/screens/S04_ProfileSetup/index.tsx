@@ -1,3 +1,4 @@
+// apps/mobile/src/screens/S04_ProfileSetup/index.tsx
 import React from 'react';
 import { 
   ScrollView, 
@@ -13,158 +14,147 @@ import { useProfileSetup } from './useProfileSetup.hook';
 import { ACCESSIBILITY_OPTIONS, SPEED_OPTIONS } from './profileSetup.service';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { theme } from '../../theme/theme';
+import { ScreenHeader } from '../../components/ScreenHeader';
+import { SuaraLogo } from '../../components/SuaraLogo';
+import { BrandedBackground } from '../../components/BrandedBackground';
 
 export default function ProfileSetupScreen() {
   const insets = useSafeAreaInsets();
   const { modes, speed, toggleMode, setSpeed, handleSave, handleBack } = useProfileSetup();
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={handleBack} 
-          style={styles.backButton}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
+    <BrandedBackground variant="default">
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <ScreenHeader title="Set Up Your Profile" showLogo={false} onBack={handleBack} />
+
+        <ScrollView 
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 32 }]}
+          showsVerticalScrollIndicator={false}
         >
-          <MaterialCommunityIcons name="chevron-left" size={28} color="#111827" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Set Up Your Profile</Text>
-        <View style={{ width: 48 }} />
-      </View>
+          <View style={styles.logoWrapper}>
+            <SuaraLogo size="sm" />
+          </View>
 
-      <ScrollView 
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 32 }]}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.section}>
-          <Text style={styles.sectionHeading}>Accessibility Mode</Text>
-          <Text style={styles.sectionSubtitle}>Select all that apply</Text>
-          
-          {ACCESSIBILITY_OPTIONS.map((option) => {
-            const isActive = modes[option.id];
-            return (
-              <View 
-                key={option.id} 
-                style={[
-                  styles.card, 
-                  isActive && { borderColor: option.color, backgroundColor: option.color + '10' }
-                ]}
-              >
-                <View style={[styles.iconCircle, { backgroundColor: option.color + '20' }]}>
-                  <MaterialCommunityIcons name={option.icon as any} size={24} color={option.color} />
-                </View>
-                <View style={styles.cardTextContainer}>
-                  <Text style={styles.cardTitle}>{option.label}</Text>
-                  <Text style={styles.cardDescription}>{option.description}</Text>
-                </View>
-                <Switch 
-                  trackColor={{ false: '#D1D5DB', true: '#00B14F' }}
-                  value={isActive}
-                  onValueChange={() => toggleMode(option.id)}
-                />
-              </View>
-            );
-          })}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionHeading}>Speaking Speed</Text>
-          <View style={styles.speedRow}>
-            {SPEED_OPTIONS.map((s) => {
-              const isActive = speed === s;
+          <View style={styles.section}>
+            <Text style={styles.sectionHeading}>Accessibility Mode</Text>
+            <Text style={styles.sectionSubtitle}>Select all that apply</Text>
+            
+            {ACCESSIBILITY_OPTIONS.map((option) => {
+              const isActive = modes[option.id];
               return (
-                <TouchableOpacity
-                  key={s}
+                <View 
+                  key={option.id} 
                   style={[
-                    styles.speedChip,
-                    isActive ? styles.speedChipActive : styles.speedChipInactive
+                    styles.card, 
+                    isActive && { borderColor: option.color, backgroundColor: option.color + '10' }
                   ]}
-                  onPress={() => setSpeed(s)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${s} speaking speed`}
-                  accessibilityState={{ selected: isActive }}
                 >
-                  <Text style={[
-                    styles.speedChipText,
-                    isActive ? styles.speedChipTextActive : styles.speedChipTextInactive
-                  ]}>
-                    {s.charAt(0).toUpperCase() + s.slice(1)}
-                  </Text>
-                </TouchableOpacity>
+                  <View style={[styles.iconCircle, { backgroundColor: option.color + '20' }]}>
+                    <MaterialCommunityIcons name={option.icon as any} size={24} color={option.color} />
+                  </View>
+                  <View style={styles.cardTextContainer}>
+                    <Text style={styles.cardTitle}>{option.label}</Text>
+                    <Text style={styles.cardDescription}>{option.description}</Text>
+                  </View>
+                  <Switch 
+                    trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
+                    value={isActive}
+                    onValueChange={() => toggleMode(option.id)}
+                  />
+                </View>
               );
             })}
           </View>
-        </View>
 
-        <View style={styles.footer}>
-          <PrimaryButton label="Save & Continue" onPress={handleSave} />
-          <TouchableOpacity 
-            onPress={handleSave} 
-            style={styles.skipButton}
-            accessibilityRole="button"
-            accessibilityLabel="Skip for now"
-          >
-            <Text style={styles.skipText}>Skip for now</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          <View style={styles.section}>
+            <Text style={styles.sectionHeading}>Speaking Speed</Text>
+            <View style={styles.speedRow}>
+              {SPEED_OPTIONS.map((s) => {
+                const isActive = speed === s;
+                return (
+                  <TouchableOpacity
+                    key={s}
+                    style={[
+                      styles.speedChip,
+                      isActive ? styles.speedChipActive : styles.speedChipInactive
+                    ]}
+                    onPress={() => setSpeed(s)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${s} speaking speed`}
+                    accessibilityState={{ selected: isActive }}
+                  >
+                    <Text style={[
+                      styles.speedChipText,
+                      isActive ? styles.speedChipTextActive : styles.speedChipTextInactive
+                    ]}>
+                      {s.charAt(0).toUpperCase() + s.slice(1)}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          <View style={styles.footer}>
+            <PrimaryButton label="Save & Continue" onPress={handleSave} />
+            <TouchableOpacity 
+              onPress={handleSave} 
+              style={styles.skipButton}
+              accessibilityRole="button"
+              accessibilityLabel="Skip for now"
+            >
+              <Text style={styles.skipText}>Skip for now</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </BrandedBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'transparent',
   },
-  header: {
-    height: 64,
-    flexDirection: 'row',
+  logoWrapper: {
     alignItems: 'center',
-    paddingHorizontal: 8,
-  },
-  backButton: {
-    width: 48,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 24,
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 16,
+    paddingTop: 8,
   },
   section: {
     marginBottom: 32,
   },
   sectionHeading: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: 20,
+    fontWeight: '700',
+    color: theme.colors.textPrimary,
     marginBottom: 4,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: theme.colors.textSecondary,
     marginBottom: 16,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 16,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.card,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     minHeight: 72,
     marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   iconCircle: {
     width: 48,
@@ -179,56 +169,59 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
+    fontWeight: '700',
+    color: theme.colors.textPrimary,
   },
   cardDescription: {
     fontSize: 13,
-    color: '#6B7280',
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
   speedRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
     marginTop: 12,
   },
   speedChip: {
-    height: 44,
+    height: 48,
     paddingHorizontal: 20,
-    borderRadius: 999,
+    borderRadius: theme.radius.full,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
+    flex: 1,
   },
   speedChipActive: {
-    backgroundColor: '#00B14F',
-    borderColor: '#00B14F',
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
   },
   speedChipInactive: {
-    backgroundColor: '#F3F4F6',
-    borderColor: '#E5E7EB',
+    backgroundColor: theme.colors.primaryXSoft,
+    borderColor: theme.colors.border,
   },
   speedChipText: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '600',
   },
   speedChipTextActive: {
     color: '#FFFFFF',
   },
   speedChipTextInactive: {
-    color: '#374151',
+    color: theme.colors.textSecondary,
   },
   footer: {
-    marginTop: 32,
+    marginTop: 12,
     gap: 8,
   },
   skipButton: {
-    height: 48,
+    height: 56,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 8,
   },
   skipText: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: 15,
+    color: theme.colors.textMuted,
+    fontWeight: '600',
   },
 });
