@@ -26,11 +26,11 @@ export const useLogin = (): LoginViewModel => {
     setLoading(true);
     await loginService.mockGrabAuth();
     setLoading(false);
-    navigation.navigate('ProfileSetup' as any);
+    navigation.navigate('ProfileSetup');
   }, [navigation]);
 
   const handleSkip = useCallback(() => {
-    navigation.navigate('ProfileSetup' as any);
+    navigation.navigate('ProfileSetup');
   }, [navigation]);
 
   const toggleMic = useCallback(() => {

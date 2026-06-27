@@ -6,6 +6,7 @@ import DashboardScreen from '../screens/S05_Dashboard';
 import SplashScreen from '../screens/S01_Splash';
 import OnboardingScreen from '../screens/S02_Onboarding';
 import LoginScreen from '../screens/S03_Login';
+import ProfileSetupScreen from '../screens/S04_ProfileSetup';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -21,7 +22,7 @@ export const RootNavigator = () => {
       <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Onboarding" component={OnboardingScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ConnectGrabAccount" component={LoginScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="ProfileSetup" component={() => <Placeholder name="ProfileSetup" />} />
+      <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
       
       <Stack.Screen 
