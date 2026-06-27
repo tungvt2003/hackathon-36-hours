@@ -15,6 +15,7 @@ import OrderConfirmationScreen from '../screens/S10_OrderConfirmation';
 import RestaurantSelectionScreen from '../screens/S11_RestaurantSelection';
 import FoodTrackingScreen from '../screens/S12_FoodTracking';
 import RideTrackingScreen from '../screens/S13_RideTracking';
+import VoiceAssistantScreen from '../screens/S06_VoiceAssistant';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -32,11 +33,11 @@ export const RootNavigator = () => {
       <Stack.Screen name="ConnectGrabAccount" component={LoginScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
-
+      
       <Stack.Screen
         name="VoiceAssistant"
-        component={VoiceListeningScreen}
-        options={{ presentation: 'transparentModal', animation: 'fade', headerShown: false }}
+        component={VoiceAssistantScreen}
+        options={{ headerShown: false }}
       />
 
       <Stack.Screen

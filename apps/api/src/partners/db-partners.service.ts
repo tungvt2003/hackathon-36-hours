@@ -1,41 +1,129 @@
-import { Injectable } from '@nestjs/common';
-import { Intent, PartnerCode, PartnerQuote } from '../types';
-import { PrismaService } from '../prisma/prisma.service';
+/**
+ * DbPartnersService — RIDE quote fan-out.
+ *
+ * Gửi HTTP tới 3 partner-sim ride/quote endpoints song song.
+ * Giả lập: AccessAI KHÔNG query DB trực tiếp — mỗi partner có API riêng.
+ */
 
-/** Đọc báo giá từ bảng PartnerRate trong DB thay fixture file */
+import { HttpService } from '@nestjs/axios';
+import { Injectable, Logger } from '@nestjs/common';
+import { firstValueFrom } from 'rxjs';
+import { PartnerSimRideResult } from '../partner-sim/partner-sim.service';
+import { Intent, PartnerCode, PartnerQuote } from '../types';
+
+const SIM_BASE = process.env.PARTNER_SIM_URL ?? 'http://localhost:3000';
+
 @Injectable()
 export class DbPartnersService {
-  constructor(private readonly prisma: PrismaService) { }
+  private readonly logger = new Logger(DbPartnersService.name);
 
-  async quoteAll(_intent: Intent): Promise<PartnerQuote[]> {
-    const rates = await this.prisma.partnerRate.findMany({
-      where: { available: true },
-    });
+  constructor(private readonly http: HttpService) {}
 
-    return rates.map((r) => ({
-      partner: r.partner as PartnerCode,
-      price: r.basePriceVnd,
-      etaMinutes: r.etaMinutes,
-      driverName: r.driverName ?? undefined,
-      available: r.available,
-    }));
+  /**
+   * Fan-out HTTP tới 3 partner-sim ride endpoints song song.
+   * Mỗi partner trả options; aggregate thành flat list PartnerQuote[].
+   */
+  async quoteAll(intent: Intent): Promise<PartnerQuote[]> {
+    const payload = {
+      origin: intent.origin,
+      destination: intent.destination,
+    };
+
+    const [grabRes, beRes, xsmRes] = await Promise.allSettled([
+      this.post<PartnerSimRideResult>('/partner-sim/grab/ride/quote', payload),
+      this.post<PartnerSimRideResult>('/partner-sim/be/ride/quote', payload),
+      this.post<PartnerSimRideResult>(
+        '/partner-sim/xanhsm/ride/quote',
+        payload,
+      ),
+    ]);
+
+    const quotes: PartnerQuote[] = [];
+
+    if (grabRes.status === 'fulfilled') {
+      for (const o of grabRes.value.options) {
+        quotes.push({
+          partner: PartnerCode.GRAB,
+          price: o.priceVnd,
+          etaMinutes: o.etaMinutes,
+          driverName: o.driverName,
+          available: o.available,
+        });
+      }
+    } else {
+      this.logger.warn('Grab ride/quote failed: ' + grabRes.reason);
+    }
+
+    if (beRes.status === 'fulfilled') {
+      for (const o of beRes.value.options) {
+        quotes.push({
+          partner: PartnerCode.BE,
+          price: o.priceVnd,
+          etaMinutes: o.etaMinutes,
+          driverName: o.driverName,
+          available: o.available,
+        });
+      }
+    } else {
+      this.logger.warn('Be ride/quote failed: ' + beRes.reason);
+    }
+
+    if (xsmRes.status === 'fulfilled') {
+      for (const o of xsmRes.value.options) {
+        quotes.push({
+          partner: PartnerCode.XANH_SM,
+          price: o.priceVnd,
+          etaMinutes: o.etaMinutes,
+          driverName: o.driverName,
+          available: o.available,
+        });
+      }
+    } else {
+      this.logger.warn('XanhSM ride/quote failed: ' + xsmRes.reason);
+    }
+
+    return quotes;
   }
 
+  /** Gọi partner-sim confirm endpoint; partner ghi nhận đơn + chọn tài xế */
   async confirm(
     partner: PartnerCode,
     orderId: string,
-  ): Promise<{ externalId: string; message: string }> {
-    const rate = await this.prisma.partnerRate.findFirst({
-      where: { partner },
-    });
+  ): Promise<{ externalId: string; message: string; driverName?: string }> {
+    const endpoint = this.confirmEndpoint(partner);
+    if (!endpoint) {
+      const externalId = `${partner}-${orderId.slice(-6).toUpperCase()}`;
+      return {
+        externalId,
+        message: `${partner} xác nhận. Mã đơn: ${externalId}`,
+      };
+    }
 
-    // Sinh mã đơn giả - sau này thay bằng gọi API đối tác thật
-    const externalId = `${partner}-${orderId.slice(-6).toUpperCase()}`;
-    const driverName = rate?.driverName ?? 'Tài xế';
+    const result = await this.post<{
+      partnerOrderId: string;
+      driverName?: string;
+      message: string;
+    }>(endpoint, { accessAiOrderId: orderId });
 
     return {
-      externalId,
-      message: `${partner} xác nhận. Tài xế ${driverName} đang đến. Mã đơn: ${externalId}`,
+      externalId: result.partnerOrderId,
+      message: result.message,
+      driverName: result.driverName,
     };
+  }
+
+  private confirmEndpoint(partner: PartnerCode): string | null {
+    if (partner === PartnerCode.GRAB) return '/partner-sim/grab/confirm';
+    if (partner === PartnerCode.BE) return '/partner-sim/be/confirm';
+    if (partner === PartnerCode.XANH_SM) return '/partner-sim/xanhsm/confirm';
+    if (partner === PartnerCode.SHOPEE) return '/partner-sim/shopee/confirm';
+    return null;
+  }
+
+  private async post<T>(path: string, body: unknown): Promise<T> {
+    const res = await firstValueFrom(
+      this.http.post<T>(`${SIM_BASE}${path}`, body),
+    );
+    return res.data;
   }
 }

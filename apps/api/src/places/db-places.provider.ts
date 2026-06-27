@@ -12,9 +12,7 @@ export class DbPlacesProvider implements PlacesProvider {
 
     // Tìm place có keyword match với query
     const places = await this.prisma.place.findMany();
-    const match = places.find((p) =>
-      p.keywords.some((k) => q.includes(k)),
-    );
+    const match = places.find((p) => p.keywords.some((k) => q.includes(k)));
 
     if (!match) {
       return { name: query, isOpen: true, address: 'Địa chỉ chưa xác định' };

@@ -1,3 +1,4 @@
+import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GrabAdapter } from './adapters/grab.adapter';
@@ -10,7 +11,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export const PARTNERS_IMPL = 'PARTNERS_IMPL';
 
 @Module({
-  imports: [ConfigModule],
+  imports: [ConfigModule, HttpModule],
   providers: [
     PrismaService,
     GrabAdapter,

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
@@ -15,17 +15,13 @@ export interface DashboardViewModel {
 
 export const useDashboard = (): DashboardViewModel => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const [micState, setMicState] = useState<'idle' | 'listening' | 'disabled'>('idle');
+  const micState: 'idle' = 'idle';
 
   const actions = dashboardService.getActions();
   const userName = "John Doe"; // To be fetched from store in production
 
   const onMicPress = useCallback(() => {
-    setMicState('listening');
-    setTimeout(() => {
-      setMicState('idle');
-      navigation.navigate('VoiceAssistant', {});
-    }, 1500);
+    navigation.navigate('VoiceAssistant', {});
   }, [navigation]);
 
   const onActionPress = useCallback((action: DashboardAction) => {

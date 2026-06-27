@@ -4,10 +4,10 @@
 
 export interface BeRawQuote {
   data: {
-    price: number;          // VND
-    priceLabel: string;     // vd: "72.000 đ"
+    price: number; // VND
+    priceLabel: string; // vd: "72.000 đ"
     pickup_eta_sec: number; // giây đến điểm đón
-    service_name: string;   // vd: "beCar", "beBike"
+    service_name: string; // vd: "beCar", "beBike"
     is_available: boolean;
   };
   driver_info: {

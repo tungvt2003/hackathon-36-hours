@@ -4,8 +4,8 @@
 
 export interface XanhSmRawQuote {
   quote: {
-    amount: number;         // VND
-    formatted: string;      // vd: "68,000 VND"
+    amount: number; // VND
+    formatted: string; // vd: "68,000 VND"
     currency: 'VND';
     distance_km: number;
     eta_minutes: number;
@@ -13,10 +13,10 @@ export interface XanhSmRawQuote {
   driver: {
     name: string;
     score: number;
-    car: string;            // vd: "VinFast VF e34"
+    car: string; // vd: "VinFast VF e34"
   } | null;
   available: boolean;
-  car_type: string;         // vd: "XanhSM Car"
+  car_type: string; // vd: "XanhSM Car"
 }
 
 export interface XanhSmRawConfirm {

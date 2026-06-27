@@ -5,19 +5,19 @@
 export interface GrabRawQuote {
   estimatedFare: {
     currency: string;
-    value: number;        // VND, vd: 85000
+    value: number; // VND, vd: 85000
     displayAmount: string; // vd: "85.000đ"
   };
   eta: {
-    pickUpEta: number;    // giây
-    dropOffEta: number;   // giây
+    pickUpEta: number; // giây
+    dropOffEta: number; // giây
   };
   driver: {
     name: string;
     rating: number;
     vehicleType: string;
   } | null;
-  serviceType: string;  // vd: "GrabCar", "GrabBike"
+  serviceType: string; // vd: "GrabCar", "GrabBike"
   available: boolean;
 }
 
