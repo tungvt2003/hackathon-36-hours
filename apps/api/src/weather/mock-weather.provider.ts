@@ -13,7 +13,11 @@ export class MockWeatherProvider implements WeatherProvider {
     { tempC: 30, condition: 'Nắng nóng', willRain: false },
   ];
 
-  async getCurrent(_location: string, _lat?: number, _lng?: number): Promise<WeatherInfo> {
+  async getCurrent(
+    _location: string,
+    _lat?: number,
+    _lng?: number,
+  ): Promise<WeatherInfo> {
     // Xoay vòng theo giờ để test nhiều trạng thái thời tiết
     const hour = new Date().getHours();
     return this.conditions[hour % this.conditions.length];

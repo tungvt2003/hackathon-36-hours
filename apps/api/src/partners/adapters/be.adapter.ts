@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Intent, PartnerCode, PartnerQuote } from '../../types';
 import { RideProvider } from '../partner.provider';
-import { BE_MOCK_QUOTE, BE_MOCK_CONFIRM, BeRawQuote } from '../fixtures/be.fixture';
+import {
+  BE_MOCK_QUOTE,
+  BE_MOCK_CONFIRM,
+  BeRawQuote,
+} from '../fixtures/be.fixture';
 
 @Injectable()
 export class BeAdapter implements RideProvider {
@@ -11,7 +15,9 @@ export class BeAdapter implements RideProvider {
     return this.mapToQuote(raw);
   }
 
-  async confirm(_orderId: string): Promise<{ externalId: string; message: string }> {
+  async confirm(
+    _orderId: string,
+  ): Promise<{ externalId: string; message: string }> {
     const raw = BE_MOCK_CONFIRM;
     return {
       externalId: raw.trip_id,
