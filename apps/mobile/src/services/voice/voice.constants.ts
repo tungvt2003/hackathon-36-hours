@@ -10,10 +10,10 @@ export const PLATFORM_KEYWORDS: Record<string, string[]> = {
 export const SUPPORTED_PLATFORMS: PartnerCode[] = [PartnerCode.GRAB];
 
 export const FOOD_SERVICE_PATTERN =
-  /food|eat|hungry|order food|order|pho|rice|noodle|chicken|burger|meal|lunch|dinner|breakfast|snack|kfc|com tam|broken rice/i;
+  /food|eat|hungry|order food|order|đặt đồ ăn|dat do an|đồ ăn|do an|ăn|an|gợi ý|goi y|pho|phở|rice|cơm|com|noodle|chicken|gà|ga|gà rán|ga ran|burger|meal|lunch|dinner|breakfast|snack|kfc|com tam|broken rice/i;
 
 export const RIDE_SERVICE_PATTERN =
-  /ride|car|taxi|drive|take me|book a ride|go to|i need a car|transport|airport|destination/i;
+  /ride|car|taxi|drive|take me|book a ride|go to|i need a car|transport|airport|destination|đặt xe|dat xe|đi xe|di xe|đi đến|di den|sân bay|san bay|đi đâu|di dau/i;
 
 export const FOOD_KEYWORDS = [
   'food', 'eat', 'hungry', 'order food', 'order', 'pho', 'rice', 'noodle',
@@ -30,30 +30,30 @@ export const UNSUPPORTED_FOOD_KEYWORDS = [
 ];
 
 export const YES_PATTERN =
-  /^(yes|yeah|yep|yup|ok|okay|sure|confirm|correct|right|go ahead|do it|book it|order|absolutely|definitely|please|of course|grab|alright)$/i;
+  /^(yes|yeah|yep|yup|ok|okay|sure|confirm|correct|right|go ahead|do it|book it|order|absolutely|definitely|please|of course|grab|alright|có|co|đúng|dung|ừ|uh|ừm|um|oke|xác nhận|xac nhan|đặt đi|dat di|thanh toán|thanh toan)$/i;
 
 export const NO_PATTERN =
-  /^(no|nope|nah|cancel|stop|don't|back|return|never mind|not now|skip|go back|negative)$/i;
+  /^(no|nope|nah|cancel|stop|don't|back|return|never mind|not now|skip|go back|negative|không|khong|hủy|huy|quay lại|quay lai|thôi|thoi)$/i;
 
 export const GLOBAL_PATTERNS: { pattern: RegExp; intent: string }[] = [
-  { pattern: /(cancel|stop|quit|abort)/i, intent: 'GLOBAL_CANCEL' },
-  { pattern: /(go back|back|return|previous)/i, intent: 'GLOBAL_BACK' },
-  { pattern: /(repeat|say again|again|what did you say|come again|read again)/i, intent: 'GLOBAL_REPEAT' },
-  { pattern: /(read options|list options|what are my options|choices)/i, intent: 'GLOBAL_REPEAT_OPTIONS' },
-  { pattern: /(more|more options|show more)/i, intent: 'GLOBAL_MORE_OPTIONS' },
-  { pattern: /(help|what can i say|how does this work|instructions)/i, intent: 'GLOBAL_HELP' },
-  { pattern: /(my order|what's in my order|cart|what did i order)/i, intent: 'GLOBAL_READ_ORDER' },
-  { pattern: /(pause|hold on|wait)/i, intent: 'GLOBAL_PAUSE' },
-  { pattern: /(resume|continue|go on|keep going)/i, intent: 'GLOBAL_RESUME' },
-  { pattern: /(stop listening|mute|be quiet)/i, intent: 'GLOBAL_STOP' },
+  { pattern: /(cancel|stop|quit|abort|hủy|huy|ngừng|ngung|thôi|thoi)/i, intent: 'GLOBAL_CANCEL' },
+  { pattern: /(go back|back|return|previous|quay lại|quay lai|trở lại|tro lai)/i, intent: 'GLOBAL_BACK' },
+  { pattern: /(repeat|say again|again|what did you say|come again|read again|đọc lại|doc lai|nói lại|noi lai|lặp lại|lap lai)/i, intent: 'GLOBAL_REPEAT' },
+  { pattern: /(read options|list options|what are my options|choices|đọc lựa chọn|doc lua chon|có lựa chọn nào|co lua chon nao)/i, intent: 'GLOBAL_REPEAT_OPTIONS' },
+  { pattern: /(more|more options|show more|thêm|them|lựa chọn khác|lua chon khac)/i, intent: 'GLOBAL_MORE_OPTIONS' },
+  { pattern: /(help|what can i say|how does this work|instructions|trợ giúp|tro giup|giúp|giup)/i, intent: 'GLOBAL_HELP' },
+  { pattern: /(my order|what's in my order|cart|what did i order|đơn của tôi|don cua toi|giỏ hàng|gio hang)/i, intent: 'GLOBAL_READ_ORDER' },
+  { pattern: /(pause|hold on|wait|chờ|cho|đợi|doi)/i, intent: 'GLOBAL_PAUSE' },
+  { pattern: /(resume|continue|go on|keep going|tiếp tục|tiep tuc)/i, intent: 'GLOBAL_RESUME' },
+  { pattern: /(stop listening|mute|be quiet|ngừng nghe|ngung nghe|im lặng|im lang)/i, intent: 'GLOBAL_STOP' },
 ];
 
 export const VALID_PLACES = [
-  { id: 'place-tsn', name: 'Tan Son Nhat Airport', keywords: ['tan son nhat', 'airport', 'the airport', 'tsn', 'tansonnhat'] },
-  { id: 'place-ben-xe-md', name: 'Mien Dong Bus Station', keywords: ['mien dong', 'mien dong bus station', 'bus station', 'eastern bus'] },
-  { id: 'place-ben-thanh', name: 'Ben Thanh Market', keywords: ['ben thanh', 'ben thanh market', 'central market', 'market'] },
+  { id: 'place-tsn', name: 'Sân bay Tân Sơn Nhất', keywords: ['tan son nhat', 'tân sơn nhất', 'airport', 'the airport', 'san bay', 'sân bay', 'tsn', 'tansonnhat'] },
+  { id: 'place-ben-xe-md', name: 'Bến xe Miền Đông', keywords: ['mien dong', 'miền đông', 'mien dong bus station', 'bus station', 'ben xe', 'bến xe', 'eastern bus'] },
+  { id: 'place-ben-thanh', name: 'Chợ Bến Thành', keywords: ['ben thanh', 'bến thành', 'ben thanh market', 'cho ben thanh', 'chợ bến thành', 'central market', 'market'] },
   { id: 'place-bitexco', name: 'Bitexco Financial Tower', keywords: ['bitexco', 'bitexco tower', 'financial tower'] },
-  { id: 'place-quan-1', name: 'District 1', keywords: ['district one', 'district 1', 'd1', 'quan 1'] },
+  { id: 'place-quan-1', name: 'Quận 1', keywords: ['district one', 'district 1', 'd1', 'quan 1', 'quận 1'] },
 ];
 
 export interface FoodMenuMatch {

@@ -10,6 +10,17 @@ interface AIBubbleProps {
   accessibilityLiveRegion?: 'polite' | 'assertive';
 }
 
+function naturalizeAiText(text: string): string {
+  const numberedOptionsStart = text.search(/\s1\s*,/);
+  let cleaned = (numberedOptionsStart >= 0 ? text.slice(0, numberedOptionsStart) : text)
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([?.!,])/g, '$1')
+    .trim();
+
+  cleaned = cleaned.replace(/Bạn muốn ăn gì\?\s*$/i, 'Bạn muốn ăn món nào?');
+  return cleaned;
+}
+
 export const AIBubble: React.FC<AIBubbleProps> = ({
   text,
   variant = 'light',
@@ -18,6 +29,7 @@ export const AIBubble: React.FC<AIBubbleProps> = ({
   showPulse = false,
   accessibilityLiveRegion = 'polite',
 }) => {
+  const displayText = naturalizeAiText(text);
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(12)).current;
   const pulse = useRef(new Animated.Value(0.4)).current;
@@ -51,7 +63,7 @@ export const AIBubble: React.FC<AIBubbleProps> = ({
         style,
       ]}
       accessibilityRole="text"
-      accessibilityLabel={`AI nói: ${text}`}
+      accessibilityLabel={`AI nói: ${displayText}`}
       accessibilityLiveRegion={accessibilityLiveRegion}
     >
       <View style={styles.headerRow}>
@@ -62,7 +74,7 @@ export const AIBubble: React.FC<AIBubbleProps> = ({
         )}
         <Text style={isDark ? styles.labelDark : styles.labelLight}>{label}</Text>
       </View>
-      <Text style={isDark ? styles.textDark : styles.textLight}>{text}</Text>
+      <Text style={isDark ? styles.textDark : styles.textLight}>{displayText}</Text>
     </Animated.View>
   );
 };

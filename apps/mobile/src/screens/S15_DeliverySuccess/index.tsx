@@ -94,7 +94,7 @@ const DeliverySuccessScreen = () => {
             onPress={onRateNow}
           />
           <View style={styles.buttonSpacer} />
-          <SecondaryButton label="Order again" onPress={onOrderAgain} />
+          <SecondaryButton label="Đặt lại" onPress={onOrderAgain} />
           <TouchableOpacity
             onPress={onDone}
             style={styles.doneBtn}
@@ -109,7 +109,7 @@ const DeliverySuccessScreen = () => {
           style={styles.voiceFab}
           onPress={() => openVoice('home', 'Bạn cần trợ giúp gì? Tôi có thể đặt lại hoặc thay đổi đơn hàng cho bạn.')}
           accessibilityRole="button"
-          accessibilityLabel="Tap to speak with AI"
+          accessibilityLabel="Chạm để nói với AI"
         >
           <MaterialCommunityIcons name="microphone" size={32} color="white" />
         </TouchableOpacity>

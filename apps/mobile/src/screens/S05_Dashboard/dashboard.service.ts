@@ -9,7 +9,7 @@ import { voiceNlg } from '../../services/voice/voice-nlg.service';
 
 export { PARTNER_LABEL };
 
-export const PLATFORM_SELECT_GREETING = voiceNlg.platformGreeting();
+export const PLATFORM_SELECT_GREETING = voiceNlg.servicePrompt();
 export const HOME_AI_GREETING = voiceNlg.servicePrompt();
 export const FOOD_AI_GREETING = voiceNlg.serviceFoodSelected();
 export const RIDE_AI_GREETING = voiceNlg.serviceRideSelected();
