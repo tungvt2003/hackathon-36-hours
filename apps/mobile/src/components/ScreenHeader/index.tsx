@@ -1,16 +1,24 @@
+// apps/mobile/src/components/ScreenHeader/index.tsx
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { theme } from '../../theme/theme';
+import { SuaraLogo } from '../SuaraLogo';
 import { styles } from './styles';
 
 interface ScreenHeaderProps {
-  title: string;
+  title?: string;
+  showLogo?: boolean;   // ← NEW: renders SuaraLogo in the center slot
   onBack?: () => void;
   rightElement?: React.ReactNode;
 }
 
-export const ScreenHeader: React.FC<ScreenHeaderProps> = ({ title, onBack, rightElement }) => {
+export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
+  title,
+  showLogo = false,
+  onBack,
+  rightElement,
+}) => {
   return (
     <View style={styles.container}>
       <View style={styles.headerItem}>
@@ -21,16 +29,25 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({ title, onBack, right
             accessibilityRole="button"
             accessibilityLabel="Go back"
             accessibilityHint="Returns to the previous screen"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <MaterialCommunityIcons name="arrow-left" size={24} color={theme.colors.textPrimary} />
+            <MaterialCommunityIcons
+              name="arrow-left"
+              size={24}
+              color={theme.colors.textPrimary}
+            />
           </Pressable>
         )}
       </View>
 
       <View style={styles.titleContainer}>
-        <Text style={styles.title} accessibilityRole="header">
-          {title}
-        </Text>
+        {showLogo ? (
+          <SuaraLogo size="sm" />
+        ) : title ? (
+          <Text style={styles.title} accessibilityRole="header" numberOfLines={1}>
+            {title}
+          </Text>
+        ) : null}
       </View>
 
       <View style={styles.headerItem}>

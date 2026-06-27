@@ -1,0 +1,4900 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.env.example
+.gitignore
+.prettierrc
+docker-compose.prod.yml
+docker-compose.yml
+Dockerfile
+entrypoint.sh
+eslint.config.mjs
+nest-cli.json
+nginx.conf
+package.json
+prisma.config.ts
+prisma/migrations/20260627000000_init/migration.sql
+prisma/migrations/20260627133809_food_erp/migration.sql
+prisma/migrations/migration_lock.toml
+prisma/schema.prisma
+prisma/seed.ts
+README.md
+scripts/gen-openapi.ts
+src/app.module.ts
+src/conversation/conversation.controller.ts
+src/conversation/conversation.module.ts
+src/conversation/conversation.service.ts
+src/main.ts
+src/nlu/mock-nlu.provider.ts
+src/nlu/nlu.module.ts
+src/nlu/nlu.provider.ts
+src/orders/dto/confirm-order.dto.ts
+src/orders/dto/voice-order.dto.ts
+src/orders/orders.controller.ts
+src/orders/orders.module.ts
+src/orders/orders.service.ts
+src/partner-sim/partner-sim.controller.ts
+src/partner-sim/partner-sim.module.ts
+src/partner-sim/partner-sim.service.ts
+src/partners/adapters/be.adapter.ts
+src/partners/adapters/grab.adapter.ts
+src/partners/adapters/xanh-sm.adapter.ts
+src/partners/db-partners.service.ts
+src/partners/fixtures/be.fixture.ts
+src/partners/fixtures/grab.fixture.ts
+src/partners/fixtures/xanh-sm.fixture.ts
+src/partners/partner.provider.ts
+src/partners/partners.module.ts
+src/partners/partners.service.ts
+src/places/db-places.provider.ts
+src/places/fixtures/places.fixture.ts
+src/places/google-places.provider.ts
+src/places/mock-places.provider.ts
+src/places/places.module.ts
+src/places/places.provider.ts
+src/places/serpapi-places.provider.ts
+src/prisma/prisma.module.ts
+src/prisma/prisma.service.ts
+src/restaurants/restaurants.controller.ts
+src/restaurants/restaurants.module.ts
+src/restaurants/restaurants.service.ts
+src/stt/mock-stt.provider.ts
+src/stt/stt.module.ts
+src/stt/stt.provider.ts
+src/types.ts
+src/weather/mock-weather.provider.ts
+src/weather/open-meteo.provider.ts
+src/weather/weather.module.ts
+src/weather/weather.provider.ts
+test/app.e2e-spec.ts
+test/jest-e2e.json
+tsconfig.build.json
+tsconfig.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path=".gitignore">
+# ── IDE / Tools ─────────────────────────────────────────────────
+.claude/
+.cursor/
+.vscode/
+.idea/
+
+# ── Dependencies ─────────────────────────────────────────────────
+node_modules/
+
+# ── Build output ─────────────────────────────────────────────────
+dist/
+build/
+
+# ── Environment ──────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Prisma generated ─────────────────────────────────────────────
+/generated/
+/src/generated/
+
+# ── Logs ─────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+
+# ── OS ───────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Test coverage ────────────────────────────────────────────────
+coverage/
+
+# ── TypeScript ───────────────────────────────────────────────────
+*.tsbuildinfo
+
+# ── OpenAPI snapshot (optional: bỏ comment nếu muốn commit spec) ─
+# openapi.json
+</file>
+
+<file path=".prettierrc">
+{
+  "singleQuote": true,
+  "trailingComma": "all"
+}
+</file>
+
+<file path="docker-compose.prod.yml">
+version: '3.9'
+
+name: voice-mobility
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-voice_mobility}
+      POSTGRES_USER: ${POSTGRES_USER:-vmuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vmpass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vmuser} -d ${POSTGRES_DB:-voice_mobility}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-5757}:3000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-vmuser}:${POSTGRES_PASSWORD:-vmpass}@postgres:5432/${POSTGRES_DB:-voice_mobility}
+      NODE_ENV: production
+      PORT: 3000
+      PROVIDER_STT: ${PROVIDER_STT:-mock}
+      PROVIDER_NLU: ${PROVIDER_NLU:-mock}
+      PROVIDER_PLACES: ${PROVIDER_PLACES:-db}
+      PROVIDER_WEATHER: ${PROVIDER_WEATHER:-mock}
+      PROVIDER_PARTNER: ${PROVIDER_PARTNER:-db}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+</file>
+
+<file path="docker-compose.yml">
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: voice-mobility-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+</file>
+
+<file path="Dockerfile">
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install deps (including devDeps for tsx + nest build)
+COPY package*.json ./
+RUN npm ci
+
+# Copy source
+COPY . .
+
+# Generate Prisma client + build NestJS
+RUN npx prisma generate
+RUN npm run build
+
+EXPOSE 3000
+
+COPY entrypoint.sh ./entrypoint.sh
+RUN chmod +x entrypoint.sh
+
+ENTRYPOINT ["./entrypoint.sh"]
+</file>
+
+<file path="entrypoint.sh">
+#!/bin/sh
+set -e
+
+echo ">>> Syncing schema to database..."
+npx prisma db push --accept-data-loss
+
+echo ">>> Seeding database..."
+npx tsx prisma/seed.ts || echo "Seed skipped (data may already exist)"
+
+echo ">>> Starting API..."
+exec node dist/src/main
+</file>
+
+<file path="eslint.config.mjs">
+// @ts-check
+import eslint from '@eslint/js';
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+
+export default tseslint.config(
+  {
+    ignores: ['eslint.config.mjs'],
+  },
+  eslint.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  eslintPluginPrettierRecommended,
+  {
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
+      sourceType: 'commonjs',
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+  {
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-floating-promises': 'warn',
+      '@typescript-eslint/no-unsafe-argument': 'warn',
+      "prettier/prettier": ["error", { endOfLine: "auto" }],
+    },
+  },
+);
+</file>
+
+<file path="nest-cli.json">
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "assets": [
+      { "include": "generated/prisma/**/*", "outDir": "dist/src" }
+    ]
+  }
+}
+</file>
+
+<file path="nginx.conf">
+server {
+    listen 80;
+    server_name _;
+
+    # Tăng timeout cho voice/long-poll
+    proxy_connect_timeout 60s;
+    proxy_send_timeout    60s;
+    proxy_read_timeout    60s;
+
+    location / {
+        proxy_pass         http://127.0.0.1:5757;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Tắt buffering để streaming response không bị delay
+        proxy_buffering off;
+    }
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "api",
+  "version": "0.0.1",
+  "description": "",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "nest build",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "gen:openapi": "ts-node scripts/gen-openapi.ts",
+    "prisma:migrate": "prisma migrate deploy",
+    "prisma:seed": "tsx prisma/seed.ts",
+    "prisma:setup": "prisma migrate deploy && tsx prisma/seed.ts",
+    "prisma:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@nestjs/axios": "^4.0.1",
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/swagger": "^11.4.4",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "axios": "^1.18.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "dotenv": "^17.4.2",
+    "pg": "^8.22.0",
+    "prisma": "^7.8.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/js": "^9.18.0",
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/schematics": "^11.0.0",
+    "@nestjs/testing": "^11.0.1",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.20.0",
+    "@types/supertest": "^7.0.0",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.2",
+    "globals": "^17.0.0",
+    "jest": "^30.0.0",
+    "prettier": "^3.4.2",
+    "source-map-support": "^0.5.21",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.2.5",
+    "ts-loader": "^9.5.2",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.22.4",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node"
+  }
+}
+</file>
+
+<file path="prisma.config.ts">
+// This file was generated by Prisma, and assumes you have installed the following:
+// npm install --save-dev prisma dotenv
+import "dotenv/config";
+import { defineConfig } from "prisma/config";
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  migrations: {
+    path: "prisma/migrations",
+  },
+  datasource: {
+    url: process.env["DATABASE_URL"],
+  },
+});
+</file>
+
+<file path="prisma/migrations/20260627000000_init/migration.sql">
+-- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL,
+    "name" TEXT,
+    "phone" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Order" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT,
+    "type" TEXT NOT NULL,
+    "origin" TEXT,
+    "destination" TEXT,
+    "restaurant" TEXT,
+    "items" JSONB,
+    "status" TEXT NOT NULL,
+    "partner" TEXT,
+    "quotePrice" DOUBLE PRECISION,
+    "etaMinutes" INTEGER,
+    "responseText" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Order_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "OrderEvent" (
+    "id" TEXT NOT NULL,
+    "orderId" TEXT NOT NULL,
+    "step" TEXT NOT NULL,
+    "payload" JSONB NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "OrderEvent_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Place" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "address" TEXT NOT NULL,
+    "openHour" INTEGER NOT NULL,
+    "closeHour" INTEGER NOT NULL,
+    "keywords" TEXT[],
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Place_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "PartnerRate" (
+    "id" TEXT NOT NULL,
+    "partner" TEXT NOT NULL,
+    "serviceType" TEXT NOT NULL,
+    "basePriceVnd" INTEGER NOT NULL,
+    "etaMinutes" INTEGER NOT NULL,
+    "available" BOOLEAN NOT NULL DEFAULT true,
+    "driverName" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "PartnerRate_pkey" PRIMARY KEY ("id")
+);
+
+-- AddForeignKey
+ALTER TABLE "Order" ADD CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderEvent" ADD CONSTRAINT "OrderEvent_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+</file>
+
+<file path="prisma/migrations/20260627133809_food_erp/migration.sql">
+-- AlterTable
+ALTER TABLE "Order" ADD COLUMN     "accessibilityFlag" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "deliveryAddress" TEXT,
+ADD COLUMN     "deliveryFeeVnd" INTEGER,
+ADD COLUMN     "deliveryInstruction" TEXT,
+ADD COLUMN     "discountVnd" INTEGER,
+ADD COLUMN     "driverId" TEXT,
+ADD COLUMN     "promoId" TEXT,
+ADD COLUMN     "restaurantId" TEXT,
+ADD COLUMN     "subtotalVnd" INTEGER,
+ADD COLUMN     "totalVnd" INTEGER;
+
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "savedAddress" TEXT;
+
+-- CreateTable
+CREATE TABLE "Restaurant" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "address" TEXT NOT NULL,
+    "openHour" INTEGER NOT NULL,
+    "closeHour" INTEGER NOT NULL,
+    "cuisineType" TEXT NOT NULL,
+    "rating" DOUBLE PRECISION NOT NULL DEFAULT 4.5,
+    "imageUrl" TEXT,
+    "keywords" TEXT[],
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Restaurant_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "MenuCategory" (
+    "id" TEXT NOT NULL,
+    "restaurantId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
+
+    CONSTRAINT "MenuCategory_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "MenuItem" (
+    "id" TEXT NOT NULL,
+    "restaurantId" TEXT NOT NULL,
+    "categoryId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "priceVnd" INTEGER NOT NULL,
+    "available" BOOLEAN NOT NULL DEFAULT true,
+    "keywords" TEXT[],
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "MenuItem_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "PartnerRestaurant" (
+    "id" TEXT NOT NULL,
+    "partner" TEXT NOT NULL,
+    "restaurantId" TEXT NOT NULL,
+    "deliveryFeeVnd" INTEGER NOT NULL,
+    "minOrderVnd" INTEGER NOT NULL DEFAULT 0,
+    "available" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "PartnerRestaurant_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Promotion" (
+    "id" TEXT NOT NULL,
+    "partner" TEXT NOT NULL,
+    "restaurantId" TEXT,
+    "discountType" TEXT NOT NULL,
+    "discountValue" INTEGER NOT NULL,
+    "minOrderVnd" INTEGER NOT NULL DEFAULT 0,
+    "maxDiscountVnd" INTEGER,
+    "validFrom" TIMESTAMP(3),
+    "validUntil" TIMESTAMP(3),
+    "active" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Promotion_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Driver" (
+    "id" TEXT NOT NULL,
+    "partner" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
+    "vehicleType" TEXT NOT NULL,
+    "vehiclePlate" TEXT NOT NULL,
+    "rating" DOUBLE PRECISION NOT NULL DEFAULT 4.8,
+    "available" BOOLEAN NOT NULL DEFAULT true,
+    "currentLat" DOUBLE PRECISION NOT NULL,
+    "currentLng" DOUBLE PRECISION NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Driver_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ConversationSession" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT,
+    "state" TEXT NOT NULL,
+    "intent" JSONB NOT NULL,
+    "missingFields" TEXT[],
+    "orderId" TEXT,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ConversationSession_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PartnerRestaurant_partner_restaurantId_key" ON "PartnerRestaurant"("partner", "restaurantId");
+
+-- AddForeignKey
+ALTER TABLE "MenuCategory" ADD CONSTRAINT "MenuCategory_restaurantId_fkey" FOREIGN KEY ("restaurantId") REFERENCES "Restaurant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "MenuItem" ADD CONSTRAINT "MenuItem_restaurantId_fkey" FOREIGN KEY ("restaurantId") REFERENCES "Restaurant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "MenuItem" ADD CONSTRAINT "MenuItem_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "MenuCategory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PartnerRestaurant" ADD CONSTRAINT "PartnerRestaurant_restaurantId_fkey" FOREIGN KEY ("restaurantId") REFERENCES "Restaurant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Promotion" ADD CONSTRAINT "Promotion_restaurantId_fkey" FOREIGN KEY ("restaurantId") REFERENCES "Restaurant"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ConversationSession" ADD CONSTRAINT "ConversationSession_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+</file>
+
+<file path="prisma/migrations/migration_lock.toml">
+# Please do not edit this file manually
+# It should be added in your version-control system (e.g., Git)
+provider = "postgresql"
+</file>
+
+<file path="prisma/schema.prisma">
+// Prisma 7 schema
+
+generator client {
+  provider   = "prisma-client-js"
+  output     = "../src/generated/prisma"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// AccessAI own tables — khong luu raw data cua doi tac
+// ============================================================
+
+model User {
+  id           String                @id @default(cuid())
+  name         String?
+  phone        String?
+  savedAddress String?
+  orders       Order[]
+  sessions     ConversationSession[]
+  createdAt    DateTime              @default(now())
+}
+
+model Order {
+  id                String       @id @default(cuid())
+  userId            String?
+  user              User?        @relation(fields: [userId], references: [id])
+  type              String       // RIDE | FOOD
+  origin            String?
+  destination       String?
+  deliveryAddress   String?
+  partnerRestaurantId String?    // ID trong bang GrabRestaurant / BeRestaurant / ShopeeRestaurant
+  restaurant        String?      // ten quan (display)
+  items             Json?        // [{ menuItemId, name, qty, priceVnd }]
+  status            String       // QUOTED|CONFIRMED|DRIVER_ASSIGNED|IN_TRANSIT|DELIVERED|CANCELLED
+  partner           String?      // GRAB|BE|XANH_SM|SHOPEE
+  partnerDriverId   String?      // ID trong bang GrabDriver / BeDriver / etc.
+  driverName        String?      // cache ten tai xe de khoi query lai
+  subtotalVnd       Int?
+  deliveryFeeVnd    Int?
+  discountVnd       Int?
+  totalVnd          Int?
+  etaMinutes        Int?
+  responseText      String?
+  accessibilityFlag Boolean      @default(false)
+  createdAt         DateTime     @default(now())
+  events            OrderEvent[]
+  review            OrderReview?
+}
+
+model OrderEvent {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  step      String
+  payload   Json
+  createdAt DateTime @default(now())
+}
+
+model OrderReview {
+  id                String   @id @default(cuid())
+  orderId           String   @unique
+  order             Order    @relation(fields: [orderId], references: [id])
+  restaurantRating  Int      // 1-5
+  driverRating      Int      // 1-5
+  voiceText         String?  // raw transcript cua user
+  createdAt         DateTime @default(now())
+}
+
+model Place {
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  openHour  Int
+  closeHour Int
+  keywords  String[]
+  createdAt DateTime @default(now())
+}
+
+model ConversationSession {
+  id            String   @id @default(cuid())
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id])
+  state         String   // COLLECTING|CONFIRMING|ORDERING|TRACKING|DONE
+  intent        Json
+  missingFields String[]
+  orderId       String?
+  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now())
+}
+
+// ============================================================
+// GRAB — simulate he thong rieng cua Grab
+// ============================================================
+
+model GrabRestaurant {
+  id             String          @id @default(cuid())
+  name           String
+  address        String
+  openHour       Int
+  closeHour      Int
+  cuisineType    String
+  rating         Float           @default(4.5) // rating tu phia Grab (cold-start fallback)
+  reviewCount    Int             @default(0)
+  keywords       String[]
+  deliveryFeeVnd Int             @default(15000)
+  minOrderVnd    Int             @default(30000)
+  available      Boolean         @default(true)
+  items          GrabMenuItem[]
+  promotions     GrabPromotion[]
+  createdAt      DateTime        @default(now())
+}
+
+model GrabMenuItem {
+  id               String         @id @default(cuid())
+  grabRestaurantId String
+  restaurant       GrabRestaurant @relation(fields: [grabRestaurantId], references: [id])
+  categoryName     String
+  name             String
+  description      String?
+  priceVnd         Int
+  available        Boolean        @default(true)
+  keywords         String[]
+  createdAt        DateTime       @default(now())
+}
+
+model GrabRideOption {
+  id           String   @id @default(cuid())
+  serviceType  String   // GrabCar | GrabBike
+  basePriceVnd Int
+  etaMinutes   Int
+  available    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model GrabDriver {
+  id           String   @id @default(cuid())
+  name         String
+  phone        String
+  vehicleType  String   // GrabCar | GrabBike
+  vehiclePlate String
+  rating       Float    @default(4.8)
+  available    Boolean  @default(true)
+  currentLat   Float
+  currentLng   Float
+  createdAt    DateTime @default(now())
+}
+
+model GrabPromotion {
+  id               String         @id @default(cuid())
+  grabRestaurantId String?
+  restaurant       GrabRestaurant? @relation(fields: [grabRestaurantId], references: [id])
+  discountType     String         // PERCENT | FIXED | FREE_DELIVERY
+  discountValue    Int
+  minOrderVnd      Int            @default(0)
+  maxDiscountVnd   Int?
+  active           Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+}
+
+// ============================================================
+// BE — simulate he thong rieng cua Be
+// ============================================================
+
+model BeRestaurant {
+  id             String        @id @default(cuid())
+  name           String
+  address        String
+  openHour       Int
+  closeHour      Int
+  cuisineType    String
+  rating         Float         @default(4.5)
+  reviewCount    Int           @default(0)
+  keywords       String[]
+  deliveryFeeVnd Int           @default(10000)
+  minOrderVnd    Int           @default(20000)
+  available      Boolean       @default(true)
+  items          BeMenuItem[]
+  promotions     BePromotion[]
+  createdAt      DateTime      @default(now())
+}
+
+model BeMenuItem {
+  id             String       @id @default(cuid())
+  beRestaurantId String
+  restaurant     BeRestaurant @relation(fields: [beRestaurantId], references: [id])
+  categoryName   String
+  name           String
+  description    String?
+  priceVnd       Int
+  available      Boolean      @default(true)
+  keywords       String[]
+  createdAt      DateTime     @default(now())
+}
+
+model BeRideOption {
+  id           String   @id @default(cuid())
+  serviceType  String   // beCar | beBike
+  basePriceVnd Int
+  etaMinutes   Int
+  available    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model BeDriver {
+  id           String   @id @default(cuid())
+  name         String
+  phone        String
+  vehicleType  String   // beCar | beBike
+  vehiclePlate String
+  rating       Float    @default(4.8)
+  available    Boolean  @default(true)
+  currentLat   Float
+  currentLng   Float
+  createdAt    DateTime @default(now())
+}
+
+model BePromotion {
+  id             String       @id @default(cuid())
+  beRestaurantId String?
+  restaurant     BeRestaurant? @relation(fields: [beRestaurantId], references: [id])
+  discountType   String
+  discountValue  Int
+  minOrderVnd    Int          @default(0)
+  maxDiscountVnd Int?
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+}
+
+// ============================================================
+// XANH SM — ride only, khong co food
+// ============================================================
+
+model XanhSmRideOption {
+  id           String   @id @default(cuid())
+  serviceType  String   // XanhSM Car
+  basePriceVnd Int
+  etaMinutes   Int
+  available    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model XanhSmDriver {
+  id           String   @id @default(cuid())
+  name         String
+  phone        String
+  vehicleType  String   // XanhSM Car (VinFast)
+  vehiclePlate String
+  rating       Float    @default(4.8)
+  available    Boolean  @default(true)
+  currentLat   Float
+  currentLng   Float
+  createdAt    DateTime @default(now())
+}
+
+// ============================================================
+// SHOPEE — food only, khong co ride
+// ============================================================
+
+model ShopeeRestaurant {
+  id             String             @id @default(cuid())
+  name           String
+  address        String
+  openHour       Int
+  closeHour      Int
+  cuisineType    String
+  rating         Float              @default(4.5)
+  reviewCount    Int                @default(0)
+  keywords       String[]
+  deliveryFeeVnd Int                @default(12000)
+  minOrderVnd    Int                @default(25000)
+  available      Boolean            @default(true)
+  items          ShopeeMenuItem[]
+  promotions     ShopeePromotion[]
+  createdAt      DateTime           @default(now())
+}
+
+model ShopeeMenuItem {
+  id                 String           @id @default(cuid())
+  shopeeRestaurantId String
+  restaurant         ShopeeRestaurant @relation(fields: [shopeeRestaurantId], references: [id])
+  categoryName       String
+  name               String
+  description        String?
+  priceVnd           Int
+  available          Boolean          @default(true)
+  keywords           String[]
+  createdAt          DateTime         @default(now())
+}
+
+model ShopeeDriver {
+  id           String   @id @default(cuid())
+  name         String
+  phone        String
+  vehicleType  String   // Shopee Bike
+  vehiclePlate String
+  rating       Float    @default(4.8)
+  available    Boolean  @default(true)
+  currentLat   Float
+  currentLng   Float
+  createdAt    DateTime @default(now())
+}
+
+model ShopeePromotion {
+  id                 String            @id @default(cuid())
+  shopeeRestaurantId String?
+  restaurant         ShopeeRestaurant? @relation(fields: [shopeeRestaurantId], references: [id])
+  discountType       String
+  discountValue      Int
+  minOrderVnd        Int               @default(0)
+  maxDiscountVnd     Int?
+  active             Boolean           @default(true)
+  createdAt          DateTime          @default(now())
+}
+</file>
+
+<file path="prisma/seed.ts">
+import 'dotenv/config';
+import { PrismaClient } from '../src/generated/prisma';
+import { PrismaPg } from '@prisma/adapter-pg';
+
+const prisma = new PrismaClient({
+  adapter: new PrismaPg(process.env['DATABASE_URL']!),
+});
+
+async function main() {
+  console.log('🌱 Seeding per-partner data...');
+
+  // ══════════════════════════════════════════════════════════════
+  // GRAB — food + ride
+  // ══════════════════════════════════════════════════════════════
+
+  const grabPho = await prisma.grabRestaurant.upsert({
+    where: { id: 'grab-rest-pho' },
+    update: {},
+    create: {
+      id: 'grab-rest-pho',
+      name: 'Phở Hà Nội',
+      address: '25 Nguyễn Trãi, Quận 1, TP.HCM',
+      openHour: 6,
+      closeHour: 22,
+      cuisineType: 'vietnamese',
+      rating: 4.7,
+      reviewCount: 1240,
+      keywords: ['phở hà nội', 'phở', 'pho ha noi', 'quán phở', 'pho', 'pho bo', 'pho ga'],
+      deliveryFeeVnd: 15000,
+      minOrderVnd: 30000,
+    },
+  });
+
+  const grabComTam = await prisma.grabRestaurant.upsert({
+    where: { id: 'grab-rest-com-tam' },
+    update: {},
+    create: {
+      id: 'grab-rest-com-tam',
+      name: 'Cơm Tấm Thuận Kiều',
+      address: '12 Lê Thánh Tôn, Quận 1, TP.HCM',
+      openHour: 7,
+      closeHour: 21,
+      cuisineType: 'vietnamese',
+      rating: 4.6,
+      reviewCount: 890,
+      keywords: ['thuận kiều', 'cơm tấm', 'cơm tấm thuận kiều', 'com tam', 'thuan kieu', 'cơm gà', 'com ga'],
+      deliveryFeeVnd: 15000,
+      minOrderVnd: 30000,
+    },
+  });
+
+  const grabKfc = await prisma.grabRestaurant.upsert({
+    where: { id: 'grab-rest-kfc' },
+    update: {},
+    create: {
+      id: 'grab-rest-kfc',
+      name: 'KFC Bến Thành',
+      address: '4 Nam Kỳ Khởi Nghĩa, Quận 1, TP.HCM',
+      openHour: 9,
+      closeHour: 22,
+      cuisineType: 'fastfood',
+      rating: 4.3,
+      reviewCount: 560,
+      keywords: ['kfc', 'kfc bến thành', 'gà rán kfc', 'kentucky', 'ga ran', 'burger', 'fast food'],
+      deliveryFeeVnd: 20000,
+      minOrderVnd: 50000,
+    },
+  });
+
+  await prisma.grabMenuItem.createMany({
+    skipDuplicates: true,
+    data: [
+      // Phở Hà Nội
+      { id: 'grab-mi-pho-bo-tai',   grabRestaurantId: grabPho.id, categoryName: 'Phở', name: 'Phở Bò Tái',      description: 'Tái thịt mềm, nước dùng đậm đà', priceVnd: 65000, keywords: ['phở bò tái', 'phở bò', 'pho bo tai', 'bo tai'] },
+      { id: 'grab-mi-pho-bo-chin',  grabRestaurantId: grabPho.id, categoryName: 'Phở', name: 'Phở Bò Chín',     description: 'Bò chín mềm', priceVnd: 65000, keywords: ['phở bò chín', 'pho bo chin', 'bo chin'] },
+      { id: 'grab-mi-pho-ga',       grabRestaurantId: grabPho.id, categoryName: 'Phở', name: 'Phở Gà',           description: 'Gà ta nước trong', priceVnd: 55000, keywords: ['phở gà', 'pho ga', 'ga'] },
+      { id: 'grab-mi-pho-dac-biet', grabRestaurantId: grabPho.id, categoryName: 'Phở', name: 'Phở Đặc Biệt',    description: 'Tái, chín, gân, gàu', priceVnd: 85000, keywords: ['phở đặc biệt', 'dac biet', 'phở tái chín gân'] },
+      { id: 'grab-mi-pho-tra-da',   grabRestaurantId: grabPho.id, categoryName: 'Đồ uống', name: 'Trà đá', priceVnd: 10000, keywords: ['trà đá', 'tra da'] },
+      { id: 'grab-mi-pho-nuoc-ngot',grabRestaurantId: grabPho.id, categoryName: 'Đồ uống', name: 'Nước ngọt', priceVnd: 15000, keywords: ['nước ngọt', 'pepsi', 'coca cola'] },
+      // Cơm Tấm Thuận Kiều
+      { id: 'grab-mi-com-suon',     grabRestaurantId: grabComTam.id, categoryName: 'Cơm Tấm', name: 'Cơm Tấm Sườn',        description: 'Sườn nướng, bì, chả', priceVnd: 55000, keywords: ['cơm tấm sườn', 'com tam suon', 'suon'] },
+      { id: 'grab-mi-com-bi',       grabRestaurantId: grabComTam.id, categoryName: 'Cơm Tấm', name: 'Cơm Tấm Bì',          priceVnd: 50000, keywords: ['cơm tấm bì', 'com bi'] },
+      { id: 'grab-mi-com-sbc',      grabRestaurantId: grabComTam.id, categoryName: 'Cơm Tấm', name: 'Cơm Tấm Sườn Bì Chả', description: 'Combo đầy đủ', priceVnd: 70000, keywords: ['cơm sườn bì chả', 'sbc', 'com dac biet', 'sườn bì chả'] },
+      { id: 'grab-mi-com-cha',      grabRestaurantId: grabComTam.id, categoryName: 'Cơm Tấm', name: 'Cơm Tấm Chả',         priceVnd: 50000, keywords: ['cơm tấm chả', 'cha'] },
+      { id: 'grab-mi-com-ga',       grabRestaurantId: grabComTam.id, categoryName: 'Cơm Tấm', name: 'Cơm Gà',               priceVnd: 55000, keywords: ['cơm gà', 'com ga', 'ga'] },
+      { id: 'grab-mi-com-tra-da',   grabRestaurantId: grabComTam.id, categoryName: 'Đồ uống', name: 'Trà đá', priceVnd: 10000, keywords: ['trà đá'] },
+      // KFC
+      { id: 'grab-mi-kfc-ga1',      grabRestaurantId: grabKfc.id, categoryName: 'Gà Rán', name: 'Gà Rán Original 1 miếng', priceVnd: 45000, keywords: ['gà rán', 'ga ran', 'kfc', '1 miếng'] },
+      { id: 'grab-mi-kfc-ga2',      grabRestaurantId: grabKfc.id, categoryName: 'Gà Rán', name: 'Gà Rán 2 miếng',          priceVnd: 85000, keywords: ['gà rán 2', '2 miếng', 'ga ran 2'] },
+      { id: 'grab-mi-kfc-burger',   grabRestaurantId: grabKfc.id, categoryName: 'Burger', name: 'Burger Gà Giòn',           priceVnd: 55000, keywords: ['burger gà', 'burger', 'ga gion'] },
+      { id: 'grab-mi-kfc-khoai',    grabRestaurantId: grabKfc.id, categoryName: 'Phụ', name: 'Khoai Tây Chiên',             priceVnd: 35000, keywords: ['khoai tây', 'fries'] },
+      { id: 'grab-mi-kfc-pepsi',    grabRestaurantId: grabKfc.id, categoryName: 'Đồ uống', name: 'Pepsi', priceVnd: 20000, keywords: ['pepsi', 'cola'] },
+    ],
+  });
+
+  await prisma.grabPromotion.createMany({
+    skipDuplicates: true,
+    data: [
+      { id: 'grab-promo-pct20', grabRestaurantId: null, discountType: 'PERCENT', discountValue: 20, minOrderVnd: 50000, maxDiscountVnd: 30000, active: true },
+      { id: 'grab-promo-free-ship', grabRestaurantId: null, discountType: 'FREE_DELIVERY', discountValue: 0, minOrderVnd: 80000, active: true },
+    ],
+  });
+
+  await prisma.grabRideOption.createMany({
+    skipDuplicates: true,
+    data: [
+      { id: 'grab-ride-car',  serviceType: 'GrabCar',  basePriceVnd: 85000, etaMinutes: 5, available: true },
+      { id: 'grab-ride-bike', serviceType: 'GrabBike', basePriceVnd: 35000, etaMinutes: 4, available: true },
+    ],
+  });
+
+  await prisma.grabDriver.createMany({
+    skipDuplicates: true,
+    data: [
+      { id: 'grab-drv-1', name: 'Nguyễn Tài',     phone: '0901111001', vehicleType: 'GrabCar',  vehiclePlate: '51A-12345', rating: 4.8, currentLat: 10.7760, currentLng: 106.7010 },
+      { id: 'grab-drv-2', name: 'Trần Văn Hùng',  phone: '0901111002', vehicleType: 'GrabCar',  vehiclePlate: '51A-23456', rating: 4.9, currentLat: 10.7740, currentLng: 106.6980 },
+      { id: 'grab-drv-3', name: 'Lê Quốc Bảo',    phone: '0901111003', vehicleType: 'GrabBike', vehiclePlate: '59A-34567', rating: 4.7, currentLat: 10.7770, currentLng: 106.7030 },
+      { id: 'grab-drv-4', name: 'Phạm Minh Tuấn', phone: '0901111004', vehicleType: 'GrabBike', vehiclePlate: '59A-45678', rating: 4.6, currentLat: 10.7730, currentLng: 106.6990 },
+      { id: 'grab-drv-5', name: 'Võ Thanh Long',  phone: '0901111005', vehicleType: 'GrabCar',  vehiclePlate: '51A-56789', rating: 4.8, currentLat: 10.7780, currentLng: 106.7020 },
+    ],
+  });
+
+  console.log('✓ Grab data seeded');
+
+  // ══════════════════════════════════════════════════════════════
+  // BE — food + ride (khác giá, khác quán)
+  // ══════════════════════════════════════════════════════════════
+
+  const beBunBo = await prisma.beRestaurant.upsert({
+    where: { id: 'be-rest-bun-bo' },
+    update: {},
+    create: {
+      id: 'be-rest-bun-bo',
+      name: 'Bún Bò Huế Bà Mỹ',
+      address: '34 Bùi Viện, Quận 1, TP.HCM',
+      openHour: 6,
+      closeHour: 20,
+      cuisineType: 'vietnamese',
+      rating: 4.8,
+      reviewCount: 720,
+      keywords: ['bà mỹ', 'bún bò', 'bún bò huế', 'bun bo hue', 'ba my', 'bun bo'],
+      deliveryFeeVnd: 10000,
+      minOrderVnd: 20000,
+    },
+  });
+
+  const beComTam = await prisma.beRestaurant.upsert({
+    where: { id: 'be-rest-com-tam' },
+    update: {},
+    create: {
+      id: 'be-rest-com-tam',
+      name: 'Cơm Tấm Thuận Kiều',
+      address: '12 Lê Thánh Tôn, Quận 1, TP.HCM',
+      openHour: 7,
+      closeHour: 21,
+      cuisineType: 'vietnamese',
+      rating: 4.5,
+      reviewCount: 410,
+      keywords: ['thuận kiều', 'cơm tấm', 'com tam', 'thuan kieu', 'cơm gà', 'com ga'],
+      deliveryFeeVnd: 10000,
+      minOrderVnd: 20000,
+    },
+  });
+
+  await prisma.beMenuItem.createMany({
+    skipDuplicates: true,
+    data: [
+      // Bún Bò Huế Bà Mỹ — Be có giá rẻ hơn ~5k
+      { id: 'be-mi-bun-bo',        beRestaurantId: beBunBo.id, categoryName: 'Bún Bò', name: 'Bún Bò Huế',       description: 'Cay đặc trưng, thịt bò mềm', priceVnd: 58000, keywords: ['bún bò', 'bún bò huế', 'bun bo hue', 'bun bo'] },
+      { id: 'be-mi-bun-bo-db',     beRestaurantId: beBunBo.id, categoryName: 'Bún Bò', name: 'Bún Bò Đặc Biệt',  description: 'Giò heo, huyết, chả', priceVnd: 72000, keywords: ['bún bò đặc biệt', 'bun bo dac biet'] },
+      { id: 'be-mi-bun-gio-heo',   beRestaurantId: beBunBo.id, categoryName: 'Bún Bò', name: 'Bún Giò Heo',      priceVnd: 62000, keywords: ['bún giò', 'gio heo'] },
+      { id: 'be-mi-bun-bo-chay',   beRestaurantId: beBunBo.id, categoryName: 'Bún Bò', name: 'Bún Bò Chay',      priceVnd: 52000, keywords: ['bún chay', 'chay'] },
+      { id: 'be-mi-bun-tra-da',    beRestaurantId: beBunBo.id, categoryName: 'Đồ uống', name: 'Trà đá', priceVnd: 8000, keywords: ['trà đá'] },
+      // Cơm Tấm — Be (ít món hơn Grab)
+      { id: 'be-mi-com-suon',      beRestaurantId: beComTam.id, categoryName: 'Cơm Tấm', name: 'Cơm Tấm Sườn',  priceVnd: 53000, keywords: ['cơm tấm sườn', 'com tam suon', 'suon'] },
+      { id: 'be-mi-com-sbc',       beRestaurantId: beComTam.id, categoryName: 'Cơm Tấm', name: 'Cơm Tấm Sườn Bì Chả', priceVnd: 68000, keywords: ['sườn bì chả', 'com dac biet', 'sbc'] },
+      { id: 'be-mi-com-ga',        beRestaurantId: beComTam.id, categoryName: 'Cơm Tấm', name: 'Cơm Gà',         priceVnd: 53000, keywords: ['cơm gà', 'com ga', 'ga'] },
+      { id: 'be-mi-com-tra-da',    beRestaurantId: beComTam.id, categoryName: 'Đồ uống', name: 'Trà đá', priceVnd: 8000, keywords: ['trà đá'] },
+    ],
+  });
+
+  await prisma.bePromotion.createMany({
+    skipDuplicates: true,
+    data: [
+      { id: 'be-promo-free-ship', beRestaurantId: null, discountType: 'FREE_DELIVERY', discountValue: 0, minOrderVnd: 50000, active: true },
+      { id: 'be-promo-fixed10k',  beRestaurantId: null, discountType: 'FIXED', discountValue: 10000, minOrderVnd: 30000, active: true },
+    ],
+  });
+
+  await prisma.beRideOption.createMany({
+    skipDuplicates: true,
+    data: [
+      { id: 'be-ride-car',  serviceType: 'beCar',  basePriceVnd: 72000, etaMinutes: 6, available: true },
+      { id: 'be-ride-bike', serviceType: 'beBike', basePriceVnd: 30000, etaMinutes: 4, available: true },
+    ],
+  });
+
+  await prisma.beDriver.createMany({
+    skipDuplicates: true,
+    data: [
+      { id: 'be-drv-1', name: 'Trần Minh',        phone: '0902222001', vehicleType: 'beCar',  vehiclePlate: '51B-67890', rating: 4.9, currentLat: 10.7750, currentLng: 106.7000 },
+      { id: 'be-drv-2', name: 'Nguyễn Quang',     phone: '0902222002', vehicleType: 'beBike', vehiclePlate: '59B-78901', rating: 4.7, currentLat: 10.7760, currentLng: 106.6970 },
+      { id: 'be-drv-3', name: 'Đinh Công Thành',  phone: '0902222003', vehicleType: 'beCar',  vehiclePlate: '51B-89012', rating: 4.8, currentLat: 10.7740, currentLng: 106.7010 },
+      { id: 'be-drv-4', name: 'Hoàng Văn Đức',    phone: '0902222004', vehicleType: 'beBike', vehiclePlate: '59B-90123', rating: 4.6, currentLat: 10.7770, currentLng: 106.6980 },
+    ],
+  });
+
+  console.log('✓ Be data seeded');
+
+  // ══════════════════════════════════════════════════════════════
+  // XANH SM — ride only, VinFast
+  // ══════════════════════════════════════════════════════════════
+
+  await prisma.xanhSmRideOption.createMany({
+    skipDuplicates: true,
+    data: [
+      { id: 'xsm-ride-car', serviceType: 'XanhSM Car', basePriceVnd: 68000, etaMinutes: 7, available: true },
+    ],
+  });
+
+  await prisma.xanhSmDriver.createMany({
+    skipDuplicates: true,
+    data: [
+      { id: 'xsm-drv-1', name: 'Lê Hùng',       phone: '0903333001', vehicleType: 'XanhSM Car', vehiclePlate: '51C-11223', rating: 4.7, currentLat: 10.7750, currentLng: 106.7020 },
+      { id: 'xsm-drv-2', name: 'Bùi Thế Anh',   phone: '0903333002', vehicleType: 'XanhSM Car', vehiclePlate: '51C-22334', rating: 4.9, currentLat: 10.7730, currentLng: 106.7000 },
+      { id: 'xsm-drv-3', name: 'Ngô Văn Khôi',  phone: '0903333003', vehicleType: 'XanhSM Car', vehiclePlate: '51C-33445', rating: 4.8, currentLat: 10.7780, currentLng: 106.6990 },
+    ],
+  });
+
+  console.log('✓ Xanh SM data seeded');
+
+  // ══════════════════════════════════════════════════════════════
+  // SHOPEE — food only, có cả 3 quán nhưng giá khác
+  // ══════════════════════════════════════════════════════════════
+
+  const shopeePho = await prisma.shopeeRestaurant.upsert({
+    where: { id: 'shopee-rest-pho' },
+    update: {},
+    create: {
+      id: 'shopee-rest-pho',
+      name: 'Phở Hà Nội',
+      address: '25 Nguyễn Trãi, Quận 1, TP.HCM',
+      openHour: 6,
+      closeHour: 22,
+      cuisineType: 'vietnamese',
+      rating: 4.6,
+      reviewCount: 830,
+      keywords: ['phở hà nội', 'phở', 'pho ha noi', 'pho', 'pho bo', 'pho ga'],
+      deliveryFeeVnd: 12000,
+      minOrderVnd: 25000,
+    },
+  });
+
+  const shopeeBunBo = await prisma.shopeeRestaurant.upsert({
+    where: { id: 'shopee-rest-bun-bo' },
+    update: {},
+    create: {
+      id: 'shopee-rest-bun-bo',
+      name: 'Bún Bò Huế Bà Mỹ',
+      address: '34 Bùi Viện, Quận 1, TP.HCM',
+      openHour: 6,
+      closeHour: 20,
+      cuisineType: 'vietnamese',
+      rating: 4.9,
+      reviewCount: 1100,
+      keywords: ['bà mỹ', 'bún bò', 'bún bò huế', 'bun bo hue', 'ba my', 'bun bo'],
+      deliveryFeeVnd: 12000,
+      minOrderVnd: 25000,
+    },
+  });
+
+  const shopeeKfc = await prisma.shopeeRestaurant.upsert({
+    where: { id: 'shopee-rest-kfc' },
+    update: {},
+    create: {
+      id: 'shopee-rest-kfc',
+      name: 'KFC Bến Thành',
+      address: '4 Nam Kỳ Khởi Nghĩa, Quận 1, TP.HCM',
+      openHour: 9,
+      closeHour: 22,
+      cuisineType: 'fastfood',
+      rating: 4.2,
+      reviewCount: 390,
+      keywords: ['kfc', 'gà rán kfc', 'ga ran', 'burger', 'fast food'],
+      deliveryFeeVnd: 18000,
+      minOrderVnd: 50000,
+    },
+  });
+
+  await prisma.shopeeMenuItem.createMany({
+    skipDuplicates: true,
+    data: [
+      // Phở Hà Nội — Shopee giá hơn Grab 3k
+      { id: 'shopee-mi-pho-bo-tai',   shopeeRestaurantId: shopeePho.id, categoryName: 'Phở', name: 'Phở Bò Tái',      priceVnd: 68000, keywords: ['phở bò tái', 'pho bo tai', 'bo tai'] },
+      { id: 'shopee-mi-pho-bo-chin',  shopeeRestaurantId: shopeePho.id, categoryName: 'Phở', name: 'Phở Bò Chín',     priceVnd: 68000, keywords: ['phở bò chín', 'bo chin'] },
+      { id: 'shopee-mi-pho-ga',       shopeeRestaurantId: shopeePho.id, categoryName: 'Phở', name: 'Phở Gà',           priceVnd: 57000, keywords: ['phở gà', 'pho ga', 'ga'] },
+      { id: 'shopee-mi-pho-dac-biet', shopeeRestaurantId: shopeePho.id, categoryName: 'Phở', name: 'Phở Đặc Biệt',    priceVnd: 88000, keywords: ['phở đặc biệt', 'dac biet'] },
+      { id: 'shopee-mi-pho-tra-da',   shopeeRestaurantId: shopeePho.id, categoryName: 'Đồ uống', name: 'Trà đá', priceVnd: 10000, keywords: ['trà đá'] },
+      // Bún Bò — Shopee
+      { id: 'shopee-mi-bun-bo',       shopeeRestaurantId: shopeeBunBo.id, categoryName: 'Bún Bò', name: 'Bún Bò Huế',      priceVnd: 62000, keywords: ['bún bò', 'bún bò huế', 'bun bo'] },
+      { id: 'shopee-mi-bun-bo-db',    shopeeRestaurantId: shopeeBunBo.id, categoryName: 'Bún Bò', name: 'Bún Bò Đặc Biệt', priceVnd: 78000, keywords: ['bún bò đặc biệt', 'bun bo dac biet'] },
+      { id: 'shopee-mi-bun-gio-heo',  shopeeRestaurantId: shopeeBunBo.id, categoryName: 'Bún Bò', name: 'Bún Giò Heo',     priceVnd: 68000, keywords: ['bún giò', 'gio heo'] },
+      { id: 'shopee-mi-bun-tra-da',   shopeeRestaurantId: shopeeBunBo.id, categoryName: 'Đồ uống', name: 'Trà đá', priceVnd: 10000, keywords: ['trà đá'] },
+      // KFC — Shopee
+      { id: 'shopee-mi-kfc-ga1',      shopeeRestaurantId: shopeeKfc.id, categoryName: 'Gà Rán', name: 'Gà Rán Original 1 miếng', priceVnd: 47000, keywords: ['gà rán', 'ga ran', 'kfc'] },
+      { id: 'shopee-mi-kfc-ga2',      shopeeRestaurantId: shopeeKfc.id, categoryName: 'Gà Rán', name: 'Gà Rán 2 miếng',          priceVnd: 88000, keywords: ['gà rán 2', '2 miếng'] },
+      { id: 'shopee-mi-kfc-burger',   shopeeRestaurantId: shopeeKfc.id, categoryName: 'Burger', name: 'Burger Gà Giòn',           priceVnd: 57000, keywords: ['burger gà', 'burger'] },
+      { id: 'shopee-mi-kfc-khoai',    shopeeRestaurantId: shopeeKfc.id, categoryName: 'Phụ', name: 'Khoai Tây Chiên',             priceVnd: 37000, keywords: ['khoai tây', 'fries'] },
+    ],
+  });
+
+  await prisma.shopeePromotion.createMany({
+    skipDuplicates: true,
+    data: [
+      { id: 'shopee-promo-fixed15k',    shopeeRestaurantId: null,         discountType: 'FIXED',   discountValue: 15000, minOrderVnd: 40000, active: true },
+      { id: 'shopee-promo-pho-pct15',   shopeeRestaurantId: shopeePho.id, discountType: 'PERCENT', discountValue: 15,    minOrderVnd: 60000, maxDiscountVnd: 20000, active: true },
+    ],
+  });
+
+  await prisma.shopeeDriver.createMany({
+    skipDuplicates: true,
+    data: [
+      { id: 'shopee-drv-1', name: 'Phan Văn Nam',    phone: '0904444001', vehicleType: 'Shopee Bike', vehiclePlate: '59S-44556', rating: 4.6, currentLat: 10.7760, currentLng: 106.7000 },
+      { id: 'shopee-drv-2', name: 'Đỗ Quang Hải',    phone: '0904444002', vehicleType: 'Shopee Bike', vehiclePlate: '59S-55667', rating: 4.7, currentLat: 10.7740, currentLng: 106.7030 },
+      { id: 'shopee-drv-3', name: 'Lý Văn Phúc',     phone: '0904444003', vehicleType: 'Shopee Bike', vehiclePlate: '59S-66778', rating: 4.8, currentLat: 10.7770, currentLng: 106.7010 },
+      { id: 'shopee-drv-4', name: 'Trương Minh Đức', phone: '0904444004', vehicleType: 'Shopee Bike', vehiclePlate: '59S-77889', rating: 4.5, currentLat: 10.7750, currentLng: 106.6980 },
+    ],
+  });
+
+  console.log('✓ Shopee data seeded');
+
+  // ══════════════════════════════════════════════════════════════
+  // Places — cho PlacesProvider
+  // ══════════════════════════════════════════════════════════════
+
+  await prisma.place.createMany({
+    skipDuplicates: true,
+    data: [
+      { id: 'place-tsn',       name: 'Sân bay Tân Sơn Nhất',  address: '60 Trường Sơn, Tân Bình, TP.HCM',         openHour: 0,  closeHour: 24, keywords: ['tân sơn nhất', 'sân bay', 'tsn', 'airport', 'tan son nhat'] },
+      { id: 'place-ben-xe-md', name: 'Bến xe Miền Đông',       address: '292 Đinh Bộ Lĩnh, Bình Thạnh, TP.HCM',   openHour: 5,  closeHour: 22, keywords: ['bến xe miền đông', 'miền đông', 'ben xe'] },
+      { id: 'place-ben-thanh', name: 'Chợ Bến Thành',          address: 'Quảng trường Quách Thị Trang, Q1',       openHour: 6,  closeHour: 19, keywords: ['bến thành', 'chợ bến thành', 'ben thanh'] },
+      { id: 'place-bitexco',   name: 'Bitexco Financial Tower', address: '2 Hải Triều, Q1, TP.HCM',               openHour: 8,  closeHour: 22, keywords: ['bitexco', 'tháp bitexco'] },
+      { id: 'place-quan-1',    name: 'Quận 1',                  address: 'Quận 1, TP.HCM',                        openHour: 0,  closeHour: 24, keywords: ['quận 1', 'q1', 'quan 1'] },
+    ],
+  });
+
+  console.log('✓ Places seeded');
+  console.log('✅ Seed complete!');
+}
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(() => prisma.$disconnect());
+</file>
+
+<file path="README.md">
+<p align="center">
+  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+</p>
+
+[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
+[circleci-url]: https://circleci.com/gh/nestjs/nest
+
+  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
+    <p align="center">
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
+<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
+<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
+<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
+<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
+  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
+    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
+  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+</p>
+  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
+  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+
+## Description
+
+[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+
+## Project setup
+
+```bash
+$ npm install
+```
+
+## Compile and run the project
+
+```bash
+# development
+$ npm run start
+
+# watch mode
+$ npm run start:dev
+
+# production mode
+$ npm run start:prod
+```
+
+## Run tests
+
+```bash
+# unit tests
+$ npm run test
+
+# e2e tests
+$ npm run test:e2e
+
+# test coverage
+$ npm run test:cov
+```
+
+## Deployment
+
+When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+
+If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+
+```bash
+$ npm install -g @nestjs/mau
+$ mau deploy
+```
+
+With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+
+## Resources
+
+Check out a few resources that may come in handy when working with NestJS:
+
+- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
+- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
+- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
+- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
+- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
+- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
+- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
+- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+
+## Support
+
+Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+
+## Stay in touch
+
+- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
+- Website - [https://nestjs.com](https://nestjs.com/)
+- Twitter - [@nestframework](https://twitter.com/nestframework)
+
+## License
+
+Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+</file>
+
+<file path="scripts/gen-openapi.ts">
+// Chạy: npx ts-node scripts/gen-openapi.ts
+// Output: openapi.json ở root apps/api/ - mobile dùng để codegen types
+import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { writeFileSync } from 'fs';
+import { AppModule } from '../src/app.module';
+
+async function main() {
+  const app = await NestFactory.create(AppModule, { logger: false });
+  const config = new DocumentBuilder()
+    .setTitle('Voice Mobility API')
+    .setVersion('1.0')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  writeFileSync('openapi.json', JSON.stringify(document, null, 2));
+  await app.close();
+  console.log('openapi.json generated');
+}
+
+main();
+</file>
+
+<file path="src/app.module.ts">
+import { HttpModule } from '@nestjs/axios';
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { ConversationModule } from './conversation/conversation.module';
+import { OrdersModule } from './orders/orders.module';
+import { PartnerSimModule } from './partner-sim/partner-sim.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { RestaurantsModule } from './restaurants/restaurants.module';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    HttpModule.register({ timeout: 8000 }),
+    PrismaModule,
+    PartnerSimModule,
+    OrdersModule,
+    RestaurantsModule,
+    ConversationModule,
+  ],
+})
+export class AppModule {}
+</file>
+
+<file path="src/conversation/conversation.controller.ts">
+import { Body, Controller, Post } from '@nestjs/common';
+import { ConversationService } from './conversation.service';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { PartnerCode } from '../types';
+
+class StartDto {
+  @IsOptional() @IsString() userId?: string;
+}
+
+class InputDto {
+  @IsString() sessionId!: string;
+  @IsString() transcript!: string;
+  @IsOptional() @IsString() userId?: string;
+}
+
+class ConfirmDto {
+  @IsString() sessionId!: string;
+  @IsEnum(PartnerCode) partner!: PartnerCode;
+}
+
+@Controller('conversation')
+export class ConversationController {
+  constructor(private readonly svc: ConversationService) {}
+
+  @Post('start')
+  start(@Body() dto: StartDto) {
+    return this.svc.start(dto.userId);
+  }
+
+  @Post('input')
+  input(@Body() dto: InputDto) {
+    return this.svc.input({
+      sessionId: dto.sessionId,
+      transcript: dto.transcript,
+      userId: dto.userId,
+    });
+  }
+
+  @Post('confirm')
+  confirm(@Body() dto: ConfirmDto) {
+    return this.svc.confirm({ sessionId: dto.sessionId, partner: dto.partner });
+  }
+}
+</file>
+
+<file path="src/conversation/conversation.module.ts">
+import { Module } from '@nestjs/common';
+import { ConversationController } from './conversation.controller';
+import { ConversationService } from './conversation.service';
+import { PrismaModule } from '../prisma/prisma.module';
+import { RestaurantsModule } from '../restaurants/restaurants.module';
+import { OrdersModule } from '../orders/orders.module';
+import { NluModule } from '../nlu/nlu.module';
+
+@Module({
+  imports: [PrismaModule, RestaurantsModule, OrdersModule, NluModule],
+  controllers: [ConversationController],
+  providers: [ConversationService],
+})
+export class ConversationModule {}
+</file>
+
+<file path="src/conversation/conversation.service.ts">
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { RestaurantsService } from '../restaurants/restaurants.service';
+import { OrdersService } from '../orders/orders.service';
+import { NLU_PROVIDER } from '../nlu/nlu.provider';
+import type { NluProvider } from '../nlu/nlu.provider';
+import { Inject } from '@nestjs/common';
+import { Intent, OrderType, PartnerCode } from '../types';
+
+export interface ConversationInputResult {
+  sessionId: string;
+  state: string;
+  missingField?: string;
+  promptText: string;
+  quotes?: unknown[];
+  foodQuotes?: unknown[];
+  orderId?: string;
+}
+
+@Injectable()
+export class ConversationService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly restaurants: RestaurantsService,
+    private readonly orders: OrdersService,
+    @Inject(NLU_PROVIDER) private readonly nlu: NluProvider,
+  ) {}
+
+  /** POST /conversation/start */
+  async start(
+    userId?: string,
+  ): Promise<{ sessionId: string; promptText: string }> {
+    const session = await this.prisma.conversationSession.create({
+      data: {
+        userId,
+        state: 'COLLECTING',
+        intent: {},
+        missingFields: [],
+      },
+    });
+    return {
+      sessionId: session.id,
+      promptText:
+        'Xin chào! Tôi có thể giúp bạn đặt xe hoặc đặt đồ ăn. Bạn muốn gì?',
+    };
+  }
+
+  /** POST /conversation/input */
+  async input(params: {
+    sessionId: string;
+    transcript: string;
+    userId?: string;
+  }): Promise<ConversationInputResult> {
+    const session = await this.prisma.conversationSession.findUnique({
+      where: { id: params.sessionId },
+    });
+    if (!session)
+      throw new NotFoundException(`Session ${params.sessionId} not found`);
+
+    // Parse transcript và merge vào existing intent
+    const newIntent = await this.nlu.parse(params.transcript);
+    const merged = this.mergeIntent(
+      session.intent as Partial<Intent>,
+      newIntent,
+    );
+
+    // Detect missing fields
+    const missing = this.detectMissing(merged);
+
+    if (missing.length > 0) {
+      // Còn thiếu — hỏi lại
+      await this.prisma.conversationSession.update({
+        where: { id: params.sessionId },
+        data: {
+          intent: merged as object,
+          missingFields: missing,
+          state: 'COLLECTING',
+        },
+      });
+      const missingField = missing[0];
+      return {
+        sessionId: params.sessionId,
+        state: 'COLLECTING',
+        missingField,
+        promptText: this.promptForField(missingField, merged),
+      };
+    }
+
+    // Đủ info → chạy flow
+    await this.prisma.conversationSession.update({
+      where: { id: params.sessionId },
+      data: {
+        intent: merged as object,
+        missingFields: [],
+        state: 'CONFIRMING',
+      },
+    });
+
+    const result = await this.orders.processVoice({
+      userId: params.userId ?? session.userId ?? undefined,
+      transcript: params.transcript,
+    });
+
+    await this.prisma.conversationSession.update({
+      where: { id: params.sessionId },
+      data: { state: 'ORDERING', orderId: result.orderId },
+    });
+
+    return {
+      sessionId: params.sessionId,
+      state: 'ORDERING',
+      promptText: result.responseText,
+      quotes: result.quotes,
+      foodQuotes: result.foodQuotes,
+      orderId: result.orderId,
+    };
+  }
+
+  /** POST /conversation/confirm — user chọn partner sau khi nghe quotes */
+  async confirm(params: {
+    sessionId: string;
+    partner: PartnerCode;
+  }): Promise<{
+    sessionId: string;
+    state: string;
+    promptText: string;
+    orderId: string;
+  }> {
+    const session = await this.prisma.conversationSession.findUnique({
+      where: { id: params.sessionId },
+    });
+    if (!session)
+      throw new NotFoundException(`Session ${params.sessionId} not found`);
+    if (!session.orderId)
+      throw new NotFoundException('Session chưa có orderId');
+
+    const result = await this.orders.confirmOrder(
+      session.orderId,
+      params.partner,
+    );
+
+    await this.prisma.conversationSession.update({
+      where: { id: params.sessionId },
+      data: { state: 'DONE' },
+    });
+
+    return {
+      sessionId: params.sessionId,
+      state: 'DONE',
+      promptText: result.responseText,
+      orderId: session.orderId,
+    };
+  }
+
+  // ── helpers ──────────────────────────────────────────────────
+
+  private mergeIntent(existing: Partial<Intent>, incoming: Intent): Intent {
+    return {
+      type: incoming.type ?? existing.type ?? OrderType.RIDE,
+      origin: incoming.origin ?? existing.origin,
+      destination: incoming.destination ?? existing.destination,
+      restaurant: incoming.restaurant ?? existing.restaurant,
+      items: incoming.items?.length ? incoming.items : existing.items,
+      note: incoming.note ?? existing.note,
+      confidence: incoming.confidence,
+    };
+  }
+
+  private detectMissing(intent: Intent): string[] {
+    const missing: string[] = [];
+    if (intent.type === OrderType.FOOD) {
+      if (!intent.restaurant && (!intent.items || intent.items.length === 0)) {
+        missing.push('food_query'); // cần ít nhất tên quán hoặc tên món
+      }
+    } else {
+      if (!intent.destination) missing.push('destination');
+    }
+    return missing;
+  }
+
+  private promptForField(field: string, _intent: Intent): string {
+    const prompts: Record<string, string> = {
+      food_query:
+        'Bạn muốn đặt ở quán nào? Hoặc cho tôi biết bạn muốn ăn món gì?',
+      items: 'Bạn muốn gọi món gì? Tôi có thể đọc menu cho bạn nghe.',
+      deliveryAddress: 'Bạn muốn giao đến địa chỉ nào?',
+      destination: 'Bạn muốn đến đâu?',
+    };
+    return prompts[field] ?? 'Bạn có thể cho tôi biết thêm thông tin không?';
+  }
+}
+</file>
+
+<file path="src/main.ts">
+import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  app.enableCors();
+
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+
+  // OpenAPI spec - expose tại /api (UI) và /api-json (JSON cho codegen)
+  const config = new DocumentBuilder()
+    .setTitle('Voice Mobility API')
+    .setDescription('API đặt xe / đồ ăn bằng giọng nói')
+    .setVersion('1.0')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
+
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port);
+  console.log(`API:      http://localhost:${port}`);
+  console.log(`Swagger:  http://localhost:${port}/api`);
+  console.log(`OpenAPI:  http://localhost:${port}/api-json`);
+}
+
+bootstrap();
+</file>
+
+<file path="src/nlu/mock-nlu.provider.ts">
+import { Injectable } from '@nestjs/common';
+import { Intent, OrderType } from '../types';
+import { NluProvider } from './nlu.provider';
+
+// TODO: team AI thay bằng LLM (GPT-4o, Claude, Gemini) hoặc Rasa NLU
+// Rule-based đơn giản - match từ khoá tiếng Việt
+@Injectable()
+export class MockNluProvider implements NluProvider {
+  async parse(transcript: string): Promise<Intent> {
+    const text = transcript.toLowerCase();
+
+    const isFood =
+      // có dấu
+      /đặt\s+(?:đồ\s+ăn|món|cơm|phở|bún|bánh|pizza|burger)|mua\s+(?:đồ\s+ăn|món)|quán|ăn\s+gì|order\s+(?:đồ\s+ăn|món)/.test(
+        text,
+      ) ||
+      // không dấu (STT output thường)
+      /(?:dat|order|mua)\s+(?:mon|com|pho|bun|banh|pizza|burger|ga\s*ran|kfc)|quan\s+\w|an\s+gi/.test(
+        text,
+      ) ||
+      // tên món ăn trực tiếp
+      /\b(?:pho|bun\s*bo|com\s*tam|kfc|burger|pizza|ga\s*ran)\b/.test(text);
+
+    if (isFood) {
+      return this.parseFood(text, transcript);
+    }
+    return this.parseRide(text, transcript);
+  }
+
+  private parseRide(text: string, _original: string): Intent {
+    // Match "từ/tu X" (origin)
+    const originMatch = text.match(
+      /(?:từ|tu|ở|o)\s+([^\s,]+(?:\s+[^\s,]+)*?)(?:\s+(?:đến|den|tới|toi|sang)|$)/,
+    );
+    // Match "đến/den/tới/toi Y" (destination)
+    const destMatch = text.match(
+      /(?:đến|den|tới|toi|sang)\s+(.+?)(?:\s*$|\s*,)/,
+    );
+
+    return {
+      type: OrderType.RIDE,
+      origin: originMatch?.[1]?.trim(),
+      destination: destMatch?.[1]?.trim(),
+      confidence: 0.75,
+    };
+  }
+
+  private parseFood(text: string, _original: string): Intent {
+    // Tên quán: có dấu hoặc không dấu
+    const restaurantMatch = text.match(
+      /(?:quán|quan|ở\s+quán|tai\s+quan|từ\s+quán|tu\s+quan)\s+([^\s,]+(?:\s+[^\s,]+){0,4}?)(?:\s*$|\s*,|\s+(?:món|gọi|mon|goi))/,
+    );
+
+    // Fallback: tên quán nổi tiếng trực tiếp trong text
+    const knownRestaurants = [
+      { pattern: /pho\s+ha\s+noi|phở\s+hà\s+nội/, name: 'Phở Hà Nội' },
+      {
+        pattern: /thuan\s+kieu|thuận\s+kiều|com\s+tam/,
+        name: 'Cơm Tấm Thuận Kiều',
+      },
+      { pattern: /ba\s+my|bà\s+mỹ|bun\s+bo/, name: 'Bún Bò Huế Bà Mỹ' },
+      { pattern: /kfc/, name: 'KFC Bến Thành' },
+    ];
+    const knownMatch = knownRestaurants.find((r) => r.pattern.test(text));
+
+    // Items: có dấu hoặc không dấu
+    const itemsRaw =
+      text.match(/(?:gọi|goi|món|mon|order)\s+(.+?)(?:\s*$|\s*và|\s*va)/g) ??
+      [];
+    const items = itemsRaw.map((s) =>
+      s.replace(/^(?:gọi|goi|món|mon|order)\s+/, '').trim(),
+    );
+
+    // Nếu không tìm thấy items explicit, dùng food keyword từ text làm item
+    const foodKeywords = text.match(
+      /\b(?:pho\s+bo\s+tai|pho\s+bo\s+chin|pho\s+ga|pho\s+dac\s+biet|pho\s+bo|pho|com\s+tam\s+suon|com\s+tam|com\s+ga|com\s+suon|bun\s+bo\s+hue|bun\s+bo|bun\s+gio|ga\s+ran|burger)\b/,
+    );
+    if (items.length === 0 && foodKeywords) {
+      items.push(foodKeywords[0]);
+    }
+
+    // Vẫn không có items + không có restaurant -> parse từ sau động từ đặt
+    if (items.length === 0 && !restaurantMatch?.[1] && !knownMatch) {
+      const afterVerb = text.match(/(?:dat|order|mua|goi)\s+(.+)/);
+      if (afterVerb?.[1]) items.push(afterVerb[1].trim());
+    }
+
+    const restaurant = restaurantMatch?.[1]?.trim() ?? knownMatch?.name;
+
+    return {
+      type: OrderType.FOOD,
+      restaurant,
+      items: items.length > 0 ? items : undefined,
+      confidence: 0.7,
+    };
+  }
+}
+</file>
+
+<file path="src/nlu/nlu.module.ts">
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { NLU_PROVIDER } from './nlu.provider';
+import { MockNluProvider } from './mock-nlu.provider';
+
+@Module({
+  imports: [ConfigModule],
+  providers: [
+    {
+      provide: NLU_PROVIDER,
+      useFactory: (config: ConfigService) => {
+        const provider = config.get<string>('PROVIDER_NLU', 'mock');
+        // TODO: thêm case 'openai', 'claude', 'rasa' khi có provider thật
+        if (provider === 'mock') return new MockNluProvider();
+        throw new Error(`Unknown NLU provider: ${provider}`);
+      },
+      inject: [ConfigService],
+    },
+  ],
+  exports: [NLU_PROVIDER],
+})
+export class NluModule {}
+</file>
+
+<file path="src/nlu/nlu.provider.ts">
+import { Intent } from '../types';
+
+// Interface NLU - team AI implement sau bằng LLM hoặc Rasa, v.v.
+export interface NluProvider {
+  parse(transcript: string): Promise<Intent>;
+}
+
+export const NLU_PROVIDER = 'NLU_PROVIDER';
+</file>
+
+<file path="src/orders/dto/confirm-order.dto.ts">
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum, IsString } from 'class-validator';
+import { PartnerCode } from '../../types';
+
+export class ConfirmOrderDto {
+  @ApiProperty({ example: 'clxyz123' })
+  @IsString()
+  orderId!: string;
+
+  @ApiProperty({ enum: PartnerCode, example: PartnerCode.GRAB })
+  @IsEnum(PartnerCode)
+  partner!: PartnerCode;
+}
+</file>
+
+<file path="src/orders/dto/voice-order.dto.ts">
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
+
+export class VoiceOrderDto {
+  @ApiPropertyOptional({ example: 'user-001' })
+  @IsOptional()
+  @IsString()
+  userId?: string;
+
+  @ApiPropertyOptional({ example: 'dat xe tu nha den san bay Tan Son Nhat' })
+  @IsOptional()
+  @IsString()
+  transcript?: string;
+
+  @ApiPropertyOptional({ description: 'Base64 audio' })
+  @IsOptional()
+  @IsString()
+  audioBase64?: string;
+
+  @ApiPropertyOptional({
+    example: 10.8494,
+    description: 'Vĩ độ hiện tại của người dùng',
+  })
+  @IsOptional()
+  @IsNumber()
+  currentLat?: number;
+
+  @ApiPropertyOptional({
+    example: 106.7537,
+    description: 'Kinh độ hiện tại của người dùng',
+  })
+  @IsOptional()
+  @IsNumber()
+  currentLng?: number;
+
+  @ApiPropertyOptional({
+    description:
+      'Bat accessibility mode — driver/restaurant nhan thong bao ho tro dac biet',
+  })
+  @IsOptional()
+  @IsBoolean()
+  accessibilityFlag?: boolean;
+}
+</file>
+
+<file path="src/orders/orders.controller.ts">
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { OrdersService } from './orders.service';
+import { VoiceOrderDto } from './dto/voice-order.dto';
+import { ConfirmOrderDto } from './dto/confirm-order.dto';
+
+class ReviewDto {
+  @IsInt() @Min(1) @Max(5) restaurantRating!: number;
+  @IsInt() @Min(1) @Max(5) driverRating!: number;
+  @IsOptional() @IsString() voiceText?: string;
+}
+import { Inject } from '@nestjs/common';
+import { STT_PROVIDER } from '../stt/stt.provider';
+import type { SttProvider } from '../stt/stt.provider';
+import { NLU_PROVIDER } from '../nlu/nlu.provider';
+import type { NluProvider } from '../nlu/nlu.provider';
+import { PLACES_PROVIDER } from '../places/places.provider';
+import type { PlacesProvider } from '../places/places.provider';
+import { WEATHER_PROVIDER } from '../weather/weather.provider';
+import type { WeatherProvider } from '../weather/weather.provider';
+
+@Controller()
+export class OrdersController {
+  constructor(
+    private readonly ordersService: OrdersService,
+    @Inject(STT_PROVIDER) private readonly stt: SttProvider,
+    @Inject(NLU_PROVIDER) private readonly nlu: NluProvider,
+    @Inject(PLACES_PROVIDER) private readonly places: PlacesProvider,
+    @Inject(WEATHER_PROVIDER) private readonly weather: WeatherProvider,
+  ) {}
+
+  @Get('health')
+  health() {
+    return { ok: true };
+  }
+
+  /** Endpoint chính: nhận transcript -> trả quotes + responseText */
+  @Post('orders/voice')
+  async voiceOrder(@Body() dto: VoiceOrderDto) {
+    return this.ordersService.processVoice(dto);
+  }
+
+  /** Xác nhận chọn đối tác */
+  @Post('orders/confirm')
+  async confirmOrder(@Body() dto: ConfirmOrderDto) {
+    return this.ordersService.confirmOrder(dto.orderId, dto.partner);
+  }
+
+  /** Lấy trạng thái đơn hàng + responseText để TTS đọc */
+  @Get('orders/:id/status')
+  orderStatus(@Param('id') id: string) {
+    return this.ordersService.getOrderStatus(id);
+  }
+
+  /** Phase 6 — review sau khi giao */
+  @Post('orders/:id/review')
+  submitReview(@Param('id') id: string, @Body() body: ReviewDto) {
+    return this.ordersService.submitReview(id, body);
+  }
+
+  // ---- Endpoint test riêng từng bước ----
+
+  /** Test STT: POST /stt body { audioBase64: "..." } */
+  @Post('stt')
+  async testStt(@Body() body: { audioBase64: string }) {
+    const transcript = await this.stt.transcribe(body.audioBase64 ?? '');
+    return { transcript };
+  }
+
+  /** Test NLU: POST /nlu body { transcript: "..." } */
+  @Post('nlu')
+  async testNlu(@Body() body: { transcript: string }) {
+    const intent = await this.nlu.parse(body.transcript ?? '');
+    return { intent };
+  }
+
+  /** Test Places: GET /places/status?q=tên+địa+điểm */
+  @Get('places/status')
+  async testPlaces(@Query('q') q: string) {
+    const status = await this.places.getStatus(q ?? 'TP.HCM');
+    return { status };
+  }
+
+  /** Test Weather: GET /weather?location=tên+địa+điểm */
+  @Get('weather')
+  async testWeather(@Query('location') location: string) {
+    const info = await this.weather.getCurrent(location ?? 'TP.HCM');
+    return { weather: info };
+  }
+}
+</file>
+
+<file path="src/orders/orders.module.ts">
+import { Module } from '@nestjs/common';
+import { SttModule } from '../stt/stt.module';
+import { NluModule } from '../nlu/nlu.module';
+import { PlacesModule } from '../places/places.module';
+import { WeatherModule } from '../weather/weather.module';
+import { PartnersModule } from '../partners/partners.module';
+import { RestaurantsModule } from '../restaurants/restaurants.module';
+import { OrdersService } from './orders.service';
+import { OrdersController } from './orders.controller';
+
+@Module({
+  imports: [
+    SttModule,
+    NluModule,
+    PlacesModule,
+    WeatherModule,
+    PartnersModule,
+    RestaurantsModule,
+  ],
+  providers: [OrdersService],
+  controllers: [OrdersController],
+  exports: [OrdersService],
+})
+export class OrdersModule {}
+</file>
+
+<file path="src/orders/orders.service.ts">
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ConfirmOrderResponse,
+  Enrichment,
+  FoodQuote,
+  Intent,
+  OrderedItem,
+  OrderStatus,
+  OrderType,
+  PartnerCode,
+  PartnerQuote,
+  VoiceOrderResponse,
+} from '../types';
+import { STT_PROVIDER } from '../stt/stt.provider';
+import type { SttProvider } from '../stt/stt.provider';
+import { NLU_PROVIDER } from '../nlu/nlu.provider';
+import type { NluProvider } from '../nlu/nlu.provider';
+import { PLACES_PROVIDER } from '../places/places.provider';
+import type { PlacesProvider } from '../places/places.provider';
+import { WEATHER_PROVIDER } from '../weather/weather.provider';
+import type { WeatherProvider } from '../weather/weather.provider';
+import { PARTNERS_IMPL } from '../partners/partners.module';
+import { PrismaService } from '../prisma/prisma.service';
+import { RestaurantsService } from '../restaurants/restaurants.service';
+
+/** Interface tối giản - cả DbPartnersService lẫn PartnersService đều implement */
+interface IPartnersService {
+  quoteAll(intent: Intent): Promise<PartnerQuote[]>;
+  confirm(
+    partner: PartnerCode,
+    orderId: string,
+  ): Promise<{ externalId: string; message: string }>;
+}
+
+@Injectable()
+export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
+
+  constructor(
+    @Inject(STT_PROVIDER) private readonly stt: SttProvider,
+    @Inject(NLU_PROVIDER) private readonly nlu: NluProvider,
+    @Inject(PLACES_PROVIDER) private readonly places: PlacesProvider,
+    @Inject(WEATHER_PROVIDER) private readonly weather: WeatherProvider,
+    @Inject(PARTNERS_IMPL) private readonly partners: IPartnersService,
+    private readonly prisma: PrismaService,
+    private readonly restaurantsService: RestaurantsService,
+  ) {}
+
+  /** Pipeline chính: transcript -> NLU -> enrichment -> quotes -> lưu DB */
+  async processVoice(params: {
+    userId?: string;
+    transcript?: string;
+    audioBase64?: string;
+    currentLat?: number;
+    currentLng?: number;
+    accessibilityFlag?: boolean;
+  }): Promise<VoiceOrderResponse> {
+    // 1. STT
+    let transcript = params.transcript ?? '';
+    if (!transcript && params.audioBase64) {
+      transcript = await this.stt.transcribe(params.audioBase64);
+      this.logger.log(`STT: "${transcript}"`);
+    }
+
+    // 2. NLU
+    const intent: Intent = await this.nlu.parse(transcript);
+    this.logger.log(
+      `NLU: type=${intent.type}, dest=${intent.destination}, restaurant=${intent.restaurant}`,
+    );
+
+    // 3. Branch FOOD vs RIDE
+    if (intent.type === OrderType.FOOD) {
+      return this.processFoodOrder({
+        userId: params.userId,
+        transcript,
+        intent,
+        accessibilityFlag: params.accessibilityFlag,
+      });
+    }
+    return this.processRideOrder({
+      userId: params.userId,
+      transcript,
+      intent,
+      currentLat: params.currentLat,
+      currentLng: params.currentLng,
+      accessibilityFlag: params.accessibilityFlag,
+    });
+  }
+
+  /** FOOD flow: fan-out tìm quán + món -> tính quote theo từng partner */
+  private async processFoodOrder(params: {
+    userId?: string;
+    transcript: string;
+    intent: Intent;
+    accessibilityFlag?: boolean;
+  }): Promise<VoiceOrderResponse> {
+    const { intent, transcript } = params;
+
+    const restaurantQuery = [intent.restaurant, ...(intent.items ?? [])]
+      .filter(Boolean)
+      .join(' ');
+    const matches =
+      await this.restaurantsService.searchRestaurants(restaurantQuery);
+
+    if (matches.length === 0) {
+      const responseText = `Tôi không tìm thấy quán nào phù hợp với "${restaurantQuery}". Bạn có thể nói rõ hơn tên quán không?`;
+      const order = await this.prisma.order.create({
+        data: {
+          userId: params.userId,
+          type: OrderType.FOOD,
+          restaurant: restaurantQuery,
+          status: OrderStatus.QUOTED,
+          responseText,
+          accessibilityFlag: params.accessibilityFlag ?? false,
+        },
+      });
+      return {
+        orderId: order.id,
+        transcript,
+        intent,
+        enrichment: {},
+        quotes: [],
+        responseText,
+      };
+    }
+
+    const hour = new Date().getHours();
+
+    type QuoteWithMeta = FoodQuote & {
+      restaurant: (typeof matches)[0];
+      items: OrderedItem[];
+    };
+
+    // Fan-out song song sang tất cả matches
+    const rawQuotes = (
+      await Promise.all(
+        matches.map(async (match): Promise<QuoteWithMeta | null> => {
+          const isOpen = hour >= match.openHour && hour < match.closeHour;
+          if (!isOpen) return null;
+          const items = await this.restaurantsService.resolveItems(
+            match.restaurantId,
+            match.partner,
+            intent.items ?? [],
+          );
+          if (items.length === 0) return null;
+          const quote = await this.restaurantsService.calcQuote(match, items);
+          return quote.available
+            ? { ...quote, restaurant: match, items }
+            : null;
+        }),
+      )
+    )
+      .filter((q): q is QuoteWithMeta => q !== null)
+      .sort((a, b) => a.totalVnd - b.totalVnd);
+
+    const best = rawQuotes[0] as QuoteWithMeta | undefined;
+    const primaryRestaurant = best?.restaurant ?? matches[0];
+    const resolvedItems: OrderedItem[] = best?.items ?? [];
+
+    const isOpen =
+      hour >= primaryRestaurant.openHour && hour < primaryRestaurant.closeHour;
+    const enrichment: Enrichment = {
+      place: {
+        name: primaryRestaurant.name,
+        isOpen,
+        address: primaryRestaurant.address,
+      },
+    };
+
+    // Strip meta fields trước khi trả response
+    const cleanQuotes: FoodQuote[] = rawQuotes.map(
+      ({ restaurant: _r, items: _i, ...q }) => q,
+    );
+
+    const responseText = this.buildFoodResponseText(
+      primaryRestaurant,
+      isOpen,
+      resolvedItems,
+      cleanQuotes,
+      matches.length > 1,
+    );
+
+    const order = await this.prisma.order.create({
+      data: {
+        userId: params.userId,
+        type: OrderType.FOOD,
+        partnerRestaurantId: primaryRestaurant.restaurantId,
+        partner: best?.partner,
+        restaurant: primaryRestaurant.name,
+        items: resolvedItems as object[],
+        status: OrderStatus.QUOTED,
+        subtotalVnd: best?.subtotalVnd,
+        deliveryFeeVnd: best?.deliveryFeeVnd,
+        discountVnd: best?.discountVnd,
+        totalVnd: best?.totalVnd,
+        etaMinutes: best?.etaMinutes,
+        responseText,
+        accessibilityFlag: params.accessibilityFlag ?? false,
+      },
+    });
+
+    await this.logEvents(order.id, {
+      transcript,
+      intent,
+      enrichment,
+      quotes: cleanQuotes,
+    });
+
+    return {
+      orderId: order.id,
+      transcript,
+      intent,
+      enrichment,
+      quotes: [],
+      foodQuotes: cleanQuotes,
+      resolvedRestaurant: {
+        id: primaryRestaurant.restaurantId,
+        partner: primaryRestaurant.partner,
+        name: primaryRestaurant.name,
+        address: primaryRestaurant.address,
+        isOpen,
+      },
+      resolvedItems,
+      responseText,
+    };
+  }
+
+  /** RIDE flow: lấy quote từ tất cả partner, tính giá theo khoảng cách + thời tiết */
+  private async processRideOrder(params: {
+    userId?: string;
+    transcript: string;
+    intent: Intent;
+    currentLat?: number;
+    currentLng?: number;
+    accessibilityFlag?: boolean;
+  }): Promise<VoiceOrderResponse> {
+    const { intent, transcript } = params;
+
+    const locationQuery = intent.destination ?? intent.origin ?? 'TP.HCM';
+    const [placeStatus, weatherInfo] = await Promise.all([
+      this.places.getStatus(locationQuery),
+      this.weather.getCurrent(locationQuery),
+    ]);
+
+    const enrichment: Enrichment = { place: placeStatus, weather: weatherInfo };
+
+    // Tính khoảng cách địa lý (đường chim bay) nếu có GPS từ client
+    let distance: number | undefined;
+    if (
+      params.currentLat !== undefined &&
+      params.currentLng !== undefined &&
+      placeStatus.latitude !== undefined &&
+      placeStatus.longitude !== undefined
+    ) {
+      distance = this.calculateDistance(
+        params.currentLat,
+        params.currentLng,
+        placeStatus.latitude,
+        placeStatus.longitude,
+      );
+      this.logger.log(
+        `Calculated distance to ${placeStatus.name}: ${distance.toFixed(2)} km`,
+      );
+    }
+
+    const quotes = await this.partners.quoteAll(intent);
+
+    // Dynamic pricing: giá cơ bản + khoảng cách * 12k/km, surge +20% nếu mưa
+    if (distance !== undefined) {
+      quotes.forEach((q) => {
+        let computedPrice = q.price + Math.round(distance! * 12000);
+        if (weatherInfo.willRain) {
+          computedPrice = Math.round(computedPrice * 1.2);
+        }
+        q.price = computedPrice;
+      });
+    }
+
+    const responseText = this.buildRideResponseText(
+      intent,
+      enrichment,
+      quotes,
+      distance,
+    );
+
+    const order = await this.saveRideOrder({
+      userId: params.userId,
+      intent,
+      quotes,
+      responseText,
+      accessibilityFlag: params.accessibilityFlag ?? false,
+    });
+
+    await this.logEvents(order.id, { transcript, intent, enrichment, quotes });
+
+    return {
+      orderId: order.id,
+      transcript,
+      intent,
+      enrichment,
+      quotes,
+      responseText,
+    };
+  }
+
+  /** Lấy trạng thái đơn + responseText cho TTS */
+  async getOrderStatus(orderId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
+    if (!order) throw new NotFoundException(`Order ${orderId} not found`);
+
+    const statusText: Record<string, string> = {
+      [OrderStatus.QUOTED]: 'Đang chờ bạn chọn đối tác.',
+      [OrderStatus.CONFIRMED]: 'Đơn đã xác nhận. Đang tìm tài xế.',
+      [OrderStatus.DRIVER_ASSIGNED]: `Tài xế đã nhận đơn. Đang trên đường đến.`,
+      [OrderStatus.IN_TRANSIT]: 'Tài xế đang trên đường giao hàng đến bạn.',
+      [OrderStatus.DELIVERED]:
+        'Đơn hàng đã giao thành công. Bạn có muốn đánh giá không?',
+      [OrderStatus.CANCELLED]: 'Đơn hàng đã bị huỷ.',
+    };
+
+    return {
+      orderId,
+      status: order.status,
+      partner: order.partner,
+      responseText: statusText[order.status] ?? order.responseText,
+      etaMinutes: order.etaMinutes,
+      partnerDriverId: order.partnerDriverId,
+      driverName: order.driverName,
+    };
+  }
+
+  /** Xác nhận chọn đối tác -> cập nhật Order + kick state machine */
+  async confirmOrder(
+    orderId: string,
+    partner: PartnerCode,
+  ): Promise<ConfirmOrderResponse & { driverNotification?: object }> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
+    if (!order) throw new NotFoundException(`Order ${orderId} not found`);
+
+    const confirmation = await this.partners.confirm(partner, orderId);
+
+    await this.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status: OrderStatus.CONFIRMED,
+        partner,
+        responseText: confirmation.message,
+      },
+    });
+    await this.prisma.orderEvent.create({
+      data: {
+        orderId,
+        step: 'CONFIRM',
+        payload: { partner, externalId: confirmation.externalId },
+      },
+    });
+
+    // Phase 5 — kick auto-advance state machine (fire-and-forget)
+    this.runStateMachine(orderId, partner).catch((e) =>
+      this.logger.error(`StateMachine error for ${orderId}: ${e}`),
+    );
+
+    const response: ConfirmOrderResponse & { driverNotification?: object } = {
+      orderId,
+      status: OrderStatus.CONFIRMED,
+      partner,
+      responseText: confirmation.message,
+    };
+
+    // Phase 7 — disability notification
+    if (order.accessibilityFlag) {
+      response.driverNotification = {
+        message: `Hành khách cần hỗ trợ đặc biệt. Vui lòng hỗ trợ người khiếm thị lên/xuống xe.`,
+        bonusPoints: 50,
+      };
+    }
+
+    return response;
+  }
+
+  /** Phase 6 — lưu đánh giá sau khi giao hàng */
+  async submitReview(
+    orderId: string,
+    body: {
+      restaurantRating: number;
+      driverRating: number;
+      voiceText?: string;
+    },
+  ) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
+    if (!order) throw new NotFoundException(`Order ${orderId} not found`);
+
+    const review = await this.prisma.orderReview.upsert({
+      where: { orderId },
+      update: {
+        restaurantRating: body.restaurantRating,
+        driverRating: body.driverRating,
+        voiceText: body.voiceText,
+      },
+      create: {
+        orderId,
+        restaurantRating: body.restaurantRating,
+        driverRating: body.driverRating,
+        voiceText: body.voiceText,
+      },
+    });
+
+    const earnedPoints = body.driverRating >= 4 ? 50 : 0;
+    return {
+      reviewId: review.id,
+      responseText: earnedPoints
+        ? `Cảm ơn bạn đã đánh giá! Tài xế nhận được ${earnedPoints} AccessPoints.`
+        : 'Cảm ơn bạn đã đánh giá!',
+      earnedPoints,
+    };
+  }
+
+  /** Phase 5 — auto-advance: CONFIRMED→DRIVER_ASSIGNED(5s)→IN_TRANSIT(30s)→DELIVERED(120s) */
+  private async runStateMachine(orderId: string, partner: PartnerCode) {
+    await this.delay(5000);
+    const driver = await this.pickPartnerDriver(partner);
+    await this.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status: OrderStatus.DRIVER_ASSIGNED,
+        partnerDriverId: driver?.id,
+        driverName: driver?.name,
+        responseText: `Tài xế ${driver?.name ?? 'đang đến'} đã nhận đơn. Đang trên đường.`,
+      },
+    });
+    await this.prisma.orderEvent.create({
+      data: { orderId, step: OrderStatus.DRIVER_ASSIGNED, payload: { driver } },
+    });
+
+    await this.delay(25000);
+    await this.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status: OrderStatus.IN_TRANSIT,
+        responseText: 'Đơn hàng đang trên đường đến bạn.',
+      },
+    });
+    await this.prisma.orderEvent.create({
+      data: { orderId, step: OrderStatus.IN_TRANSIT, payload: {} },
+    });
+
+    await this.delay(90000);
+    await this.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status: OrderStatus.DELIVERED,
+        responseText:
+          'Đơn hàng đã giao thành công. Bạn thấy thế nào? Nói "tốt", "bình thường", hoặc "kém".',
+      },
+    });
+    await this.prisma.orderEvent.create({
+      data: { orderId, step: OrderStatus.DELIVERED, payload: {} },
+    });
+  }
+
+  private delay(ms: number) {
+    return new Promise<void>((resolve) => setTimeout(resolve, ms));
+  }
+
+  private async pickPartnerDriver(partner: PartnerCode) {
+    if (partner === PartnerCode.GRAB) {
+      return this.prisma.grabDriver.findFirst({ where: { available: true } });
+    }
+    if (partner === PartnerCode.BE) {
+      return this.prisma.beDriver.findFirst({ where: { available: true } });
+    }
+    if (partner === PartnerCode.XANH_SM) {
+      return this.prisma.xanhSmDriver.findFirst({ where: { available: true } });
+    }
+    if (partner === PartnerCode.SHOPEE) {
+      return this.prisma.shopeeDriver.findFirst({ where: { available: true } });
+    }
+    return null;
+  }
+
+  // ── helpers ────────────────────────────────────────────────
+
+  private buildFoodResponseText(
+    restaurant: { name: string },
+    isOpen: boolean,
+    items: { name: string; qty: number; priceVnd: number }[],
+    quotes: FoodQuote[],
+    multiMatch = false,
+  ): string {
+    if (!isOpen) {
+      return `${restaurant.name} hiện đã đóng cửa. Bạn có muốn chọn quán khác không?`;
+    }
+    if (items.length === 0) {
+      return `Tôi tìm thấy ${restaurant.name}. Bạn muốn đặt món gì? Tôi có thể đọc menu cho bạn nghe.`;
+    }
+    if (quotes.length === 0) {
+      return `${restaurant.name} hiện không có đối tác giao hàng nào khả dụng.`;
+    }
+
+    const itemList = items.map((i) => `${i.qty} ${i.name}`).join(', ');
+    const prefix = multiMatch
+      ? `Tôi tìm thấy ${quotes.length} lựa chọn cho ${itemList}. `
+      : `Đặt ${itemList} từ ${restaurant.name}. `;
+
+    let text = prefix;
+    quotes.forEach((q, idx) => {
+      const promoNote = q.promoDescription ? ` (${q.promoDescription})` : '';
+      text += `${idx + 1}. ${q.partner}: ${q.totalVnd.toLocaleString('vi-VN')}đ${promoNote}, khoảng ${q.etaMinutes} phút. `;
+    });
+    text += `Bạn muốn chọn đối tác nào?`;
+    return text;
+  }
+
+  private buildRideResponseText(
+    intent: Intent,
+    enrichment: Enrichment,
+    quotes: PartnerQuote[],
+    distance?: number,
+  ): string {
+    const available = quotes.filter((q) => q.available);
+    if (available.length === 0)
+      return 'Hiện không có xe nào khả dụng. Vui lòng thử lại sau.';
+
+    const cheapest = available.reduce((a, b) => (a.price < b.price ? a : b));
+    let text = `Đặt xe đến ${intent.destination ?? 'điểm đến'}.`;
+
+    if (distance !== undefined) {
+      text += ` Quãng đường dài khoảng ${distance.toFixed(1)} km.`;
+    }
+
+    if (enrichment.weather?.willRain) {
+      text += ` Lưu ý trời đang ${enrichment.weather.condition}.`;
+    }
+    if (enrichment.place && !enrichment.place.isOpen) {
+      text += ` Lưu ý: ${enrichment.place.name} có thể đã đóng cửa.`;
+    }
+
+    text += ` Giá rẻ nhất: ${cheapest.partner} — ${cheapest.price.toLocaleString('vi-VN')}đ, khoảng ${cheapest.etaMinutes} phút.`;
+    text += ` Có ${available.length} lựa chọn. Bạn muốn chọn đối tác nào?`;
+    return text;
+  }
+
+  /** Tính khoảng cách đường chim bay (Haversine formula) */
+  private calculateDistance(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number,
+  ): number {
+    const R = 6371; // Bán kính Trái Đất (km)
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  private async saveRideOrder(params: {
+    userId?: string;
+    intent: Intent;
+    quotes: PartnerQuote[];
+    responseText: string;
+    accessibilityFlag: boolean;
+  }) {
+    const cheapest = params.quotes[0];
+    return this.prisma.order.create({
+      data: {
+        userId: params.userId,
+        type: params.intent.type,
+        origin: params.intent.origin,
+        destination: params.intent.destination,
+        status: OrderStatus.QUOTED,
+        totalVnd: cheapest?.price,
+        etaMinutes: cheapest?.etaMinutes,
+        responseText: params.responseText,
+        accessibilityFlag: params.accessibilityFlag,
+      },
+    });
+  }
+
+  private async logEvents(
+    orderId: string,
+    data: {
+      transcript: string;
+      intent: Intent;
+      enrichment: Enrichment;
+      quotes: unknown[];
+    },
+  ) {
+    await this.prisma.orderEvent.createMany({
+      data: [
+        { orderId, step: 'STT', payload: { transcript: data.transcript } },
+        { orderId, step: 'NLU', payload: data.intent as object },
+        { orderId, step: 'ENRICHMENT', payload: data.enrichment as object },
+        { orderId, step: 'PARTNER_QUOTE', payload: { quotes: data.quotes } },
+      ],
+    });
+  }
+}
+</file>
+
+<file path="src/partner-sim/partner-sim.controller.ts">
+/**
+ * Partner Simulator — giả lập API của từng đối tác.
+ *
+ * Trong production, thay các endpoint này bằng HTTP call thật tới:
+ *   Grab:    https://api.grab.com/v1/quote
+ *   Be:      https://api.be.com.vn/v1/quote
+ *   Xanh SM: https://api.xanhsm.vn/v1/quote
+ *   Shopee:  https://api.shopee.vn/food/v1/quote
+ *
+ * AccessAI gửi payload chuẩn → partner xử lý theo DB/logic riêng → trả PartnerQuoteResponse.
+ */
+
+import { Body, Controller, Post } from '@nestjs/common';
+import { PartnerSimService } from './partner-sim.service';
+
+export interface PartnerRideQuoteRequest {
+  origin?: string;
+  destination?: string;
+  serviceType?: string;
+}
+
+export interface PartnerFoodSearchRequest {
+  query: string;
+}
+
+export interface PartnerFoodQuoteRequest {
+  restaurantId: string;
+  items: { name: string; qty: number; priceVnd: number }[];
+}
+
+@Controller('partner-sim')
+export class PartnerSimController {
+  constructor(private readonly svc: PartnerSimService) {}
+
+  // ── GRAB ──────────────────────────────────────────────────────
+
+  @Post('grab/ride/quote')
+  grabRideQuote(@Body() body: PartnerRideQuoteRequest) {
+    return this.svc.grabRideQuote(body);
+  }
+
+  @Post('grab/food/search')
+  grabFoodSearch(@Body() body: PartnerFoodSearchRequest) {
+    return this.svc.grabFoodSearch(body.query);
+  }
+
+  @Post('grab/food/quote')
+  grabFoodQuote(@Body() body: PartnerFoodQuoteRequest) {
+    return this.svc.grabFoodQuote(body);
+  }
+
+  // ── BE ────────────────────────────────────────────────────────
+
+  @Post('be/ride/quote')
+  beRideQuote(@Body() body: PartnerRideQuoteRequest) {
+    return this.svc.beRideQuote(body);
+  }
+
+  @Post('be/food/search')
+  beFoodSearch(@Body() body: PartnerFoodSearchRequest) {
+    return this.svc.beFoodSearch(body.query);
+  }
+
+  @Post('be/food/quote')
+  beFoodQuote(@Body() body: PartnerFoodQuoteRequest) {
+    return this.svc.beFoodQuote(body);
+  }
+
+  // ── XANH SM (ride only) ───────────────────────────────────────
+
+  @Post('xanhsm/ride/quote')
+  xanhSmRideQuote(@Body() body: PartnerRideQuoteRequest) {
+    return this.svc.xanhSmRideQuote(body);
+  }
+
+  // ── SHOPEE (food only) ────────────────────────────────────────
+
+  @Post('shopee/food/search')
+  shopeeFoodSearch(@Body() body: PartnerFoodSearchRequest) {
+    return this.svc.shopeeFoodSearch(body.query);
+  }
+
+  @Post('shopee/food/quote')
+  shopeeFoodQuote(@Body() body: PartnerFoodQuoteRequest) {
+    return this.svc.shopeeFoodQuote(body);
+  }
+
+  // ── Confirm (partner ghi nhận đơn, trả mã đơn nội bộ) ────────
+
+  @Post('grab/confirm')
+  grabConfirm(@Body() body: { accessAiOrderId: string }) {
+    return this.svc.grabConfirm(body.accessAiOrderId);
+  }
+
+  @Post('be/confirm')
+  beConfirm(@Body() body: { accessAiOrderId: string }) {
+    return this.svc.beConfirm(body.accessAiOrderId);
+  }
+
+  @Post('xanhsm/confirm')
+  xanhSmConfirm(@Body() body: { accessAiOrderId: string }) {
+    return this.svc.xanhSmConfirm(body.accessAiOrderId);
+  }
+
+  @Post('shopee/confirm')
+  shopeeConfirm(@Body() body: { accessAiOrderId: string }) {
+    return this.svc.shopeeConfirm(body.accessAiOrderId);
+  }
+}
+</file>
+
+<file path="src/partner-sim/partner-sim.module.ts">
+import { Module } from '@nestjs/common';
+import { PartnerSimController } from './partner-sim.controller';
+import { PartnerSimService } from './partner-sim.service';
+
+@Module({
+  controllers: [PartnerSimController],
+  providers: [PartnerSimService],
+})
+export class PartnerSimModule {}
+</file>
+
+<file path="src/partner-sim/partner-sim.service.ts">
+/**
+ * PartnerSimService — giả lập backend của từng đối tác.
+ * Mỗi method = 1 "API" độc lập của Grab/Be/XanhSM/Shopee.
+ * Logic nằm đây; AccessAI gọi qua HTTP (không import service này trực tiếp).
+ */
+
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+
+export interface PartnerSimRideResult {
+  options: Array<{
+    serviceType: string;
+    priceVnd: number;
+    etaMinutes: number;
+    driverName?: string;
+    available: boolean;
+  }>;
+}
+
+export interface PartnerSimFoodSearchResult {
+  restaurantId: string;
+  name: string;
+  address: string;
+  rating: number;
+  reviewCount: number;
+  deliveryFeeVnd: number;
+  minOrderVnd: number;
+  cuisineType: string;
+  keywords: string[];
+  available: boolean;
+  openHour: number;
+  closeHour: number;
+}
+
+export interface PartnerSimFoodQuoteResult {
+  subtotalVnd: number;
+  deliveryFeeVnd: number;
+  discountVnd: number;
+  totalVnd: number;
+  promoDescription?: string;
+  etaMinutes: number;
+  driverName?: string;
+  available: boolean;
+}
+
+type PromoRow = {
+  discountType: string;
+  discountValue: number;
+  minOrderVnd: number;
+  maxDiscountVnd: number | null;
+};
+
+@Injectable()
+export class PartnerSimService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  // ── GRAB RIDE ────────────────────────────────────────────────
+
+  async grabRideQuote(_body: {
+    origin?: string;
+    destination?: string;
+    serviceType?: string;
+  }): Promise<PartnerSimRideResult> {
+    const opts = await this.prisma.grabRideOption.findMany({
+      where: { available: true },
+    });
+    const driver = await this.prisma.grabDriver.findFirst({
+      where: { available: true, vehicleType: { contains: 'Car' } },
+    });
+    return {
+      options: opts.map((o) => ({
+        serviceType: o.serviceType,
+        priceVnd: o.basePriceVnd,
+        etaMinutes: o.etaMinutes,
+        driverName: driver?.name,
+        available: o.available,
+      })),
+    };
+  }
+
+  // ── BE RIDE ──────────────────────────────────────────────────
+
+  async beRideQuote(_body: {
+    origin?: string;
+    destination?: string;
+    serviceType?: string;
+  }): Promise<PartnerSimRideResult> {
+    const opts = await this.prisma.beRideOption.findMany({
+      where: { available: true },
+    });
+    const driver = await this.prisma.beDriver.findFirst({
+      where: { available: true, vehicleType: { contains: 'Car' } },
+    });
+    return {
+      options: opts.map((o) => ({
+        serviceType: o.serviceType,
+        priceVnd: o.basePriceVnd,
+        etaMinutes: o.etaMinutes,
+        driverName: driver?.name,
+        available: o.available,
+      })),
+    };
+  }
+
+  // ── XANH SM RIDE ─────────────────────────────────────────────
+
+  async xanhSmRideQuote(_body: {
+    origin?: string;
+    destination?: string;
+    serviceType?: string;
+  }): Promise<PartnerSimRideResult> {
+    const opts = await this.prisma.xanhSmRideOption.findMany({
+      where: { available: true },
+    });
+    const driver = await this.prisma.xanhSmDriver.findFirst({
+      where: { available: true },
+    });
+    return {
+      options: opts.map((o) => ({
+        serviceType: o.serviceType,
+        priceVnd: o.basePriceVnd,
+        etaMinutes: o.etaMinutes,
+        driverName: driver?.name,
+        available: o.available,
+      })),
+    };
+  }
+
+  // ── GRAB FOOD SEARCH ─────────────────────────────────────────
+
+  async grabFoodSearch(query: string): Promise<PartnerSimFoodSearchResult[]> {
+    const list = await this.prisma.grabRestaurant.findMany({
+      where: { available: true },
+    });
+    return this.filterByQuery(list, query);
+  }
+
+  // ── BE FOOD SEARCH ───────────────────────────────────────────
+
+  async beFoodSearch(query: string): Promise<PartnerSimFoodSearchResult[]> {
+    const list = await this.prisma.beRestaurant.findMany({
+      where: { available: true },
+    });
+    return this.filterByQuery(list, query);
+  }
+
+  // ── SHOPEE FOOD SEARCH ───────────────────────────────────────
+
+  async shopeeFoodSearch(query: string): Promise<PartnerSimFoodSearchResult[]> {
+    const list = await this.prisma.shopeeRestaurant.findMany({
+      where: { available: true },
+    });
+    return this.filterByQuery(list, query);
+  }
+
+  // ── GRAB FOOD QUOTE ──────────────────────────────────────────
+
+  async grabFoodQuote(body: {
+    restaurantId: string;
+    items: { name: string; qty: number; priceVnd: number }[];
+  }): Promise<PartnerSimFoodQuoteResult> {
+    const rest = await this.prisma.grabRestaurant.findUniqueOrThrow({
+      where: { id: body.restaurantId },
+    });
+    const subtotal = body.items.reduce((s, i) => s + i.priceVnd * i.qty, 0);
+    const promos = await this.prisma.grabPromotion.findMany({
+      where: {
+        active: true,
+        minOrderVnd: { lte: subtotal },
+        OR: [
+          { grabRestaurantId: body.restaurantId },
+          { grabRestaurantId: null },
+        ],
+      },
+    });
+    const promo = this.bestPromo(promos, subtotal, rest.deliveryFeeVnd);
+    const discountVnd = this.calcDiscount(promo, subtotal, rest.deliveryFeeVnd);
+    const driver = await this.prisma.grabDriver.findFirst({
+      where: { available: true },
+    });
+    return {
+      subtotalVnd: subtotal,
+      deliveryFeeVnd: rest.deliveryFeeVnd,
+      discountVnd,
+      totalVnd: subtotal + rest.deliveryFeeVnd - discountVnd,
+      promoDescription: promo ? this.describePromo(promo) : undefined,
+      etaMinutes: 20 + Math.floor(Math.random() * 15),
+      driverName: driver?.name,
+      available: subtotal >= rest.minOrderVnd,
+    };
+  }
+
+  // ── BE FOOD QUOTE ────────────────────────────────────────────
+
+  async beFoodQuote(body: {
+    restaurantId: string;
+    items: { name: string; qty: number; priceVnd: number }[];
+  }): Promise<PartnerSimFoodQuoteResult> {
+    const rest = await this.prisma.beRestaurant.findUniqueOrThrow({
+      where: { id: body.restaurantId },
+    });
+    const subtotal = body.items.reduce((s, i) => s + i.priceVnd * i.qty, 0);
+    const promos = await this.prisma.bePromotion.findMany({
+      where: {
+        active: true,
+        minOrderVnd: { lte: subtotal },
+        OR: [{ beRestaurantId: body.restaurantId }, { beRestaurantId: null }],
+      },
+    });
+    const promo = this.bestPromo(promos, subtotal, rest.deliveryFeeVnd);
+    const discountVnd = this.calcDiscount(promo, subtotal, rest.deliveryFeeVnd);
+    const driver = await this.prisma.beDriver.findFirst({
+      where: { available: true },
+    });
+    return {
+      subtotalVnd: subtotal,
+      deliveryFeeVnd: rest.deliveryFeeVnd,
+      discountVnd,
+      totalVnd: subtotal + rest.deliveryFeeVnd - discountVnd,
+      promoDescription: promo ? this.describePromo(promo) : undefined,
+      etaMinutes: 20 + Math.floor(Math.random() * 15),
+      driverName: driver?.name,
+      available: subtotal >= rest.minOrderVnd,
+    };
+  }
+
+  // ── SHOPEE FOOD QUOTE ────────────────────────────────────────
+
+  async shopeeFoodQuote(body: {
+    restaurantId: string;
+    items: { name: string; qty: number; priceVnd: number }[];
+  }): Promise<PartnerSimFoodQuoteResult> {
+    const rest = await this.prisma.shopeeRestaurant.findUniqueOrThrow({
+      where: { id: body.restaurantId },
+    });
+    const subtotal = body.items.reduce((s, i) => s + i.priceVnd * i.qty, 0);
+    const promos = await this.prisma.shopeePromotion.findMany({
+      where: {
+        active: true,
+        minOrderVnd: { lte: subtotal },
+        OR: [
+          { shopeeRestaurantId: body.restaurantId },
+          { shopeeRestaurantId: null },
+        ],
+      },
+    });
+    const promo = this.bestPromo(promos, subtotal, rest.deliveryFeeVnd);
+    const discountVnd = this.calcDiscount(promo, subtotal, rest.deliveryFeeVnd);
+    const driver = await this.prisma.shopeeDriver.findFirst({
+      where: { available: true },
+    });
+    return {
+      subtotalVnd: subtotal,
+      deliveryFeeVnd: rest.deliveryFeeVnd,
+      discountVnd,
+      totalVnd: subtotal + rest.deliveryFeeVnd - discountVnd,
+      promoDescription: promo ? this.describePromo(promo) : undefined,
+      etaMinutes: 20 + Math.floor(Math.random() * 15),
+      driverName: driver?.name,
+      available: subtotal >= rest.minOrderVnd,
+    };
+  }
+
+  // ── CONFIRM (partner ghi nhận đơn, sinh mã đơn nội bộ) ───────
+
+  async grabConfirm(accessAiOrderId: string) {
+    const driver = await this.prisma.grabDriver.findFirst({
+      where: { available: true },
+    });
+    return {
+      partnerOrderId: `GRAB-${accessAiOrderId.slice(-6).toUpperCase()}`,
+      driverName: driver?.name ?? 'Tài xế Grab',
+      message: `Grab xác nhận đơn. Tài xế ${driver?.name ?? 'Grab'} đang đến.`,
+    };
+  }
+
+  async beConfirm(accessAiOrderId: string) {
+    const driver = await this.prisma.beDriver.findFirst({
+      where: { available: true },
+    });
+    return {
+      partnerOrderId: `BE-${accessAiOrderId.slice(-6).toUpperCase()}`,
+      driverName: driver?.name ?? 'Tài xế Be',
+      message: `Be xác nhận đơn. Tài xế ${driver?.name ?? 'Be'} đang đến.`,
+    };
+  }
+
+  async xanhSmConfirm(accessAiOrderId: string) {
+    const driver = await this.prisma.xanhSmDriver.findFirst({
+      where: { available: true },
+    });
+    return {
+      partnerOrderId: `XSMSM-${accessAiOrderId.slice(-6).toUpperCase()}`,
+      driverName: driver?.name ?? 'Tài xế Xanh SM',
+      message: `Xanh SM xác nhận đơn. Tài xế ${driver?.name ?? 'Xanh SM'} đang đến.`,
+    };
+  }
+
+  async shopeeConfirm(accessAiOrderId: string) {
+    const driver = await this.prisma.shopeeDriver.findFirst({
+      where: { available: true },
+    });
+    return {
+      partnerOrderId: `SPF-${accessAiOrderId.slice(-6).toUpperCase()}`,
+      driverName: driver?.name ?? 'Shipper Shopee',
+      message: `Shopee Food xác nhận đơn. Shipper ${driver?.name ?? 'Shopee'} đang lấy hàng.`,
+    };
+  }
+
+  // ── private helpers ──────────────────────────────────────────
+
+  private filterByQuery<
+    T extends {
+      id: string;
+      name: string;
+      keywords: string[];
+      available: boolean;
+      address: string;
+      rating: number;
+      reviewCount: number;
+      deliveryFeeVnd: number;
+      minOrderVnd: number;
+      cuisineType: string;
+      openHour: number;
+      closeHour: number;
+    },
+  >(list: T[], query: string): PartnerSimFoodSearchResult[] {
+    const q = query.toLowerCase();
+    return list
+      .filter(
+        (r) =>
+          r.available &&
+          (r.keywords.some((k) => q.includes(k) || k.includes(q)) ||
+            q.includes(r.name.toLowerCase()) ||
+            r.name.toLowerCase().includes(q)),
+      )
+      .map((r) => ({
+        restaurantId: r.id,
+        name: r.name,
+        address: r.address,
+        rating: r.rating,
+        reviewCount: r.reviewCount,
+        deliveryFeeVnd: r.deliveryFeeVnd,
+        minOrderVnd: r.minOrderVnd,
+        cuisineType: r.cuisineType,
+        keywords: r.keywords,
+        available: r.available,
+        openHour: r.openHour,
+        closeHour: r.closeHour,
+      }));
+  }
+
+  private bestPromo(
+    promos: PromoRow[],
+    subtotal: number,
+    deliveryFee: number,
+  ): PromoRow | null {
+    if (promos.length === 0) return null;
+    return promos.reduce((best, p) =>
+      this.calcDiscount(p, subtotal, deliveryFee) >
+      this.calcDiscount(best, subtotal, deliveryFee)
+        ? p
+        : best,
+    );
+  }
+
+  private calcDiscount(
+    promo: PromoRow | null,
+    subtotal: number,
+    deliveryFee: number,
+  ): number {
+    if (!promo) return 0;
+    if (promo.discountType === 'PERCENT') {
+      const raw = Math.round((subtotal * promo.discountValue) / 100);
+      return promo.maxDiscountVnd ? Math.min(raw, promo.maxDiscountVnd) : raw;
+    }
+    if (promo.discountType === 'FIXED')
+      return Math.min(promo.discountValue, subtotal);
+    if (promo.discountType === 'FREE_DELIVERY') return deliveryFee;
+    return 0;
+  }
+
+  private describePromo(promo: PromoRow): string {
+    if (promo.discountType === 'PERCENT') return `Giảm ${promo.discountValue}%`;
+    if (promo.discountType === 'FIXED')
+      return `Giảm ${promo.discountValue.toLocaleString('vi-VN')}đ`;
+    if (promo.discountType === 'FREE_DELIVERY') return 'Miễn phí ship';
+    return '';
+  }
+}
+</file>
+
+<file path="src/partners/adapters/be.adapter.ts">
+import { Injectable } from '@nestjs/common';
+import { Intent, PartnerCode, PartnerQuote } from '../../types';
+import { RideProvider } from '../partner.provider';
+import {
+  BE_MOCK_QUOTE,
+  BE_MOCK_CONFIRM,
+  BeRawQuote,
+} from '../fixtures/be.fixture';
+
+@Injectable()
+export class BeAdapter implements RideProvider {
+  async quote(_intent: Intent): Promise<PartnerQuote> {
+    // TODO: thay bằng gọi Be API thật
+    const raw = BE_MOCK_QUOTE;
+    return this.mapToQuote(raw);
+  }
+
+  async confirm(
+    _orderId: string,
+  ): Promise<{ externalId: string; message: string }> {
+    const raw = BE_MOCK_CONFIRM;
+    return {
+      externalId: raw.trip_id,
+      message: `Be xác nhận. Tài xế ${raw.driver_name} - biển số ${raw.plate}`,
+    };
+  }
+
+  /** Mapper: chuyển Be raw response -> PartnerQuote nội bộ */
+  private mapToQuote(raw: BeRawQuote): PartnerQuote {
+    return {
+      partner: PartnerCode.BE,
+      price: raw.data.price,
+      etaMinutes: Math.ceil(raw.data.pickup_eta_sec / 60),
+      driverName: raw.driver_info?.full_name,
+      available: raw.data.is_available,
+    };
+  }
+}
+</file>
+
+<file path="src/partners/adapters/grab.adapter.ts">
+import { Injectable } from '@nestjs/common';
+import { Intent, PartnerCode, PartnerQuote } from '../../types';
+import { RideProvider } from '../partner.provider';
+import {
+  GRAB_MOCK_QUOTE,
+  GRAB_MOCK_CONFIRM,
+  GrabRawQuote,
+} from '../fixtures/grab.fixture';
+
+@Injectable()
+export class GrabAdapter implements RideProvider {
+  async quote(_intent: Intent): Promise<PartnerQuote> {
+    // TODO: thay bằng gọi Grab API thật:
+    // POST https://partner.grab.com/grabid/v1/oauth2/token (lấy token)
+    // POST https://partner.grab.com/v1/deliveries (lấy giá)
+    const raw = GRAB_MOCK_QUOTE;
+    return this.mapToQuote(raw);
+  }
+
+  async confirm(
+    _orderId: string,
+  ): Promise<{ externalId: string; message: string }> {
+    // TODO: gọi Grab Booking API thật
+    const raw = GRAB_MOCK_CONFIRM;
+    return {
+      externalId: raw.bookingCode,
+      message: `Grab xác nhận. Tài xế ${raw.driverName} - biển số ${raw.vehiclePlate}. Mã OTP: ${raw.otp}`,
+    };
+  }
+
+  /** Mapper: chuyển Grab raw response -> PartnerQuote nội bộ */
+  private mapToQuote(raw: GrabRawQuote): PartnerQuote {
+    return {
+      partner: PartnerCode.GRAB,
+      price: raw.estimatedFare.value,
+      etaMinutes: Math.ceil(raw.eta.pickUpEta / 60),
+      driverName: raw.driver?.name,
+      available: raw.available,
+    };
+  }
+}
+</file>
+
+<file path="src/partners/adapters/xanh-sm.adapter.ts">
+import { Injectable } from '@nestjs/common';
+import { Intent, PartnerCode, PartnerQuote } from '../../types';
+import { RideProvider } from '../partner.provider';
+import {
+  XANH_SM_MOCK_QUOTE,
+  XANH_SM_MOCK_CONFIRM,
+  XanhSmRawQuote,
+} from '../fixtures/xanh-sm.fixture';
+
+@Injectable()
+export class XanhSmAdapter implements RideProvider {
+  async quote(_intent: Intent): Promise<PartnerQuote> {
+    // TODO: thay bằng gọi Xanh SM API thật
+    const raw = XANH_SM_MOCK_QUOTE;
+    return this.mapToQuote(raw);
+  }
+
+  async confirm(
+    _orderId: string,
+  ): Promise<{ externalId: string; message: string }> {
+    const raw = XANH_SM_MOCK_CONFIRM;
+    return {
+      externalId: raw.order_id,
+      message: `Xanh SM xác nhận. Tài xế ${raw.driver_name} - xe ${raw.car_number}. Mã đón xe: ${raw.pickup_code}`,
+    };
+  }
+
+  /** Mapper: chuyển Xanh SM raw response -> PartnerQuote nội bộ */
+  private mapToQuote(raw: XanhSmRawQuote): PartnerQuote {
+    return {
+      partner: PartnerCode.XANH_SM,
+      price: raw.quote.amount,
+      etaMinutes: raw.quote.eta_minutes,
+      driverName: raw.driver?.name,
+      available: raw.available,
+    };
+  }
+}
+</file>
+
+<file path="src/partners/db-partners.service.ts">
+/**
+ * DbPartnersService — RIDE quote fan-out.
+ *
+ * Gửi HTTP tới 3 partner-sim ride/quote endpoints song song.
+ * Giả lập: AccessAI KHÔNG query DB trực tiếp — mỗi partner có API riêng.
+ */
+
+import { HttpService } from '@nestjs/axios';
+import { Injectable, Logger } from '@nestjs/common';
+import { firstValueFrom } from 'rxjs';
+import { PartnerSimRideResult } from '../partner-sim/partner-sim.service';
+import { Intent, PartnerCode, PartnerQuote } from '../types';
+
+const SIM_BASE = process.env.PARTNER_SIM_URL ?? 'http://localhost:3000';
+
+@Injectable()
+export class DbPartnersService {
+  private readonly logger = new Logger(DbPartnersService.name);
+
+  constructor(private readonly http: HttpService) {}
+
+  /**
+   * Fan-out HTTP tới 3 partner-sim ride endpoints song song.
+   * Mỗi partner trả options; aggregate thành flat list PartnerQuote[].
+   */
+  async quoteAll(intent: Intent): Promise<PartnerQuote[]> {
+    const payload = {
+      origin: intent.origin,
+      destination: intent.destination,
+    };
+
+    const [grabRes, beRes, xsmRes] = await Promise.allSettled([
+      this.post<PartnerSimRideResult>('/partner-sim/grab/ride/quote', payload),
+      this.post<PartnerSimRideResult>('/partner-sim/be/ride/quote', payload),
+      this.post<PartnerSimRideResult>(
+        '/partner-sim/xanhsm/ride/quote',
+        payload,
+      ),
+    ]);
+
+    const quotes: PartnerQuote[] = [];
+
+    if (grabRes.status === 'fulfilled') {
+      for (const o of grabRes.value.options) {
+        quotes.push({
+          partner: PartnerCode.GRAB,
+          price: o.priceVnd,
+          etaMinutes: o.etaMinutes,
+          driverName: o.driverName,
+          available: o.available,
+        });
+      }
+    } else {
+      this.logger.warn('Grab ride/quote failed: ' + grabRes.reason);
+    }
+
+    if (beRes.status === 'fulfilled') {
+      for (const o of beRes.value.options) {
+        quotes.push({
+          partner: PartnerCode.BE,
+          price: o.priceVnd,
+          etaMinutes: o.etaMinutes,
+          driverName: o.driverName,
+          available: o.available,
+        });
+      }
+    } else {
+      this.logger.warn('Be ride/quote failed: ' + beRes.reason);
+    }
+
+    if (xsmRes.status === 'fulfilled') {
+      for (const o of xsmRes.value.options) {
+        quotes.push({
+          partner: PartnerCode.XANH_SM,
+          price: o.priceVnd,
+          etaMinutes: o.etaMinutes,
+          driverName: o.driverName,
+          available: o.available,
+        });
+      }
+    } else {
+      this.logger.warn('XanhSM ride/quote failed: ' + xsmRes.reason);
+    }
+
+    return quotes;
+  }
+
+  /** Gọi partner-sim confirm endpoint; partner ghi nhận đơn + chọn tài xế */
+  async confirm(
+    partner: PartnerCode,
+    orderId: string,
+  ): Promise<{ externalId: string; message: string; driverName?: string }> {
+    const endpoint = this.confirmEndpoint(partner);
+    if (!endpoint) {
+      const externalId = `${partner}-${orderId.slice(-6).toUpperCase()}`;
+      return {
+        externalId,
+        message: `${partner} xác nhận. Mã đơn: ${externalId}`,
+      };
+    }
+
+    const result = await this.post<{
+      partnerOrderId: string;
+      driverName?: string;
+      message: string;
+    }>(endpoint, { accessAiOrderId: orderId });
+
+    return {
+      externalId: result.partnerOrderId,
+      message: result.message,
+      driverName: result.driverName,
+    };
+  }
+
+  private confirmEndpoint(partner: PartnerCode): string | null {
+    if (partner === PartnerCode.GRAB) return '/partner-sim/grab/confirm';
+    if (partner === PartnerCode.BE) return '/partner-sim/be/confirm';
+    if (partner === PartnerCode.XANH_SM) return '/partner-sim/xanhsm/confirm';
+    if (partner === PartnerCode.SHOPEE) return '/partner-sim/shopee/confirm';
+    return null;
+  }
+
+  private async post<T>(path: string, body: unknown): Promise<T> {
+    const res = await firstValueFrom(
+      this.http.post<T>(`${SIM_BASE}${path}`, body),
+    );
+    return res.data;
+  }
+}
+</file>
+
+<file path="src/partners/fixtures/be.fixture.ts">
+// Fixture mô phỏng hình dạng raw response của Be API
+// Team tích hợp Be: điền đúng cấu trúc response thật vào đây
+// Sau đó chỉ cần sửa BeAdapter.mapToQuote() để parse đúng fields
+
+export interface BeRawQuote {
+  data: {
+    price: number; // VND
+    priceLabel: string; // vd: "72.000 đ"
+    pickup_eta_sec: number; // giây đến điểm đón
+    service_name: string; // vd: "beCar", "beBike"
+    is_available: boolean;
+  };
+  driver_info: {
+    full_name: string;
+    star: number;
+    plate_number: string;
+  } | null;
+}
+
+export interface BeRawConfirm {
+  trip_id: string;
+  state: string;
+  driver_name: string;
+  plate: string;
+}
+
+// Dữ liệu mẫu - team thay bằng gọi API thật
+export const BE_MOCK_QUOTE: BeRawQuote = {
+  data: {
+    price: 72000,
+    priceLabel: '72.000 đ',
+    pickup_eta_sec: 240,
+    service_name: 'beCar',
+    is_available: true,
+  },
+  driver_info: {
+    full_name: 'Trần Minh',
+    star: 4.9,
+    plate_number: '51B-67890',
+  },
+};
+
+export const BE_MOCK_CONFIRM: BeRawConfirm = {
+  trip_id: 'BE-' + Math.random().toString(36).slice(2, 8).toUpperCase(),
+  state: 'ACCEPTED',
+  driver_name: 'Trần Minh',
+  plate: '51B-67890',
+};
+</file>
+
+<file path="src/partners/fixtures/grab.fixture.ts">
+// Fixture mô phỏng hình dạng raw response của Grab API
+// Team tích hợp Grab: điền đúng cấu trúc response thật vào đây
+// Sau đó chỉ cần sửa GrabAdapter.mapToQuote() để parse đúng fields
+
+export interface GrabRawQuote {
+  estimatedFare: {
+    currency: string;
+    value: number; // VND, vd: 85000
+    displayAmount: string; // vd: "85.000đ"
+  };
+  eta: {
+    pickUpEta: number; // giây
+    dropOffEta: number; // giây
+  };
+  driver: {
+    name: string;
+    rating: number;
+    vehicleType: string;
+  } | null;
+  serviceType: string; // vd: "GrabCar", "GrabBike"
+  available: boolean;
+}
+
+export interface GrabRawConfirm {
+  bookingCode: string;
+  status: string;
+  driverName: string;
+  vehiclePlate: string;
+  otp: string;
+}
+
+// Dữ liệu mẫu - team thay bằng gọi API thật
+export const GRAB_MOCK_QUOTE: GrabRawQuote = {
+  estimatedFare: { currency: 'VND', value: 85000, displayAmount: '85.000đ' },
+  eta: { pickUpEta: 180, dropOffEta: 900 },
+  driver: { name: 'Nguyễn Tài', rating: 4.8, vehicleType: 'GrabCar' },
+  serviceType: 'GrabCar',
+  available: true,
+};
+
+export const GRAB_MOCK_CONFIRM: GrabRawConfirm = {
+  bookingCode: 'GRB-' + Math.random().toString(36).slice(2, 8).toUpperCase(),
+  status: 'DRIVER_ACCEPTED',
+  driverName: 'Nguyễn Tài',
+  vehiclePlate: '51A-12345',
+  otp: '5678',
+};
+</file>
+
+<file path="src/partners/fixtures/xanh-sm.fixture.ts">
+// Fixture mô phỏng hình dạng raw response của Xanh SM API
+// Team tích hợp Xanh SM: điền đúng cấu trúc response thật vào đây
+// Sau đó chỉ cần sửa XanhSmAdapter.mapToQuote() để parse đúng fields
+
+export interface XanhSmRawQuote {
+  quote: {
+    amount: number; // VND
+    formatted: string; // vd: "68,000 VND"
+    currency: 'VND';
+    distance_km: number;
+    eta_minutes: number;
+  };
+  driver: {
+    name: string;
+    score: number;
+    car: string; // vd: "VinFast VF e34"
+  } | null;
+  available: boolean;
+  car_type: string; // vd: "XanhSM Car"
+}
+
+export interface XanhSmRawConfirm {
+  order_id: string;
+  status: 'MATCHED';
+  driver_name: string;
+  car_number: string;
+  pickup_code: string;
+}
+
+// Dữ liệu mẫu - team thay bằng gọi API thật
+export const XANH_SM_MOCK_QUOTE: XanhSmRawQuote = {
+  quote: {
+    amount: 68000,
+    formatted: '68,000 VND',
+    currency: 'VND',
+    distance_km: 12.5,
+    eta_minutes: 5,
+  },
+  driver: {
+    name: 'Lê Hùng',
+    score: 4.7,
+    car: 'VinFast VF e34',
+  },
+  available: true,
+  car_type: 'XanhSM Car',
+};
+
+export const XANH_SM_MOCK_CONFIRM: XanhSmRawConfirm = {
+  order_id: 'XSM-' + Math.random().toString(36).slice(2, 8).toUpperCase(),
+  status: 'MATCHED',
+  driver_name: 'Lê Hùng',
+  car_number: '51C-11223',
+  pickup_code: '9012',
+};
+</file>
+
+<file path="src/partners/partner.provider.ts">
+import { Intent, PartnerQuote } from '../types';
+
+/** Interface cho đối tác xe (Grab, Be, Xanh SM) */
+export interface RideProvider {
+  /** Lấy báo giá từ đối tác - đọc fixture, chạy mapper */
+  quote(intent: Intent): Promise<PartnerQuote>;
+  /** Xác nhận đặt - trả mã đơn giả từ fixture */
+  confirm(orderId: string): Promise<{ externalId: string; message: string }>;
+}
+
+/** Interface cho đối tác đồ ăn (tương lai: ShopeeFood, GrabFood, v.v.) */
+export interface FoodProvider {
+  quote(intent: Intent): Promise<PartnerQuote>;
+  confirm(orderId: string): Promise<{ externalId: string; message: string }>;
+}
+
+export const PARTNERS_SERVICE = 'PARTNERS_SERVICE';
+</file>
+
+<file path="src/partners/partners.module.ts">
+import { HttpModule } from '@nestjs/axios';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { GrabAdapter } from './adapters/grab.adapter';
+import { BeAdapter } from './adapters/be.adapter';
+import { XanhSmAdapter } from './adapters/xanh-sm.adapter';
+import { PartnersService } from './partners.service';
+import { DbPartnersService } from './db-partners.service';
+import { PrismaService } from '../prisma/prisma.service';
+
+export const PARTNERS_IMPL = 'PARTNERS_IMPL';
+
+@Module({
+  imports: [ConfigModule, HttpModule],
+  providers: [
+    PrismaService,
+    GrabAdapter,
+    BeAdapter,
+    XanhSmAdapter,
+    PartnersService,
+    DbPartnersService,
+    {
+      provide: PARTNERS_IMPL,
+      useFactory: (
+        config: ConfigService,
+        db: DbPartnersService,
+        fixture: PartnersService,
+      ) => {
+        const provider = config.get<string>('PROVIDER_PARTNER', 'db');
+        if (provider === 'db') return db;
+        if (provider === 'mock') return fixture;
+        throw new Error(`Unknown Partner provider: ${provider}`);
+      },
+      inject: [ConfigService, DbPartnersService, PartnersService],
+    },
+  ],
+  exports: [PARTNERS_IMPL, PartnersService, DbPartnersService],
+})
+export class PartnersModule {}
+</file>
+
+<file path="src/partners/partners.service.ts">
+import { Injectable } from '@nestjs/common';
+import { Intent, PartnerCode, PartnerQuote } from '../types';
+import { GrabAdapter } from './adapters/grab.adapter';
+import { BeAdapter } from './adapters/be.adapter';
+import { XanhSmAdapter } from './adapters/xanh-sm.adapter';
+
+/** Orchestrate gọi tất cả đối tác song song, trả danh sách quote */
+@Injectable()
+export class PartnersService {
+  constructor(
+    private readonly grab: GrabAdapter,
+    private readonly be: BeAdapter,
+    private readonly xanhSm: XanhSmAdapter,
+  ) {}
+
+  async quoteAll(intent: Intent): Promise<PartnerQuote[]> {
+    // Gọi song song 3 đối tác, không để 1 fail block cả 3
+    const results = await Promise.allSettled([
+      this.grab.quote(intent),
+      this.be.quote(intent),
+      this.xanhSm.quote(intent),
+    ]);
+
+    return results
+      .filter(
+        (r): r is PromiseFulfilledResult<PartnerQuote> =>
+          r.status === 'fulfilled',
+      )
+      .map((r) => r.value);
+  }
+
+  async confirm(
+    partner: PartnerCode,
+    orderId: string,
+  ): Promise<{ externalId: string; message: string }> {
+    const adapter =
+      partner === PartnerCode.GRAB
+        ? this.grab
+        : partner === PartnerCode.BE
+          ? this.be
+          : this.xanhSm;
+
+    return adapter.confirm(orderId);
+  }
+}
+</file>
+
+<file path="src/places/db-places.provider.ts">
+import { Injectable } from '@nestjs/common';
+import { PlaceStatus } from '../types';
+import { PlacesProvider } from './places.provider';
+import { PrismaService } from '../prisma/prisma.service';
+
+@Injectable()
+export class DbPlacesProvider implements PlacesProvider {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async getStatus(query: string): Promise<PlaceStatus> {
+    const q = query.toLowerCase();
+
+    // Tìm place có keyword match với query
+    const places = await this.prisma.place.findMany();
+    const match = places.find((p) => p.keywords.some((k) => q.includes(k)));
+
+    if (!match) {
+      return { name: query, isOpen: true, address: 'Địa chỉ chưa xác định' };
+    }
+
+    const hour = new Date().getHours();
+    const isOpen = hour >= match.openHour && hour < match.closeHour;
+
+    return {
+      name: match.name,
+      isOpen,
+      address: match.address,
+    };
+  }
+}
+</file>
+
+<file path="src/places/fixtures/places.fixture.ts">
+// Fixture địa điểm mẫu - team điền thêm data thật vào đây
+// Sau khi có Google Places API key: thay MockPlacesProvider bằng GooglePlacesProvider
+// giữ nguyên interface, chỉ cần mapper từ Google response sang PlaceStatus
+
+export interface PlaceFixture {
+  name: string;
+  address: string;
+  /** Giờ mở cửa (0-23) */
+  openHour: number;
+  /** Giờ đóng cửa (0-23) */
+  closeHour: number;
+  keywords: string[]; // từ khoá để match với intent
+}
+
+export const PLACE_FIXTURES: PlaceFixture[] = [
+  {
+    name: 'Sân bay Tân Sơn Nhất',
+    address: '60 Trường Sơn, Tân Bình, TP.HCM',
+    openHour: 0,
+    closeHour: 24,
+    keywords: ['tân sơn nhất', 'sân bay', 'tsn', 'airport'],
+  },
+  {
+    name: 'Bến xe Miền Đông',
+    address: '292 Đinh Bộ Lĩnh, Bình Thạnh, TP.HCM',
+    openHour: 5,
+    closeHour: 22,
+    keywords: ['bến xe miền đông', 'miền đông', 'bến xe'],
+  },
+  {
+    name: 'Quán Phở Hà Nội',
+    address: '25 Nguyễn Trãi, Quận 1, TP.HCM',
+    openHour: 6,
+    closeHour: 22,
+    keywords: ['phở hà nội', 'phở', 'quán phở'],
+  },
+  {
+    name: 'Cơm Tấm Thuận Kiều',
+    address: '12 Lê Thánh Tôn, Quận 1, TP.HCM',
+    openHour: 7,
+    closeHour: 21,
+    keywords: ['thuận kiều', 'cơm tấm', 'cơm tấm thuận kiều'],
+  },
+  {
+    name: 'Bún Bò Huế Bà Mỹ',
+    address: '34 Bùi Viện, Quận 1, TP.HCM',
+    openHour: 6,
+    closeHour: 20,
+    keywords: ['bà mỹ', 'bún bò', 'bún bò huế'],
+  },
+  // TODO: team thêm địa điểm thật vào đây
+];
+</file>
+
+<file path="src/places/google-places.provider.ts">
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import type { PlacesProvider } from './places.provider';
+import type { PlaceStatus } from '../types';
+
+@Injectable()
+export class GooglePlacesProvider implements PlacesProvider {
+  private readonly logger = new Logger(GooglePlacesProvider.name);
+
+  constructor(private readonly config: ConfigService) {}
+
+  async getStatus(query: string): Promise<PlaceStatus> {
+    try {
+      this.logger.log(`Searching Google Places API for: ${query}`);
+      const apiKey = this.config.get<string>('GOOGLE_API_KEY');
+      if (!apiKey) {
+        this.logger.warn(
+          'GOOGLE_API_KEY is not defined. Falling back to mock.',
+        );
+        return {
+          name: query,
+          isOpen: true,
+          address: 'Mock Address (No API Key)',
+        };
+      }
+
+      // Gọi API Place Text Search của Google Maps
+      const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}&language=vi`;
+      const res = await fetch(url);
+      if (!res.ok)
+        throw new Error(`Google Places API failed with status: ${res.status}`);
+
+      const data = (await res.json()) as any;
+
+      // Log trạng thái phản hồi từ Google để debug
+      this.logger.log(`Google API Status: ${data.status}`);
+      if (data.error_message) {
+        this.logger.error(`Google API Error Message: ${data.error_message}`);
+      }
+
+      const firstResult = data.results?.[0];
+
+      if (!firstResult) {
+        this.logger.warn(
+          `No places found on Google Maps for: ${query}. Response Status: ${data.status}`,
+        );
+        return {
+          name: query,
+          isOpen: false,
+          address: `Không tìm thấy địa điểm (Google Status: ${data.status})`,
+        };
+      }
+
+      const name = firstResult.name || query;
+      const address = firstResult.formatted_address || '';
+      // Google trả về field opening_hours.open_now để biết trạng thái đóng/mở
+      const isOpen = firstResult.opening_hours?.open_now ?? true;
+
+      const latitude = firstResult.geometry?.location?.lat;
+      const longitude = firstResult.geometry?.location?.lng;
+
+      this.logger.log(
+        `Found on Google Maps: ${name}, isOpen: ${isOpen}, address: ${address}, coords: (${latitude}, ${longitude})`,
+      );
+
+      return { name, isOpen, address, latitude, longitude };
+    } catch (error) {
+      this.logger.error(
+        `Error fetching place status from Google Places API: ${(error as Error).message}`,
+        error,
+      );
+      // Fallback an toàn
+      return { name: query, isOpen: true, address: 'Lỗi kết nối bản đồ' };
+    }
+  }
+}
+</file>
+
+<file path="src/places/mock-places.provider.ts">
+import { Injectable } from '@nestjs/common';
+import { PlaceStatus } from '../types';
+import { PlacesProvider } from './places.provider';
+import { PLACE_FIXTURES } from './fixtures/places.fixture';
+
+// TODO: team thay bằng GooglePlacesProvider khi có API key
+// PLACE_FIXTURES là data mẫu - chỉnh sửa file fixtures/places.fixture.ts
+@Injectable()
+export class MockPlacesProvider implements PlacesProvider {
+  async getStatus(query: string): Promise<PlaceStatus> {
+    const q = query.toLowerCase();
+    const match = PLACE_FIXTURES.find((p) =>
+      p.keywords.some((k) => q.includes(k)),
+    );
+
+    if (!match) {
+      return { name: query, isOpen: true, address: 'Địa chỉ chưa xác định' };
+    }
+
+    // Giả lập isOpen theo giờ thực tế
+    const hour = new Date().getHours();
+    const isOpen = hour >= match.openHour && hour < match.closeHour;
+
+    return {
+      name: match.name,
+      isOpen,
+      address: match.address,
+    };
+  }
+}
+</file>
+
+<file path="src/places/places.module.ts">
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { PLACES_PROVIDER } from './places.provider';
+import { MockPlacesProvider } from './mock-places.provider';
+import { DbPlacesProvider } from './db-places.provider';
+import { SerpApiPlacesProvider } from './serpapi-places.provider';
+import { GooglePlacesProvider } from './google-places.provider';
+import { PrismaService } from '../prisma/prisma.service';
+
+@Module({
+  imports: [ConfigModule],
+  providers: [
+    PrismaService,
+    {
+      provide: PLACES_PROVIDER,
+      useFactory: (config: ConfigService, prisma: PrismaService) => {
+        const provider = config.get<string>('PROVIDER_PLACES', 'db');
+        if (provider === 'db') return new DbPlacesProvider(prisma);
+        if (provider === 'mock') return new MockPlacesProvider();
+        if (provider === 'serpapi') return new SerpApiPlacesProvider(config);
+        if (provider === 'google') return new GooglePlacesProvider(config);
+        throw new Error(`Unknown Places provider: ${provider}`);
+      },
+      inject: [ConfigService, PrismaService],
+    },
+  ],
+  exports: [PLACES_PROVIDER],
+})
+export class PlacesModule {}
+</file>
+
+<file path="src/places/places.provider.ts">
+import { PlaceStatus } from '../types';
+
+// Interface Places - team thay bằng Google Places API sau
+export interface PlacesProvider {
+  getStatus(query: string): Promise<PlaceStatus>;
+}
+
+export const PLACES_PROVIDER = 'PLACES_PROVIDER';
+</file>
+
+<file path="src/places/serpapi-places.provider.ts">
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import type { PlacesProvider } from './places.provider';
+import type { PlaceStatus } from '../types';
+
+@Injectable()
+export class SerpApiPlacesProvider implements PlacesProvider {
+  private readonly logger = new Logger(SerpApiPlacesProvider.name);
+
+  constructor(private readonly config: ConfigService) {}
+
+  async getStatus(query: string): Promise<PlaceStatus> {
+    try {
+      this.logger.log(`Searching SerpApi Google Maps for: ${query}`);
+      const apiKey = this.config.get<string>('SERPAPI_API_KEY');
+      if (!apiKey) {
+        this.logger.warn(
+          'SERPAPI_API_KEY is not defined. Falling back to mock open status.',
+        );
+        return {
+          name: query,
+          isOpen: true,
+          address: 'Mock Address (No API Key)',
+        };
+      }
+
+      const url = `https://serpapi.com/search.json?engine=google_maps&q=${encodeURIComponent(query)}&api_key=${apiKey}`;
+      const res = await fetch(url);
+      if (!res.ok)
+        throw new Error(`SerpApi request failed with status: ${res.status}`);
+
+      const data = (await res.json()) as any;
+      const firstResult = data.local_results?.[0];
+
+      if (!firstResult) {
+        this.logger.warn(`No places found for query: ${query}`);
+        return { name: query, isOpen: false, address: 'Not found' };
+      }
+
+      const name = firstResult.title || query;
+      const address = firstResult.address || '';
+      const openState = firstResult.open_state || '';
+
+      // Check if open_state indicates open status (e.g., "Open now")
+      const isOpen = openState.toLowerCase().includes('open');
+
+      this.logger.log(
+        `Found place: ${name}, isOpen: ${isOpen}, address: ${address}`,
+      );
+
+      return { name, isOpen, address };
+    } catch (error) {
+      this.logger.error(
+        `Error fetching place status from SerpApi: ${(error as Error).message}`,
+        error,
+      );
+      // Fallback
+      return { name: query, isOpen: true, address: 'Error fallback' };
+    }
+  }
+}
+</file>
+
+<file path="src/prisma/prisma.module.ts">
+import { Global, Module } from '@nestjs/common';
+import { PrismaService } from './prisma.service';
+
+@Global()
+@Module({
+  providers: [PrismaService],
+  exports: [PrismaService],
+})
+export class PrismaModule {}
+</file>
+
+<file path="src/prisma/prisma.service.ts">
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
+import { PrismaClient } from '../generated/prisma';
+import { PrismaPg } from '@prisma/adapter-pg';
+
+@Injectable()
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
+  private readonly logger = new Logger(PrismaService.name);
+
+  constructor() {
+    super({ adapter: new PrismaPg(process.env['DATABASE_URL']!) });
+  }
+
+  async onModuleInit() {
+    try {
+      await this.$connect();
+      this.logger.log('Database connected');
+    } catch (err) {
+      this.logger.warn(
+        `Database unavailable: ${(err as Error).message}. Mocked endpoints still work.`,
+      );
+    }
+  }
+
+  async onModuleDestroy() {
+    await this.$disconnect();
+  }
+}
+</file>
+
+<file path="src/restaurants/restaurants.controller.ts">
+import { Controller, Get, Param, Query } from '@nestjs/common';
+import { RestaurantsService } from './restaurants.service';
+
+@Controller('restaurants')
+export class RestaurantsController {
+  constructor(private readonly restaurants: RestaurantsService) {}
+
+  /** GET /restaurants?partner=GRAB */
+  @Get()
+  list(@Query('partner') partner?: string) {
+    return this.restaurants.listAll(partner);
+  }
+
+  /** GET /restaurants/:id/menu?partner=GRAB */
+  @Get(':id/menu')
+  menu(@Param('id') id: string, @Query('partner') partner: string = 'GRAB') {
+    return this.restaurants.getMenu(id, partner);
+  }
+}
+</file>
+
+<file path="src/restaurants/restaurants.module.ts">
+import { HttpModule } from '@nestjs/axios';
+import { Module } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { RestaurantsController } from './restaurants.controller';
+import { RestaurantsService } from './restaurants.service';
+
+@Module({
+  imports: [HttpModule],
+  providers: [PrismaService, RestaurantsService],
+  controllers: [RestaurantsController],
+  exports: [RestaurantsService],
+})
+export class RestaurantsModule {}
+</file>
+
+<file path="src/restaurants/restaurants.service.ts">
+import { HttpService } from '@nestjs/axios';
+import { Injectable, Logger } from '@nestjs/common';
+import { firstValueFrom } from 'rxjs';
+import { PrismaService } from '../prisma/prisma.service';
+import {
+  FoodQuote,
+  OrderedItem,
+  PartnerCode,
+  PartnerRestaurant,
+} from '../types';
+import {
+  PartnerSimFoodQuoteResult,
+  PartnerSimFoodSearchResult,
+} from '../partner-sim/partner-sim.service';
+
+// Base URL cho partner-sim (chạy cùng process, nhưng qua HTTP để simulate fan-out)
+const SIM_BASE = process.env.PARTNER_SIM_URL ?? 'http://localhost:3000';
+
+@Injectable()
+export class RestaurantsService {
+  private readonly logger = new Logger(RestaurantsService.name);
+
+  constructor(
+    private readonly http: HttpService,
+    private readonly prisma: PrismaService,
+  ) {}
+
+  /**
+   * Fan-out HTTP tới 3 partner-sim search endpoints song song.
+   * Giả lập: AccessAI gửi 3 request đồng thời → chờ cả 3 → aggregate.
+   */
+  async searchRestaurants(query: string): Promise<PartnerRestaurant[]> {
+    if (!query || query.trim().length < 2) return [];
+
+    const payload = { query };
+    const [grabRes, beRes, shopeeRes] = await Promise.allSettled([
+      this.post<PartnerSimFoodSearchResult[]>(
+        '/partner-sim/grab/food/search',
+        payload,
+      ),
+      this.post<PartnerSimFoodSearchResult[]>(
+        '/partner-sim/be/food/search',
+        payload,
+      ),
+      this.post<PartnerSimFoodSearchResult[]>(
+        '/partner-sim/shopee/food/search',
+        payload,
+      ),
+    ]);
+
+    const raw: PartnerRestaurant[] = [];
+    if (grabRes.status === 'fulfilled') {
+      raw.push(
+        ...grabRes.value.map((r) => this.toPartnerRest(PartnerCode.GRAB, r)),
+      );
+    } else {
+      this.logger.warn('Grab food/search failed: ' + grabRes.reason);
+    }
+    if (beRes.status === 'fulfilled') {
+      raw.push(
+        ...beRes.value.map((r) => this.toPartnerRest(PartnerCode.BE, r)),
+      );
+    } else {
+      this.logger.warn('Be food/search failed: ' + beRes.reason);
+    }
+    if (shopeeRes.status === 'fulfilled') {
+      raw.push(
+        ...shopeeRes.value.map((r) =>
+          this.toPartnerRest(PartnerCode.SHOPEE, r),
+        ),
+      );
+    } else {
+      this.logger.warn('Shopee food/search failed: ' + shopeeRes.reason);
+    }
+
+    const enriched = await Promise.all(raw.map((r) => this.enrichRating(r)));
+    return enriched.sort((a, b) => b.displayRating - a.displayRating);
+  }
+
+  /** Resolve voice items sang MenuItem cho đúng partner table */
+  async resolveItems(
+    restaurantId: string,
+    partner: PartnerCode,
+    itemQueries: string[],
+  ): Promise<OrderedItem[]> {
+    let items: {
+      id: string;
+      name: string;
+      priceVnd: number;
+      keywords: string[];
+      available: boolean;
+    }[] = [];
+
+    if (partner === PartnerCode.GRAB) {
+      items = await this.prisma.grabMenuItem.findMany({
+        where: { grabRestaurantId: restaurantId, available: true },
+      });
+    } else if (partner === PartnerCode.BE) {
+      items = await this.prisma.beMenuItem.findMany({
+        where: { beRestaurantId: restaurantId, available: true },
+      });
+    } else if (partner === PartnerCode.SHOPEE) {
+      items = await this.prisma.shopeeMenuItem.findMany({
+        where: { shopeeRestaurantId: restaurantId, available: true },
+      });
+    }
+
+    const resolved: OrderedItem[] = [];
+    for (const query of itemQueries) {
+      const q = query.toLowerCase();
+      const match = items.find(
+        (i) =>
+          i.keywords.some((k) => q.includes(k) || k.includes(q)) ||
+          q.includes(i.name.toLowerCase()),
+      );
+      if (match) {
+        const existing = resolved.find((r) => r.menuItemId === match.id);
+        if (existing) {
+          existing.qty += 1;
+        } else {
+          resolved.push({
+            menuItemId: match.id,
+            name: match.name,
+            qty: 1,
+            priceVnd: match.priceVnd,
+          });
+        }
+      }
+    }
+    return resolved;
+  }
+
+  /**
+   * Gửi HTTP tới đúng partner-sim food/quote endpoint.
+   * Giả lập: AccessAI gửi 1 request tới partner với giỏ hàng → partner tính giá + promo.
+   */
+  async calcQuote(
+    restaurant: PartnerRestaurant,
+    items: OrderedItem[],
+  ): Promise<FoodQuote> {
+    const payload = {
+      restaurantId: restaurant.restaurantId,
+      items: items.map((i) => ({
+        name: i.name,
+        qty: i.qty,
+        priceVnd: i.priceVnd,
+      })),
+    };
+
+    const endpoint = this.foodQuoteEndpoint(restaurant.partner);
+    const result = await this.post<PartnerSimFoodQuoteResult>(
+      endpoint,
+      payload,
+    );
+
+    return {
+      partner: restaurant.partner,
+      subtotalVnd: result.subtotalVnd,
+      deliveryFeeVnd: result.deliveryFeeVnd,
+      discountVnd: result.discountVnd,
+      totalVnd: result.totalVnd,
+      promoDescription: result.promoDescription,
+      etaMinutes: result.etaMinutes,
+      driverName: result.driverName,
+      available: result.available,
+    };
+  }
+
+  /** GET /restaurants — list theo partner hoặc tất cả */
+  async listAll(partner?: string): Promise<PartnerRestaurant[]> {
+    const p = partner?.toUpperCase();
+    const raw: PartnerRestaurant[] = [];
+
+    if (!p || p === 'GRAB') {
+      const list = await this.prisma.grabRestaurant.findMany({
+        where: { available: true },
+      });
+      raw.push(...list.map((r) => this.toPartnerRest(PartnerCode.GRAB, r)));
+    }
+    if (!p || p === 'BE') {
+      const list = await this.prisma.beRestaurant.findMany({
+        where: { available: true },
+      });
+      raw.push(...list.map((r) => this.toPartnerRest(PartnerCode.BE, r)));
+    }
+    if (!p || p === 'SHOPEE') {
+      const list = await this.prisma.shopeeRestaurant.findMany({
+        where: { available: true },
+      });
+      raw.push(...list.map((r) => this.toPartnerRest(PartnerCode.SHOPEE, r)));
+    }
+
+    const enriched = await Promise.all(raw.map((r) => this.enrichRating(r)));
+    return enriched.sort((a, b) => b.displayRating - a.displayRating);
+  }
+
+  /** GET /restaurants/:id/menu — cần partner param để biết query bảng nào */
+  async getMenu(restaurantId: string, partner: string) {
+    const p = partner.toUpperCase() as PartnerCode;
+
+    if (p === PartnerCode.GRAB) {
+      const rest = await this.prisma.grabRestaurant.findUniqueOrThrow({
+        where: { id: restaurantId },
+        include: { items: { where: { available: true } } },
+      });
+      return {
+        restaurantId,
+        partner: p,
+        name: rest.name,
+        categories: this.groupByCategory(rest.items),
+      };
+    }
+    if (p === PartnerCode.BE) {
+      const rest = await this.prisma.beRestaurant.findUniqueOrThrow({
+        where: { id: restaurantId },
+        include: { items: { where: { available: true } } },
+      });
+      return {
+        restaurantId,
+        partner: p,
+        name: rest.name,
+        categories: this.groupByCategory(rest.items),
+      };
+    }
+    if (p === PartnerCode.SHOPEE) {
+      const rest = await this.prisma.shopeeRestaurant.findUniqueOrThrow({
+        where: { id: restaurantId },
+        include: { items: { where: { available: true } } },
+      });
+      return {
+        restaurantId,
+        partner: p,
+        name: rest.name,
+        categories: this.groupByCategory(rest.items),
+      };
+    }
+
+    throw new Error(`Partner ${partner} không hỗ trợ food`);
+  }
+
+  // ── private helpers ──────────────────────────────────────────
+
+  private toPartnerRest(
+    partner: PartnerCode,
+    r:
+      | PartnerSimFoodSearchResult
+      | {
+          id: string;
+          name: string;
+          address: string;
+          rating: number;
+          reviewCount: number;
+          deliveryFeeVnd: number;
+          minOrderVnd: number;
+          cuisineType: string;
+          keywords: string[];
+          available: boolean;
+          openHour: number;
+          closeHour: number;
+        },
+  ): PartnerRestaurant {
+    const id = 'restaurantId' in r ? r.restaurantId : r.id;
+    return {
+      partner,
+      restaurantId: id,
+      name: r.name,
+      address: r.address,
+      rating: r.rating,
+      displayRating: r.rating,
+      reviewCount: r.reviewCount,
+      deliveryFeeVnd: r.deliveryFeeVnd,
+      minOrderVnd: r.minOrderVnd,
+      cuisineType: r.cuisineType,
+      keywords: r.keywords,
+      available: r.available,
+      openHour: r.openHour,
+      closeHour: r.closeHour,
+    };
+  }
+
+  private async enrichRating(r: PartnerRestaurant): Promise<PartnerRestaurant> {
+    const agg = await this.prisma.orderReview.aggregate({
+      _avg: { restaurantRating: true },
+      _count: { restaurantRating: true },
+      where: {
+        order: { partnerRestaurantId: r.restaurantId, partner: r.partner },
+      },
+    });
+    const accessAiAvg = agg._avg.restaurantRating;
+    return {
+      ...r,
+      displayRating:
+        accessAiAvg !== null ? Math.round(accessAiAvg * 10) / 10 : r.rating,
+      reviewCount: r.reviewCount + (agg._count.restaurantRating ?? 0),
+    };
+  }
+
+  private groupByCategory(
+    items: {
+      categoryName: string;
+      id: string;
+      name: string;
+      priceVnd: number;
+      description?: string | null;
+      available: boolean;
+    }[],
+  ) {
+    const map = new Map<string, typeof items>();
+    for (const item of items) {
+      if (!map.has(item.categoryName)) map.set(item.categoryName, []);
+      map.get(item.categoryName)!.push(item);
+    }
+    return Array.from(map.entries()).map(([name, catItems]) => ({
+      name,
+      items: catItems,
+    }));
+  }
+
+  private foodQuoteEndpoint(partner: PartnerCode): string {
+    if (partner === PartnerCode.GRAB) return '/partner-sim/grab/food/quote';
+    if (partner === PartnerCode.BE) return '/partner-sim/be/food/quote';
+    if (partner === PartnerCode.SHOPEE) return '/partner-sim/shopee/food/quote';
+    throw new Error(`Partner ${partner} không hỗ trợ food quote`);
+  }
+
+  private async post<T>(path: string, body: unknown): Promise<T> {
+    const res = await firstValueFrom(
+      this.http.post<T>(`${SIM_BASE}${path}`, body),
+    );
+    return res.data;
+  }
+}
+</file>
+
+<file path="src/stt/mock-stt.provider.ts">
+import { Injectable } from '@nestjs/common';
+import { SttProvider } from './stt.provider';
+
+// TODO: team voice thay bằng provider thật (Google Cloud STT hoặc Whisper)
+// Cài: npx expo install expo-audio (mobile) + gọi API STT trên BE
+@Injectable()
+export class MockSttProvider implements SttProvider {
+  async transcribe(_audioBase64: string): Promise<string> {
+    // Trả text mẫu cố định để test pipeline
+    return 'đặt xe từ nhà đến sân bay Tân Sơn Nhất';
+  }
+}
+</file>
+
+<file path="src/stt/stt.module.ts">
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { STT_PROVIDER } from './stt.provider';
+import { MockSttProvider } from './mock-stt.provider';
+
+@Module({
+  imports: [ConfigModule],
+  providers: [
+    {
+      provide: STT_PROVIDER,
+      useFactory: (config: ConfigService) => {
+        const provider = config.get<string>('PROVIDER_STT', 'mock');
+        // TODO: thêm case 'google', 'whisper', v.v. khi có provider thật
+        if (provider === 'mock') return new MockSttProvider();
+        throw new Error(`Unknown STT provider: ${provider}`);
+      },
+      inject: [ConfigService],
+    },
+  ],
+  exports: [STT_PROVIDER],
+})
+export class SttModule {}
+</file>
+
+<file path="src/stt/stt.provider.ts">
+// Interface STT - team voice implement sau bằng provider thật (Google STT, Whisper, v.v.)
+export interface SttProvider {
+  /**
+   * Chuyển audio base64 thành text.
+   * Giai đoạn basic: nếu đã có transcript thì bỏ qua bước này.
+   */
+  transcribe(audioBase64: string): Promise<string>;
+}
+
+export const STT_PROVIDER = 'STT_PROVIDER';
+</file>
+
+<file path="src/types.ts">
+// Types nội bộ của API - nguồn sự thật cho OpenAPI spec
+// Mobile codegen từ /api-json, không dùng file này trực tiếp
+
+export enum OrderType {
+  RIDE = 'RIDE',
+  FOOD = 'FOOD',
+}
+
+export enum OrderStatus {
+  QUOTED = 'QUOTED',
+  CONFIRMED = 'CONFIRMED',
+  DRIVER_ASSIGNED = 'DRIVER_ASSIGNED',
+  IN_TRANSIT = 'IN_TRANSIT',
+  DELIVERED = 'DELIVERED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum PartnerCode {
+  GRAB = 'GRAB',
+  BE = 'BE',
+  XANH_SM = 'XANH_SM',
+  SHOPEE = 'SHOPEE',
+}
+
+export interface Intent {
+  type: OrderType;
+  origin?: string;
+  destination?: string;
+  restaurant?: string;
+  items?: string[];
+  note?: string;
+  confidence?: number;
+}
+
+export interface PlaceStatus {
+  name: string;
+  isOpen: boolean;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface WeatherInfo {
+  tempC: number;
+  condition: string;
+  willRain: boolean;
+}
+
+export interface Enrichment {
+  place?: PlaceStatus;
+  weather?: WeatherInfo;
+}
+
+export interface PartnerQuote {
+  partner: PartnerCode;
+  price: number;
+  etaMinutes: number;
+  driverName?: string;
+  available: boolean;
+}
+
+export interface OrderedItem {
+  menuItemId: string;
+  name: string;
+  qty: number;
+  priceVnd: number;
+}
+
+export interface FoodQuote {
+  partner: PartnerCode;
+  subtotalVnd: number;
+  deliveryFeeVnd: number;
+  discountVnd: number;
+  totalVnd: number;
+  promoDescription?: string;
+  etaMinutes: number;
+  driverName?: string;
+  available: boolean;
+}
+
+export interface PartnerRestaurant {
+  partner: PartnerCode;
+  restaurantId: string;
+  name: string;
+  address: string;
+  rating: number; // partner seed rating (cold-start fallback)
+  displayRating: number; // accessAiAvgRating ?? partnerRating
+  reviewCount: number;
+  deliveryFeeVnd: number;
+  minOrderVnd: number;
+  cuisineType: string;
+  keywords: string[];
+  available: boolean;
+  openHour: number;
+  closeHour: number;
+}
+
+export interface VoiceOrderResponse {
+  orderId: string;
+  transcript: string;
+  intent: Intent;
+  enrichment: Enrichment;
+  quotes: PartnerQuote[];
+  foodQuotes?: FoodQuote[];
+  resolvedRestaurant?: {
+    id: string;
+    partner: string;
+    name: string;
+    address: string;
+    isOpen: boolean;
+  };
+  resolvedItems?: OrderedItem[];
+  responseText: string;
+}
+
+export interface ConfirmOrderResponse {
+  orderId: string;
+  status: OrderStatus;
+  partner: PartnerCode;
+  responseText: string;
+}
+</file>
+
+<file path="src/weather/mock-weather.provider.ts">
+import { Injectable } from '@nestjs/common';
+import { WeatherInfo } from '../types';
+import { WeatherProvider } from './weather.provider';
+
+// TODO: team thay bằng real provider: OpenWeatherMap API hoặc WeatherAPI.com
+// GET https://api.openweathermap.org/data/2.5/weather?q={location}&appid={key}
+@Injectable()
+export class MockWeatherProvider implements WeatherProvider {
+  private readonly conditions = [
+    { tempC: 32, condition: 'Nắng nhẹ', willRain: false },
+    { tempC: 28, condition: 'Nhiều mây', willRain: false },
+    { tempC: 26, condition: 'Mưa rào', willRain: true },
+    { tempC: 30, condition: 'Nắng nóng', willRain: false },
+  ];
+
+  async getCurrent(
+    _location: string,
+    _lat?: number,
+    _lng?: number,
+  ): Promise<WeatherInfo> {
+    // Xoay vòng theo giờ để test nhiều trạng thái thời tiết
+    const hour = new Date().getHours();
+    return this.conditions[hour % this.conditions.length];
+  }
+}
+</file>
+
+<file path="src/weather/open-meteo.provider.ts">
+import { Injectable, Logger } from '@nestjs/common';
+import type { WeatherProvider } from './weather.provider';
+import type { WeatherInfo } from '../types';
+
+@Injectable()
+export class OpenMeteoProvider implements WeatherProvider {
+  private readonly logger = new Logger(OpenMeteoProvider.name);
+
+  async getCurrent(
+    locationName: string,
+    latParam?: number,
+    lngParam?: number,
+  ): Promise<WeatherInfo> {
+    try {
+      let lat = latParam;
+      let lng = lngParam;
+
+      if (lat === undefined || lng === undefined) {
+        this.logger.log(
+          `Bắt đầu tìm tọa độ cho: ${locationName} (Không có tọa độ sẵn)`,
+        );
+
+        // BƯỚC 1: GEOCODING API → lấy tọa độ từ tên địa điểm
+        const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(locationName)}&count=1&language=vi&format=json`;
+        const geoRes = await fetch(geoUrl);
+        if (!geoRes.ok) throw new Error('Lỗi Geocoding API');
+        const geoData = (await geoRes.json()) as any;
+
+        lat = 10.7626;
+        lng = 106.6602;
+
+        if (geoData.results?.length > 0) {
+          lat = geoData.results[0].latitude;
+          lng = geoData.results[0].longitude;
+          this.logger.log(
+            `Tọa độ tìm được từ Geocoding: ${geoData.results[0].name} lat=${lat}, lng=${lng}`,
+          );
+        }
+      } else {
+        this.logger.log(
+          `Sử dụng tọa độ truyền trực tiếp từ Google Maps: lat=${lat}, lng=${lng}`,
+        );
+      }
+
+      // BƯỚC 2: FORECAST API → lấy thời tiết từ tọa độ
+      const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true`;
+      const weatherRes = await fetch(weatherUrl);
+      if (!weatherRes.ok) throw new Error('Lỗi Forecast API');
+      const weatherData = (await weatherRes.json()) as any;
+
+      const weatherCode: number = weatherData.current_weather.weathercode;
+      const willRain = weatherCode >= 51 && weatherCode <= 99;
+
+      // Map weatherCode sang condition text tiếng Việt
+      const condition = willRain
+        ? 'Trời đang mưa'
+        : weatherCode <= 3
+          ? 'Trời quang'
+          : 'Nhiều mây';
+
+      return {
+        tempC: weatherData.current_weather.temperature,
+        condition,
+        willRain,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Lỗi API thời tiết cho ${locationName}, fallback về mặc định`,
+        error,
+      );
+      // Fallback an toàn — không crash app
+      return { tempC: 30, condition: 'Không xác định', willRain: false };
+    }
+  }
+}
+</file>
+
+<file path="src/weather/weather.module.ts">
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { WEATHER_PROVIDER } from './weather.provider';
+import { MockWeatherProvider } from './mock-weather.provider';
+import { OpenMeteoProvider } from './open-meteo.provider';
+
+@Module({
+  imports: [ConfigModule],
+  providers: [
+    {
+      provide: WEATHER_PROVIDER,
+      useFactory: (config: ConfigService) => {
+        const provider = config.get<string>('PROVIDER_WEATHER', 'mock');
+        if (provider === 'mock') return new MockWeatherProvider();
+        if (provider === 'open-meteo') return new OpenMeteoProvider();
+        throw new Error(`Unknown Weather provider: ${provider}`);
+      },
+      inject: [ConfigService],
+    },
+  ],
+  exports: [WEATHER_PROVIDER],
+})
+export class WeatherModule {}
+</file>
+
+<file path="src/weather/weather.provider.ts">
+import { WeatherInfo } from '../types';
+
+// Interface Weather - team thay bằng OpenWeatherMap hoặc WeatherAPI sau
+export interface WeatherProvider {
+  getCurrent(
+    location: string,
+    lat?: number,
+    lng?: number,
+  ): Promise<WeatherInfo>;
+}
+
+export const WEATHER_PROVIDER = 'WEATHER_PROVIDER';
+</file>
+
+<file path="test/app.e2e-spec.ts">
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import request from 'supertest';
+import { App } from 'supertest/types';
+import { AppModule } from './../src/app.module';
+
+describe('AppController (e2e)', () => {
+  let app: INestApplication<App>;
+
+  beforeEach(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
+
+  it('/ (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/')
+      .expect(200)
+      .expect('Hello World!');
+  });
+
+  afterEach(async () => {
+    await app.close();
+  });
+});
+</file>
+
+<file path="test/jest-e2e.json">
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  }
+}
+</file>
+
+<file path="tsconfig.build.json">
+{
+  "extends": "./tsconfig.json",
+  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
+}
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolvePackageJsonExports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2023",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": true,
+    "strictBindCallApply": true,
+    "noFallthroughCasesInSwitch": true
+  }
+}
+</file>
+
+</files>

@@ -1,476 +1,714 @@
-import React, { useEffect, useRef } from 'react';
-import { 
-  Animated, 
-  ScrollView, 
-  StyleSheet, 
-  Text, 
-  TouchableOpacity, 
+// apps/mobile/src/screens/S13_RideTracking/index.tsx
+import React, { useRef, useEffect } from 'react';
+import {
+  Animated,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
   View,
-  Image 
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRideTracking } from './useRideTracking.hook';
 import { ScreenHeader } from '../../components/ScreenHeader';
-import { theme } from '../../theme/theme';
 import { ASSETS } from '../../assets';
+import { theme } from '../../theme/theme';
+import { SuaraLogo } from '../../components/SuaraLogo';
+import { BrandedBackground } from '../../components/BrandedBackground';
 
-export default function RideTrackingScreen() {
+const RideTrackingScreen = () => {
   const insets = useSafeAreaInsets();
-  const { 
-    currentStatus, 
-    stepIndex, 
-    steps, 
-    driver, 
-    onCancel, 
-    onBack, 
+  const {
+    currentStatus,
+    stepIndex,
+    steps,
+    driver,
+    canCancel,
+    onCancel,
+    onBack,
     intent,
-    announcement 
+    orderId,
+    otpDigits,
+    showOtp,
+    etaLabel,
+    announcement,
   } = useRideTracking();
 
-  const toastAnim = useRef(new Animated.Value(-100)).current;
+  // Voice toast animation (opacity only)
+  const toastOpacity = useRef(new Animated.Value(0)).current;
+  const [toastVisible, setToastVisible] = React.useState(false);
 
   useEffect(() => {
-    if (announcement) {
-      Animated.sequence([
-        Animated.timing(toastAnim, { toValue: insets.top + 16, duration: 500, useNativeDriver: true }),
-        Animated.delay(3000),
-        Animated.timing(toastAnim, { toValue: -100, duration: 500, useNativeDriver: true }),
-      ]).start();
-    }
-  }, [currentStatus, insets.top, announcement]);
+    if (!announcement) return;
+    setToastVisible(true);
+    Animated.sequence([
+      Animated.timing(toastOpacity, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.delay(3200),
+      Animated.timing(toastOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setToastVisible(false));
+  }, [announcement, currentStatus]);
 
-  const renderStep = (step: any, index: number) => {
-    const isActive = index === stepIndex;
-    const isDone = index < stepIndex;
-    return (
-      <View key={step.id} style={styles.stepItem}>
-        <View style={[
-          styles.stepCircle, 
-          (isActive || isDone) && { backgroundColor: '#00B14F' },
-          (!isActive && !isDone) && { backgroundColor: '#E5E7EB' }
-        ]}>
-          {isDone ? (
-            <MaterialCommunityIcons name="check" size={18} color="white" />
-          ) : (
-            <MaterialCommunityIcons 
-              name={step.icon} 
-              size={16} 
-              color={isActive ? "white" : "#9CA3AF"} 
-            />
-          )}
-        </View>
-        <Text style={[
-          styles.stepLabel, 
-          { color: isDone ? '#009040' : (isActive ? '#00B14F' : '#9CA3AF') }
-        ]}>
-          {step.label}
-        </Text>
-      </View>
-    );
-  };
+  // OTP card entrance animation
+  const otpScale = useRef(new Animated.Value(0.8)).current;
+  const otpOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (showOtp) {
+      Animated.parallel([
+        Animated.spring(otpScale, {
+          toValue: 1,
+          tension: 40,
+          friction: 6,
+          useNativeDriver: true,
+        }),
+        Animated.timing(otpOpacity, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.timing(otpOpacity, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }).start();
+      otpScale.setValue(0.8);
+    }
+  }, [showOtp]);
 
   return (
-    <SafeAreaView edges={['top', 'bottom']} style={styles.root}>
-      <ScreenHeader 
-        title="Chuyến đi của bạn" 
-        onBack={onBack}
-        rightElement={
-          <View style={styles.grabBadge}>
-            <Text style={styles.grabBadgeText}>Grab</Text>
-          </View>
-        }
-      />
+    <BrandedBackground variant="default">
+      <SafeAreaView edges={['top', 'bottom']} style={styles.root}>
+        <ScreenHeader
+          title="Chuyến đi của bạn"
+          showLogo={false}
+          onBack={onBack}
+          rightElement={
+            ASSETS.images.grabLogo && (
+              <Image
+                source={ASSETS.images.grabLogo}
+                style={styles.grabLogoImg}
+                resizeMode="contain"
+              />
+            )
+          }
+        />
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Map Area */}
-        <View style={styles.mapArea}>
-          {ASSETS.images.mapPlaceholder ? (
-            <Image 
-              source={ASSETS.images.mapPlaceholder} 
-              style={styles.mapImage} 
-              resizeMode="cover"
-            />
-          ) : (
-            <MaterialCommunityIcons name="car" size={48} color="#00B14F" />
-          )}
-          <View style={styles.etaBadge}>
-            <Text style={styles.etaText}>~6 phút</Text>
-          </View>
-        </View>
-
-        {/* Steps */}
-        <View style={styles.stepRow}>
-          {steps.map((step, idx) => (
-            <React.Fragment key={step.id}>
-              {renderStep(step, idx)}
-              {idx < steps.length - 1 && (
-                <View style={[
-                  styles.connector, 
-                  idx < stepIndex ? styles.connectorActive : styles.connectorPending
-                ]} />
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* MAP ZONE */}
+          <View style={styles.mapZoneContainer}>
+            <View style={styles.mapZone}>
+              {ASSETS.images.mapPlaceholder ? (
+                <Image
+                  source={ASSETS.images.mapPlaceholder}
+                  style={styles.mapImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={styles.mapPlaceholderBg}>
+                  <MaterialCommunityIcons name="car" size={52} color={theme.colors.primary} />
+                </View>
               )}
-            </React.Fragment>
-          ))}
-        </View>
 
-        {/* Driver Card */}
-        <View style={[styles.card, styles.shadow]}>
-          <View style={styles.row}>
-            <View style={styles.driverAvatar}>
-              <MaterialCommunityIcons name="account" size={36} color="#00B14F" />
-            </View>
-            <View style={styles.flex1}>
-              <Text style={styles.driverName}>{driver.name}</Text>
-              <View style={styles.driverMetaRow}>
-                <View style={styles.iconTextPair}>
-                  <MaterialCommunityIcons name="star" size={13} color="#F59E0B" />
-                  <Text style={styles.metaText}>{driver.rating}</Text>
-                </View>
-                <Text style={styles.metaSeparator}>·</Text>
-                <Text style={styles.metaText}>{driver.vehicle}</Text>
+              <View style={styles.floatingLogoPill}>
+                <SuaraLogo size="sm" />
               </View>
-              <View style={styles.plateBadge}>
-                <Text style={styles.plateText}>{driver.plate}</Text>
+
+              <View style={[styles.etaBadge, styles.shadow]}>
+                <MaterialCommunityIcons name="clock-outline" size={14} color={theme.colors.textPrimary} />
+                <Text style={styles.etaBadgeText}>{etaLabel}</Text>
               </View>
             </View>
           </View>
-        </View>
 
-        {/* OTP Card */}
-        {currentStatus === 'arrived' && (
-          <View style={styles.otpCard}>
-            <Text style={styles.otpLabel}>Mã OTP của bạn</Text>
-            <View style={styles.otpRow}>
-              {driver.otp.split('').map((digit, idx) => (
-                <View key={idx} style={styles.otpBox}>
-                  <Text style={styles.otpDigit}>{digit}</Text>
-                </View>
-              ))}
-            </View>
-            <Text style={styles.otpSublabel}>Chia sẻ mã này với tài xế</Text>
-          </View>
-        )}
+          {/* STEP INDICATOR */}
+          <View style={styles.stepRow}>
+            {steps.map((step, index) => {
+              const isDone = index < stepIndex;
+              const isActive = index === stepIndex;
+              const isPending = index > stepIndex;
 
-        {/* Ride Details */}
-        <View style={styles.card}>
-          <View style={styles.detailRow}>
-            <MaterialCommunityIcons name="map-marker" size={20} color="#6B7280" />
-            <Text style={styles.detailText} numberOfLines={1}>{intent?.origin || '123 Lê Lợi, Q.1'}</Text>
+              return (
+                <React.Fragment key={step.id}>
+                  <View style={styles.stepItem}>
+                    <View
+                      style={[
+                        styles.stepCircle,
+                        {
+                          backgroundColor: isPending ? theme.colors.border : theme.colors.primary,
+                        },
+                      ]}
+                    >
+                      {isDone ? (
+                        <MaterialCommunityIcons name="check" size={18} color="white" />
+                      ) : (
+                        <MaterialCommunityIcons
+                          name={step.icon as any}
+                          size={16}
+                          color={isPending ? theme.colors.textMuted : 'white'}
+                        />
+                      )}
+                    </View>
+                    <Text
+                      style={[
+                        styles.stepLabel,
+                        {
+                          color: isDone ? theme.colors.primaryDark : isActive ? theme.colors.primary : theme.colors.textMuted,
+                        },
+                      ]}
+                    >
+                      {step.label}
+                    </Text>
+                  </View>
+                  {index < steps.length - 1 && (
+                    <View
+                      style={[
+                        styles.connector,
+                        {
+                          backgroundColor: index < stepIndex ? theme.colors.primary : theme.colors.border,
+                        },
+                      ]}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
           </View>
-          <View style={styles.detailDivider} />
-          <View style={styles.detailRow}>
-            <MaterialCommunityIcons name="navigation" size={20} color="#00B14F" />
-            <Text style={styles.detailText} numberOfLines={1}>{intent?.destination || 'Bến Thành Market'}</Text>
-          </View>
-          <View style={styles.fareRow}>
-            <Text style={styles.fareLabel}>Giá cước dự kiến</Text>
-            <Text style={styles.farePrice}>~45.000đ</Text>
-          </View>
-        </View>
-      </ScrollView>
 
-      {/* Voice Toast */}
-      <Animated.View style={[styles.voiceToast, { transform: [{ translateY: toastAnim }] }]}>
-        <MaterialCommunityIcons name="volume-high" size={16} color="#00B14F" />
-        <Text style={styles.toastText}>{announcement}</Text>
-      </Animated.View>
-
-      {/* Footer */}
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
-        {currentStatus === 'finding' || currentStatus === 'en_route' ? (
-          <TouchableOpacity 
-            style={styles.cancelBtn} 
-            onPress={onCancel}
+          {/* DRIVER CARD */}
+          <View
+            style={[styles.card, styles.shadow]}
+            accessibilityLabel={`Tài xế ${driver.name}, đánh giá ${driver.rating}, ${driver.vehicle}, biển số ${driver.plate}`}
+            accessibilityRole="none"
           >
-            <Text style={styles.cancelBtnText}>Huỷ chuyến</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.disabledFooter}>
-            <Text style={styles.disabledText}>Không thể huỷ lúc này</Text>
+            <View style={styles.driverRow}>
+              <View style={styles.driverAvatar}>
+                <MaterialCommunityIcons name="account" size={32} color={theme.colors.primary} />
+              </View>
+              <View style={styles.driverInfoCenter}>
+                <Text style={styles.driverName}>{driver.name}</Text>
+                <View style={styles.driverRatingRow}>
+                  <MaterialCommunityIcons name="star" size={13} color="#F59E0B" />
+                  <Text style={styles.driverRatingText}>{driver.rating}</Text>
+                  <Text style={styles.dotSeparator}>·</Text>
+                  <MaterialCommunityIcons name="car" size={13} color={theme.colors.textSecondary} />
+                  <Text style={styles.vehicleText}>{driver.vehicle}</Text>
+                </View>
+                <View
+                  style={styles.plateView}
+                  accessibilityLabel={'Biển số xe ' + driver.plate}
+                >
+                  <Text style={styles.plateText}>{driver.plate}</Text>
+                </View>
+              </View>
+              <View style={styles.driverActions}>
+                <TouchableOpacity
+                  style={styles.actionBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel="Gọi tài xế"
+                >
+                  <MaterialCommunityIcons name="phone" size={22} color={theme.colors.textPrimary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel="Nhắn tin tài xế"
+                >
+                  <MaterialCommunityIcons name="chat-outline" size={22} color={theme.colors.textPrimary} />
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
+
+          {/* OTP CARD */}
+          {showOtp && (
+            <Animated.View
+              style={[
+                styles.otpCard,
+                { opacity: otpOpacity, transform: [{ scale: otpScale }] },
+              ]}
+              accessibilityLabel={`Mã OTP của bạn là ${otpDigits.join(' ')}`}
+              accessibilityLiveRegion="polite"
+            >
+              <Text style={styles.otpHeader}>MÃ OTP CỦA BẠN</Text>
+              <View style={styles.otpRow}>
+                {otpDigits.map((digit, i) => (
+                  <View key={i} style={styles.otpBox}>
+                    <Text style={styles.otpDigit}>{digit}</Text>
+                  </View>
+                ))}
+              </View>
+              <Text style={styles.otpHint}>
+                Chia sẻ mã này với tài xế để xác nhận lên xe
+              </Text>
+              <View style={styles.securityRow}>
+                <MaterialCommunityIcons name="shield-check" size={14} color={theme.colors.primary} />
+                <Text style={styles.securityText}>Mã hết hạn khi chuyến bắt đầu</Text>
+              </View>
+            </Animated.View>
+          )}
+
+          {/* RIDE DETAILS CARD */}
+          <View
+            style={[styles.card, styles.shadow]}
+            accessibilityLabel={`Từ ${intent?.origin ?? '123 Lê Lợi, Q.1'} đến ${
+              intent?.destination ?? 'Bến Thành Market'
+            }`}
+          >
+            <View style={styles.locationRow}>
+              <MaterialCommunityIcons name="map-marker-outline" size={18} color={theme.colors.primary} />
+              <View style={styles.locationInfo}>
+                <Text style={styles.locationLabel}>ĐIỂM ĐÓN</Text>
+                <Text style={styles.locationText}>
+                  {intent?.origin ?? '123 Lê Lợi, Q.1'}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.locationDivider} />
+            <View style={styles.locationRow}>
+              <MaterialCommunityIcons name="map-marker-check" size={18} color={theme.colors.error} />
+              <View style={styles.locationInfo}>
+                <Text style={styles.locationLabel}>ĐIỂM ĐẾN</Text>
+                <Text style={styles.locationText}>
+                  {intent?.destination ?? 'Bến Thành Market'}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.locationDivider} />
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>Giá ước tính</Text>
+              <Text style={styles.priceValue}>~45.000đ</Text>
+            </View>
+          </View>
+        </ScrollView>
+
+        {/* VOICE TOAST */}
+        {toastVisible && (
+          <Animated.View
+            style={[
+              styles.voiceToast,
+              { top: insets.top + 70, opacity: toastOpacity },
+            ]}
+            accessibilityLiveRegion="polite"
+            importantForAccessibility="yes"
+          >
+            <View style={styles.toastInner}>
+              <MaterialCommunityIcons name="volume-high" size={20} color={theme.colors.primary} />
+              <Text style={styles.toastText} numberOfLines={2}>
+                {announcement}
+              </Text>
+            </View>
+          </Animated.View>
         )}
-      </View>
-    </SafeAreaView>
+
+        {/* FOOTER */}
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+          {canCancel ? (
+            <TouchableOpacity
+              style={styles.cancelBtn}
+              onPress={onCancel}
+              accessibilityRole="button"
+              accessibilityLabel="Huỷ chuyến đi"
+              accessibilityHint="Chỉ khả dụng khi đang tìm xe hoặc tài xế đang đến"
+            >
+              <Text style={styles.cancelBtnText}>Huỷ chuyến</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.disabledFooter}>
+              <MaterialCommunityIcons name="lock" size={14} color={theme.colors.textMuted} />
+              <Text style={styles.disabledFooterText}>Không thể huỷ lúc này</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Floating Mic FAB */}
+        <TouchableOpacity 
+          style={[styles.micFab, { bottom: Math.max(insets.bottom, 16) + 80 }]}
+          accessibilityRole="button"
+          accessibilityLabel="Voice Assistant"
+        >
+          <MaterialCommunityIcons name="microphone" size={32} color="white" />
+        </TouchableOpacity>
+      </SafeAreaView>
+    </BrandedBackground>
   );
-}
+};
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F9F9FF',
+    backgroundColor: 'transparent',
+  },
+  flex1: {
+    flex: 1,
   },
   scrollContent: {
-    paddingBottom: 140,
+    paddingBottom: 160,
   },
-  grabBadge: {
-    backgroundColor: '#00B14F',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 999,
+  grabLogoImg: {
+    width: 60,
+    height: 24,
   },
-  grabBadgeText: {
-    fontSize: 12,
-    color: 'white',
-    fontWeight: '600',
+  mapZoneContainer: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 24,
   },
-  mapArea: {
-    height: 200,
-    marginHorizontal: 20,
-    backgroundColor: '#E8F8EF',
-    borderRadius: 20,
-    marginTop: 8,
-    marginBottom: 16,
+  mapZone: {
+    height: 240,
+    borderRadius: theme.radius.card,
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
     overflow: 'hidden',
+    backgroundColor: '#E8EDEA',
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   mapImage: {
     width: '100%',
     height: '100%',
   },
-  etaBadge: {
+  mapPlaceholderBg: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#E8EDEA',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  floatingLogoPill: {
     position: 'absolute',
     top: 12,
+    left: '50%',
+    marginLeft: -42,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: theme.radius.full,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  etaBadge: {
+    position: 'absolute',
+    bottom: 12,
     right: 12,
     backgroundColor: 'white',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    elevation: 2,
+    borderRadius: theme.radius.full,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  etaText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#111827',
+  etaBadgeText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: theme.colors.textPrimary,
   },
   stepRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingHorizontal: 24,
+    marginBottom: 24,
   },
   stepItem: {
     alignItems: 'center',
-    width: 65,
+    width: 64,
   },
   stepCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   stepLabel: {
-    fontSize: 10,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     textAlign: 'center',
-    width: 80,
+    width: 64,
   },
   connector: {
     flex: 1,
-    height: 2,
-    marginTop: -20,
-  },
-  connectorActive: {
-    backgroundColor: '#00B14F',
-  },
-  connectorPending: {
-    backgroundColor: '#E5E7EB',
+    height: 3,
+    marginTop: -26,
   },
   card: {
-    backgroundColor: 'white',
-    borderRadius: 20,
-    marginHorizontal: 20,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.card,
+    marginHorizontal: 16,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   shadow: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 4,
   },
-  row: {
+  driverRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   driverAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#E8F8EF',
+    width: 56,
+    height: 56,
+    backgroundColor: theme.colors.primarySoft,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
   },
-  flex1: {
+  driverInfoCenter: {
     flex: 1,
+    marginLeft: 14,
   },
   driverName: {
-    fontSize: 19,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#111827',
+    color: theme.colors.textPrimary,
   },
-  driverMetaRow: {
+  driverRatingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 2,
+    marginTop: 4,
   },
-  iconTextPair: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-  },
-  metaText: {
+  driverRatingText: {
     fontSize: 13,
-    color: '#6B7280',
+    color: theme.colors.textSecondary,
+    marginLeft: 3,
+    fontWeight: '600',
   },
-  metaSeparator: {
-    color: '#D1D5DB',
+  dotSeparator: {
     marginHorizontal: 4,
+    color: theme.colors.border,
   },
-  plateBadge: {
+  vehicleText: {
+    fontSize: 13,
+    color: theme.colors.textSecondary,
+    marginLeft: 3,
+    fontWeight: '500',
+  },
+  plateView: {
     backgroundColor: '#111827',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    borderRadius: theme.radius.sm,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     alignSelf: 'flex-start',
-    marginTop: 10,
+    marginTop: 8,
   },
   plateText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: 'white',
-    letterSpacing: 2,
+    letterSpacing: 1.5,
+  },
+  driverActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionBtn: {
+    width: 48,
+    height: 48,
+    backgroundColor: theme.colors.primaryXSoft,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   otpCard: {
-    backgroundColor: 'white',
-    borderRadius: 20,
-    marginHorizontal: 20,
+    backgroundColor: theme.colors.primaryXSoft,
+    borderRadius: theme.radius.card,
+    marginHorizontal: 16,
     padding: 20,
-    marginBottom: 12,
+    marginBottom: 16,
     borderWidth: 2,
-    borderColor: '#00B14F',
+    borderColor: theme.colors.primary,
   },
-  otpLabel: {
-    fontSize: 13,
-    color: '#6B7280',
+  otpHeader: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: theme.colors.textMuted,
+    letterSpacing: 1,
     textAlign: 'center',
     marginBottom: 12,
   },
   otpRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 8,
+    gap: 10,
   },
   otpBox: {
-    width: 56,
-    height: 56,
-    backgroundColor: '#E8F8EF',
-    borderRadius: 12,
+    width: 60,
+    height: 60,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+    borderRadius: theme.radius.lg,
     justifyContent: 'center',
     alignItems: 'center',
   },
   otpDigit: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '800',
-    color: '#00B14F',
+    color: theme.colors.primary,
   },
-  otpSublabel: {
-    fontSize: 13,
-    color: '#6B7280',
+  otpHint: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
     textAlign: 'center',
     marginTop: 12,
+    fontWeight: '500',
   },
-  detailRow: {
+  securityRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    gap: 6,
+  },
+  securityText: {
+    fontSize: 12,
+    color: theme.colors.primary,
+    fontWeight: '700',
+  },
+  locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 4,
+    marginVertical: 12,
   },
-  detailText: {
-    fontSize: 15,
-    color: '#374151',
-    marginLeft: 10,
+  locationInfo: {
+    marginLeft: 12,
     flex: 1,
   },
-  detailDivider: {
+  locationLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: theme.colors.textMuted,
+    letterSpacing: 1,
+  },
+  locationText: {
+    fontSize: 15,
+    color: theme.colors.textPrimary,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  locationDivider: {
     height: 1,
-    backgroundColor: '#F3F4F6',
-    marginVertical: 8,
+    backgroundColor: theme.colors.border,
     marginLeft: 30,
   },
-  fareRow: {
+  priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
   },
-  fareLabel: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  farePrice: {
+  priceLabel: {
     fontSize: 15,
-    fontWeight: '700',
-    color: '#111827',
+    color: theme.colors.textSecondary,
+    fontWeight: '500',
+  },
+  priceValue: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: theme.colors.primary,
   },
   voiceToast: {
     position: 'absolute',
     left: 20,
     right: 20,
-    backgroundColor: '#111827',
-    borderRadius: 16,
-    padding: 12,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
     zIndex: 100,
   },
+  toastInner: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: theme.colors.primary,
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
   toastText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '500',
-    marginLeft: 8,
+    color: theme.colors.textPrimary,
+    fontSize: 15,
+    fontWeight: '700',
+    marginLeft: 12,
+    flex: 1,
   },
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: theme.colors.border,
     paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingTop: 16,
   },
   cancelBtn: {
-    width: '100%',
-    height: 52,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: '#EF4444',
+    height: 60,
+    borderRadius: theme.radius.full,
+    borderWidth: 1.5,
+    borderColor: theme.colors.error,
     justifyContent: 'center',
     alignItems: 'center',
   },
   cancelBtnText: {
-    color: '#EF4444',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
+    color: theme.colors.error,
   },
   disabledFooter: {
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    height: 52,
+    height: 60,
   },
-  disabledText: {
-    fontSize: 14,
-    color: '#9CA3AF',
+  disabledFooterText: {
+    fontSize: 15,
+    color: theme.colors.textMuted,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  micFab: {
+    position: 'absolute',
+    right: 20,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
 });
+
+export default RideTrackingScreen;

@@ -1,14 +1,15 @@
+// apps/mobile/src/components/ScreenHeader/styles.ts
 import { StyleSheet } from 'react-native';
 import { theme } from '../../theme/theme';
 
 export const styles = StyleSheet.create({
   container: {
-    height: 64,
+    height: 60,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: theme.spacing[3],
-    backgroundColor: theme.colors.surface,
-    borderBottomWidth: 1,
+    paddingHorizontal: theme.spacing[3],  // 16px
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: theme.colors.border,
   },
   headerItem: {
@@ -27,9 +28,10 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 4,
   },
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: theme.colors.textPrimary,
     textAlign: 'center',

@@ -1,3 +1,4 @@
+// apps/mobile/src/screens/S11_RestaurantSelection/index.tsx
 import React from 'react';
 import { 
   FlatList, 
@@ -5,7 +6,7 @@ import {
   Text, 
   TouchableOpacity, 
   View,
-  Image 
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -14,6 +15,7 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { theme } from '../../theme/theme';
 import { MockRestaurant } from './restaurantSelection.service';
 import { ASSETS } from '../../assets';
+import { BrandedBackground } from '../../components/BrandedBackground';
 
 export default function RestaurantSelectionScreen() {
   const { restaurants, onSelect, onBack } = useRestaurantSelection();
@@ -27,7 +29,7 @@ export default function RestaurantSelectionScreen() {
     }
   };
 
-  const renderItem = ({ item }: { item: MockRestaurant }) => {
+  const renderItem = ({ item, index }: { item: MockRestaurant, index: number }) => {
     const imageSource = getRestaurantImage(item.id);
 
     return (
@@ -37,7 +39,7 @@ export default function RestaurantSelectionScreen() {
         accessibilityRole="button"
         accessibilityLabel={`${item.name}, đánh giá ${item.rating}, giao trong ${item.etaMin} phút`}
       >
-        <View style={styles.row}>
+        <View style={styles.cardRow}>
           <View style={styles.imageContainer}>
             {imageSource ? (
               <Image 
@@ -47,12 +49,15 @@ export default function RestaurantSelectionScreen() {
               />
             ) : (
               <View style={styles.iconBox}>
-                <MaterialCommunityIcons name="food-variant" size={32} color="#00B14F" />
+                <MaterialCommunityIcons name="food-variant" size={32} color={theme.colors.primary} />
               </View>
             )}
+            <View style={styles.optionBadge}>
+              <Text style={styles.optionBadgeText}>{index + 1}</Text>
+            </View>
           </View>
-          <View style={styles.flex1}>
-            <View style={styles.row}>
+          <View style={styles.infoContent}>
+            <View style={styles.nameHeader}>
               <Text style={styles.restaurantName} numberOfLines={1}>{item.name}</Text>
               {item.badge && (
                 <View style={[
@@ -70,24 +75,24 @@ export default function RestaurantSelectionScreen() {
             </View>
             <Text style={styles.cuisineText}>{item.cuisine}</Text>
             
-            <View style={styles.infoRow}>
+            <View style={styles.metaRow}>
               <View style={styles.iconTextPair}>
                 <MaterialCommunityIcons name="star" size={13} color="#F59E0B" />
-                <Text style={styles.infoTextValue}>{item.rating}</Text>
+                <Text style={styles.metaValue}>{item.rating}</Text>
               </View>
               <Text style={styles.dot}>·</Text>
               <View style={styles.iconTextPair}>
-                <MaterialCommunityIcons name="map-marker-outline" size={13} color="#6B7280" />
-                <Text style={styles.infoTextValue}>{item.distanceKm}km</Text>
+                <MaterialCommunityIcons name="map-marker-outline" size={13} color={theme.colors.textSecondary} />
+                <Text style={styles.metaValue}>{item.distanceKm}km</Text>
               </View>
               <Text style={styles.dot}>·</Text>
               <View style={styles.iconTextPair}>
-                <MaterialCommunityIcons name="clock-outline" size={13} color="#6B7280" />
-                <Text style={styles.infoTextValue}>~{item.etaMin} phút</Text>
+                <MaterialCommunityIcons name="clock-outline" size={13} color={theme.colors.textSecondary} />
+                <Text style={styles.metaValue}>~{item.etaMin} phút</Text>
               </View>
             </View>
 
-            <Text style={styles.priceText}>{item.priceMin}–{item.priceMax}k</Text>
+            <Text style={styles.priceLabel}>{item.priceMin}k – {item.priceMax}k</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -95,58 +100,67 @@ export default function RestaurantSelectionScreen() {
   };
 
   return (
-    <SafeAreaView edges={['top', 'bottom']} style={styles.root}>
-      <ScreenHeader title="Chọn nhà hàng" onBack={onBack} />
-      
-      <View style={styles.aiCard}>
-        <Text style={styles.aiLabel}>AI NÓI</Text>
-        <Text style={styles.aiGreeting}>Tôi tìm thấy 3 nhà hàng phù hợp. Bạn muốn đặt từ đâu?</Text>
-      </View>
+    <BrandedBackground variant="default">
+      <SafeAreaView edges={['top', 'bottom']} style={styles.root}>
+        <ScreenHeader title="Chọn nhà hàng" showLogo={false} onBack={onBack} />
+        
+        <View style={styles.aiMessageCard}>
+          <Text style={styles.aiLabel}>AI NÓI</Text>
+          <Text style={styles.aiText}>Tôi tìm thấy 3 nhà hàng phù hợp. Bạn muốn đặt từ đâu?</Text>
+        </View>
 
-      <FlatList
-        data={restaurants}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-      />
-    </SafeAreaView>
+        <FlatList
+          data={restaurants}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      </SafeAreaView>
+    </BrandedBackground>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F9F9FF',
+    backgroundColor: 'transparent',
   },
-  aiCard: {
-    backgroundColor: '#E8F8EF',
-    borderRadius: 16,
-    padding: 16,
+  aiMessageCard: {
+    backgroundColor: theme.colors.primarySoft,
+    borderRadius: theme.radius.card,
+    padding: 18,
     marginHorizontal: 20,
-    marginTop: 8,
+    marginTop: 12,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0,177,79,0.1)',
   },
   aiLabel: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#00B14F',
-    letterSpacing: 1,
-    marginBottom: 6,
+    fontWeight: '700',
+    color: theme.colors.primary,
+    letterSpacing: 1.5,
+    marginBottom: 8,
+    textTransform: 'uppercase',
   },
-  aiGreeting: {
-    fontSize: 17,
-    color: '#111827',
-    fontWeight: '400',
+  aiText: {
+    fontSize: 18,
+    color: theme.colors.textPrimary,
+    fontWeight: '500',
+    lineHeight: 26,
   },
   listContent: {
-    paddingBottom: 20,
+    paddingBottom: 40,
   },
   card: {
-    backgroundColor: 'white',
-    borderRadius: 20,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.card,
     marginHorizontal: 20,
-    marginBottom: 12,
+    marginBottom: 14,
     padding: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   shadow: {
     shadowColor: '#000',
@@ -155,20 +169,38 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-  row: {
+  cardRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  flex1: {
+  infoContent: {
     flex: 1,
-    marginLeft: 14,
+    marginLeft: 16,
   },
   imageContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: 16,
+    width: 80,
+    height: 80,
+    borderRadius: theme.radius.lg,
     overflow: 'hidden',
-    backgroundColor: '#E8F8EF',
+    backgroundColor: theme.colors.primarySoft,
+    position: 'relative',
+  },
+  optionBadge: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 28,
+    height: 28,
+    backgroundColor: theme.colors.primary,
+    borderBottomRightRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2,
+  },
+  optionBadgeText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '800',
   },
   restaurantImage: {
     width: '100%',
@@ -179,61 +211,68 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  nameHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   restaurantName: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#111827',
+    color: theme.colors.textPrimary,
     flex: 1,
   },
   badgePill: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: theme.radius.full,
     marginLeft: 8,
   },
   badgePopular: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: theme.colors.infoBg,
   },
   badgeFastest: {
-    backgroundColor: '#ECFDF5',
+    backgroundColor: theme.colors.primarySoft,
   },
   badgeText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
+    textTransform: 'uppercase',
   },
   badgeTextPopular: {
-    color: '#1D4ED8',
+    color: theme.colors.infoText,
   },
   badgeTextFastest: {
-    color: '#065F46',
+    color: theme.colors.primary,
   },
   cuisineText: {
     fontSize: 13,
-    color: '#6B7280',
+    color: theme.colors.textSecondary,
     marginTop: 4,
   },
-  infoRow: {
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: 8,
   },
   iconTextPair: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    gap: 4,
   },
-  infoTextValue: {
+  metaValue: {
     fontSize: 13,
-    color: '#374151',
+    color: theme.colors.textSecondary,
+    fontWeight: '600',
   },
   dot: {
-    marginHorizontal: 4,
-    color: '#D1D5DB',
+    marginHorizontal: 8,
+    color: theme.colors.border,
   },
-  priceText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111827',
-    marginTop: 4,
+  priceLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: theme.colors.primary,
+    marginTop: 8,
   },
 });

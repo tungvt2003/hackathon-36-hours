@@ -12,13 +12,19 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { AudioVisualizer } from '../../components/AudioVisualizer';
 import { api } from '../../api';
 import { FoodQuote, OrderStatus, PartnerCode, PartnerQuote } from '../../types';
+import { theme } from '../../theme/theme';
+import { BrandedBackground } from '../../components/BrandedBackground';
+import { SuaraLogo } from '../../components/SuaraLogo';
+import { ASSETS } from '../../assets';
+import { ScreenHeader } from '../../components/ScreenHeader';
 
 // true only in a dev build — false in Expo Go
 type SpeechRecognitionModule = typeof import('expo-speech-recognition').ExpoSpeechRecognitionModule;
@@ -58,6 +64,7 @@ function tts(text: string) {
 
 export default function VoiceAssistantScreen() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [stage, setStage] = useState<Stage>('IDLE');
   const [loading, setLoading] = useState(false);
   const [promptText, setPromptText] = useState('');
@@ -76,14 +83,11 @@ export default function VoiceAssistantScreen() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const prevStatusRef = useRef<OrderStatus | null>(null);
   const finalTranscriptRef = useRef('');
-  // always-fresh ref so STT event handlers don't capture stale closures
   const submitTranscriptRef = useRef<(text: string) => void>(() => {});
   const sessionIdRef = useRef<string | null>(null);
 
-  // keep sessionIdRef in sync
   useEffect(() => { sessionIdRef.current = sessionId; }, [sessionId]);
 
-  // ── STT event subscriptions (dev build only) ─────────────────
   useEffect(() => {
     const speechModule = getSpeechRecognitionModule();
     if (!speechModule) return;
@@ -122,8 +126,6 @@ export default function VoiceAssistantScreen() {
     if (pollRef.current) clearInterval(pollRef.current);
   }, []);
 
-  // ── Helpers ─────────────────────────────────────────────────
-
   async function submitTranscript(text: string) {
     setLoading(true);
     try {
@@ -149,14 +151,13 @@ export default function VoiceAssistantScreen() {
         setStage('QUOTING');
       }
     } catch (err) {
-      Alert.alert('Loi', (err as Error).message);
+      Alert.alert('Lỗi', (err as Error).message);
       setStage('IDLE');
     } finally {
       setLoading(false);
     }
   }
 
-  // keep ref fresh every render
   submitTranscriptRef.current = submitTranscript;
 
   async function startListening() {
@@ -165,22 +166,22 @@ export default function VoiceAssistantScreen() {
     setStage('LISTENING');
 
     if (!STT_AVAILABLE) {
-      tts('Nhap yeu cau cua ban');
+      tts('Hãy nhập yêu cầu của bạn');
       return;
     }
     try {
       const speechModule = getSpeechRecognitionModule();
       if (!speechModule) {
-        tts('Nhap yeu cau cua ban');
+        tts('Hãy nhập yêu cầu của bạn');
         return;
       }
       const perm = await speechModule.requestPermissionsAsync();
       if (!perm.granted) {
-        Alert.alert('Can quyen microphone');
+        Alert.alert('Cần quyền microphone');
         setStage('IDLE');
         return;
       }
-      tts('Dang lang nghe');
+      tts('Đang lắng nghe');
       speechModule.start({ lang: 'vi-VN', continuous: false, interimResults: true });
     } catch (e) {
       console.warn('STT start failed', e);
@@ -217,7 +218,7 @@ export default function VoiceAssistantScreen() {
       setStage('TRACKING');
       startPolling(res.orderId);
     } catch (err) {
-      Alert.alert('Loi', (err as Error).message);
+      Alert.alert('Lỗi', (err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -249,12 +250,12 @@ export default function VoiceAssistantScreen() {
       const res = await api.orders.review(orderId, {
         restaurantRating,
         driverRating,
-        voiceText: `nha hang: ${restaurantRating} sao, tai xe: ${driverRating} sao`,
+        voiceText: `nhà hàng: ${restaurantRating} sao, tài xế: ${driverRating} sao`,
       });
       tts(res.responseText);
       setStage('REVIEWING');
     } catch (err) {
-      Alert.alert('Loi', (err as Error).message);
+      Alert.alert('Lỗi', (err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -283,289 +284,338 @@ export default function VoiceAssistantScreen() {
   const allQuotes = [
     ...rideQuotes.filter(q => q.available).map(q => ({
       partner: q.partner, price: q.price, etaMinutes: q.etaMinutes,
-      driverName: q.driverName, label: `${q.price.toLocaleString('vi-VN')}d`,
+      driverName: q.driverName, label: `${q.price.toLocaleString('vi-VN')}đ`,
     })),
     ...foodQuotes.filter(q => q.available).map(q => ({
       partner: q.partner, price: q.totalVnd, etaMinutes: q.etaMinutes,
       driverName: q.driverName,
-      label: `${q.totalVnd.toLocaleString('vi-VN')}d${q.promoDescription ? ` (${q.promoDescription})` : ''}`,
+      label: `${q.totalVnd.toLocaleString('vi-VN')}đ${q.promoDescription ? ` (${q.promoDescription})` : ''}`,
     })),
   ].sort((a, b) => a.price - b.price);
 
+  const isDarkStage = stage === 'LISTENING' || stage === 'COLLECTING';
+
   return (
-    <View style={s.root}>
-      <SafeAreaView edges={['top']} style={s.safeTop}>
-        <View style={s.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}
-            accessibilityLabel="Quay lai" accessibilityRole="button">
-            <MaterialCommunityIcons name="arrow-left" size={24} color="#111827" />
-          </TouchableOpacity>
-          <Text style={s.headerTitle} accessibilityRole="header">Tro ly giong noi</Text>
-          <View style={s.backBtn} />
-        </View>
-      </SafeAreaView>
+    <BrandedBackground variant={isDarkStage ? "voice" : "default"}>
+      <SafeAreaView edges={['top', 'bottom']} style={s.root}>
+        <ScreenHeader 
+          title="Trợ lý giọng nói" 
+          showLogo={stage === 'IDLE'} 
+          onBack={() => navigation.goBack()}
+          dark={isDarkStage}
+        />
 
-      <ScrollView style={s.scroll} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
-        <View style={s.toggleRow}>
-          <MaterialCommunityIcons name="eye-off-outline" size={20} color="#6B7280" />
-          <Text style={s.toggleLabel}>Ho tro nguoi khiem thi</Text>
-          <Switch value={accessibilityFlag} onValueChange={setAccessibilityFlag}
-            trackColor={{ false: '#D1D5DB', true: '#00B14F' }}
-            accessibilityLabel="Bat che do ho tro nguoi khiem thi" />
-        </View>
-
-        {/* ── IDLE ── */}
-        {stage === 'IDLE' && (
-          <View style={s.centerBlock}>
-            <TouchableOpacity style={s.bigMic} onPress={startListening}
-              accessibilityLabel="Nhan de bat dau noi" accessibilityRole="button">
-              <MaterialCommunityIcons name="microphone-outline" size={56} color="#fff" />
-            </TouchableOpacity>
-            <Text style={s.idleHint}>Nhan de noi</Text>
-            <Text style={s.idleSub}>Dat xe · Do an · Bang giong noi</Text>
+        <ScrollView 
+          style={s.scroll} 
+          contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 40 }]} 
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={[s.toggleRow, isDarkStage && s.toggleRowDark]}>
+            <MaterialCommunityIcons name="eye-off-outline" size={20} color={isDarkStage ? "rgba(255,255,255,0.7)" : theme.colors.textSecondary} />
+            <Text style={[s.toggleLabel, isDarkStage && s.toggleLabelDark]}>Hỗ trợ khiếm thị</Text>
+            <Switch 
+              value={accessibilityFlag} 
+              onValueChange={setAccessibilityFlag}
+              trackColor={{ false: '#D1D5DB', true: theme.colors.primary }}
+              accessibilityLabel="Bật chế độ hỗ trợ người khiếm thị" 
+            />
           </View>
-        )}
 
-        {/* ── LISTENING ── */}
-        {stage === 'LISTENING' && (
-          <View style={s.centerBlock}>
-            <AudioVisualizer active={STT_AVAILABLE} />
-            <Text style={s.listeningLabel}>
-              {STT_AVAILABLE ? 'Dang lang nghe...' : 'Nhap yeu cau'}
-            </Text>
-
-            {STT_AVAILABLE && liveTranscript !== '' && (
-              <View style={s.liveBox}>
-                <Text style={s.liveText}>{liveTranscript}</Text>
-              </View>
-            )}
-
-            {!STT_AVAILABLE && (
-              <TextInput
-                style={[s.input, { width: '100%' }]}
-                value={liveTranscript}
-                onChangeText={setLiveTranscript}
-                placeholder="vd: dat xe den san bay, dat pho bo"
-                placeholderTextColor="#9CA3AF"
-                multiline
-                autoFocus
-                accessibilityLabel="Nhap yeu cau"
-              />
-            )}
-
-            <TouchableOpacity style={s.stopBtn} onPress={stopListening}
-              accessibilityLabel={STT_AVAILABLE ? 'Dung lai' : 'Gui'} accessibilityRole="button">
-              <MaterialCommunityIcons name={STT_AVAILABLE ? 'stop-circle-outline' : 'send'} size={24} color="#fff" />
-              <Text style={s.stopBtnText}>{STT_AVAILABLE ? 'Dung' : 'Gui'}</Text>
-            </TouchableOpacity>
-            {loading && <ActivityIndicator color="#00B14F" style={{ marginTop: 16 }} />}
-          </View>
-        )}
-
-        {/* ── COLLECTING ── */}
-        {stage === 'COLLECTING' && (
-          <View style={s.inputBlock}>
-            {promptText !== '' && (
-              <View style={s.promptBox} accessible accessibilityLabel={promptText}>
-                <MaterialCommunityIcons name="robot-outline" size={18} color="#00B14F" style={{ marginBottom: 6 }} />
-                <Text style={s.promptText}>{promptText}</Text>
-              </View>
-            )}
-            <TouchableOpacity style={s.voiceReBtn} onPress={startListening}
-              accessibilityLabel="Noi lai" accessibilityRole="button">
-              <MaterialCommunityIcons name="microphone" size={22} color="#00B14F" />
-              <Text style={s.voiceReBtnText}>{STT_AVAILABLE ? 'Noi' : 'Nhap'}</Text>
-            </TouchableOpacity>
-            <TextInput style={s.input} value={collectingInput} onChangeText={setCollectingInput}
-              placeholder="Hoac go tay..." placeholderTextColor="#9CA3AF"
-              multiline accessibilityLabel="Go tay cau tra loi"
-              returnKeyType="send" onSubmitEditing={submitCollecting} />
-            <TouchableOpacity style={s.primaryBtn} onPress={submitCollecting}
-              disabled={loading || !collectingInput.trim()} accessibilityRole="button">
-              {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.primaryBtnText}>Gui</Text>}
-            </TouchableOpacity>
-            <TouchableOpacity style={s.ghostBtn} onPress={reset} accessibilityRole="button">
-              <Text style={s.ghostBtnText}>Huy</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* ── QUOTING ── */}
-        {stage === 'QUOTING' && (
-          <View style={s.section}>
-            {promptText !== '' && (
-              <View style={s.promptBox} accessible accessibilityLabel={promptText}>
-                <MaterialCommunityIcons name="robot-outline" size={18} color="#00B14F" style={{ marginBottom: 6 }} />
-                <Text style={s.promptText}>{promptText}</Text>
-              </View>
-            )}
-            <Text style={s.sectionLabel}>Chon doi tac:</Text>
-            {allQuotes.map(q => (
-              <TouchableOpacity key={q.partner} style={s.quoteCard}
-                onPress={() => handleConfirm(q.partner)} disabled={loading}
-                accessibilityLabel={`${PARTNER_LABEL[q.partner]}, ${q.label}, khoang ${q.etaMinutes} phut`}
-                accessibilityRole="button">
-                <View style={s.quoteRow}>
-                  <Text style={s.quoteName}>{PARTNER_LABEL[q.partner]}</Text>
-                  <Text style={s.quotePrice}>{q.label}</Text>
-                </View>
-                <Text style={s.quoteEta}>{q.etaMinutes} phut{q.driverName ? ` · ${q.driverName}` : ''}</Text>
+          {/* ── IDLE ── */}
+          {stage === 'IDLE' && (
+            <View style={s.centerBlock}>
+              <TouchableOpacity style={s.bigMic} onPress={startListening}
+                accessibilityLabel="Nhấn để bắt đầu nói" accessibilityRole="button">
+                <MaterialCommunityIcons name="microphone" size={56} color="#fff" />
               </TouchableOpacity>
-            ))}
-            {loading && <ActivityIndicator color="#00B14F" style={{ marginTop: 16 }} />}
-            <TouchableOpacity style={s.ghostBtn} onPress={reset} accessibilityRole="button">
-              <Text style={s.ghostBtnText}>Huy</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+              <Text style={s.idleHint}>Nhấn để nói</Text>
+              <Text style={s.idleSub}>Đặt xe · Đồ ăn · Bằng giọng nói</Text>
+            </View>
+          )}
 
-        {/* ── TRACKING ── */}
-        {stage === 'TRACKING' && (
-          <View style={s.section}>
-            <Text style={s.sectionLabel}>Trang thai don hang</Text>
-            <Text style={s.statusText} accessibilityLiveRegion="polite">
-              {orderStatus ?? '...'}
-            </Text>
-            {driverName && (
-              <View style={s.driverCard}>
-                <MaterialCommunityIcons name="account-outline" size={20} color="#00B14F" />
-                <Text style={s.driverText}>Tai xe: {driverName}</Text>
+          {/* ── LISTENING ── */}
+          {stage === 'LISTENING' && (
+            <View style={s.centerBlock}>
+              <AudioVisualizer active={STT_AVAILABLE} />
+              <Text style={s.listeningLabel}>
+                {STT_AVAILABLE ? 'Đang lắng nghe...' : 'Nhập yêu cầu'}
+              </Text>
+
+              {STT_AVAILABLE && liveTranscript !== '' && (
+                <View style={s.liveBox}>
+                  <Text style={s.liveText}>{liveTranscript}</Text>
+                </View>
+              )}
+
+              {!STT_AVAILABLE && (
+                <TextInput
+                  style={[s.input, { width: '100%', backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.2)', color: 'white' }]}
+                  value={liveTranscript}
+                  onChangeText={setLiveTranscript}
+                  placeholder="vd: đặt xe đến sân bay..."
+                  placeholderTextColor="rgba(255,255,255,0.4)"
+                  multiline
+                  autoFocus
+                />
+              )}
+
+              <TouchableOpacity style={s.stopBtn} onPress={stopListening}>
+                <MaterialCommunityIcons name={STT_AVAILABLE ? 'stop' : 'send'} size={24} color="#fff" />
+                <Text style={s.stopBtnText}>{STT_AVAILABLE ? 'Dừng' : 'Gửi'}</Text>
+              </TouchableOpacity>
+              {loading && <ActivityIndicator color={theme.colors.primary} style={{ marginTop: 16 }} />}
+            </View>
+          )}
+
+          {/* ── COLLECTING ── */}
+          {stage === 'COLLECTING' && (
+            <View style={s.inputBlock}>
+              {promptText !== '' && (
+                <View style={s.promptBoxDark} accessible accessibilityLabel={promptText}>
+                  <MaterialCommunityIcons name="robot" size={20} color={theme.colors.primary} style={{ marginBottom: 8 }} />
+                  <Text style={s.promptTextDark}>{promptText}</Text>
+                </View>
+              )}
+              <TouchableOpacity style={s.voiceReBtnDark} onPress={startListening}>
+                <MaterialCommunityIcons name="microphone" size={22} color={theme.colors.primary} />
+                <Text style={s.voiceReBtnTextDark}>{STT_AVAILABLE ? 'Nói' : 'Nhập'}</Text>
+              </TouchableOpacity>
+              <TextInput 
+                style={s.inputDark} 
+                value={collectingInput} 
+                onChangeText={setCollectingInput}
+                placeholder="Hoặc gõ tay..." 
+                placeholderTextColor="rgba(255,255,255,0.4)"
+                multiline 
+                returnKeyType="send" 
+                onSubmitEditing={submitCollecting} 
+              />
+              <TouchableOpacity style={s.primaryBtn} onPress={submitCollecting}
+                disabled={loading || !collectingInput.trim()}>
+                {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.primaryBtnText}>Gửi</Text>}
+              </TouchableOpacity>
+              <TouchableOpacity style={s.ghostBtnDark} onPress={reset}>
+                <Text style={s.ghostBtnTextDark}>Huỷ</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* ── QUOTING ── */}
+          {stage === 'QUOTING' && (
+            <View style={s.section}>
+              {promptText !== '' && (
+                <View style={[s.promptBox, s.shadow]} accessible accessibilityLabel={promptText}>
+                  <MaterialCommunityIcons name="robot" size={20} color={theme.colors.primary} style={{ marginBottom: 8 }} />
+                  <Text style={s.promptText}>{promptText}</Text>
+                </View>
+              )}
+              <Text style={s.sectionLabel}>Chọn đối tác:</Text>
+              {allQuotes.map(q => (
+                <TouchableOpacity key={q.partner} style={[s.quoteCard, s.shadow]}
+                  onPress={() => handleConfirm(q.partner)} disabled={loading}>
+                  <View style={s.quoteRow}>
+                    <View style={s.partnerRow}>
+                      {q.partner === PartnerCode.GRAB && ASSETS.images.grabLogo ? (
+                        <Image source={ASSETS.images.grabLogo} style={s.partnerLogo} resizeMode="contain" />
+                      ) : (
+                        <Text style={s.quoteName}>{PARTNER_LABEL[q.partner]}</Text>
+                      )}
+                    </View>
+                    <Text style={s.quotePrice}>{q.label}</Text>
+                  </View>
+                  <Text style={s.quoteEta}>~{q.etaMinutes} phút{q.driverName ? ` · ${q.driverName}` : ''}</Text>
+                </TouchableOpacity>
+              ))}
+              {loading && <ActivityIndicator color={theme.colors.primary} style={{ marginTop: 16 }} />}
+              <TouchableOpacity style={s.ghostBtn} onPress={reset}>
+                <Text style={s.ghostBtnText}>Huỷ</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* ── TRACKING ── */}
+          {stage === 'TRACKING' && (
+            <View style={s.section}>
+              <Text style={s.sectionLabel}>Trạng thái đơn hàng</Text>
+              <Text style={s.statusTextDisplay} accessibilityLiveRegion="polite">
+                {orderStatus ?? 'Đang khởi tạo...'}
+              </Text>
+              {driverName && (
+                <View style={[s.driverCard, s.shadow]}>
+                  <MaterialCommunityIcons name="account" size={22} color={theme.colors.primary} />
+                  <Text style={s.driverText}>Tài xế: {driverName}</Text>
+                </View>
+              )}
+              <ActivityIndicator color={theme.colors.primary} size="large" style={{ marginTop: 40 }} />
+              <Text style={s.hint}>Đang cập nhật mới mỗi 5 giây</Text>
+            </View>
+          )}
+
+          {/* ── DELIVERED ── */}
+          {stage === 'DELIVERED' && (
+            <View style={s.section}>
+              <View style={s.successHero}>
+                <MaterialCommunityIcons name="check-circle" size={64} color={theme.colors.primary} />
+                <Text style={s.successText}>Đã giao thành công!</Text>
+                <SuaraLogo size="md" />
               </View>
-            )}
-            <ActivityIndicator color="#00B14F" size="large" style={{ marginTop: 32 }} />
-            <Text style={s.hint}>Dang cap nhat moi 5 giay</Text>
-          </View>
-        )}
 
-        {/* ── DELIVERED ── */}
-        {stage === 'DELIVERED' && (
-          <View style={s.section}>
-            <MaterialCommunityIcons name="check-circle-outline" size={56} color="#00B14F" style={s.icon} />
-            <Text style={s.successText}>Da giao thanh cong!</Text>
-            <Text style={s.sectionLabel}>Danh gia nha hang:</Text>
-            <View style={s.starRow}>
-              {[1,2,3,4,5].map(n => (
-                <TouchableOpacity key={n} onPress={() => setRestaurantRating(n)}
-                  accessibilityLabel={`${n} sao nha hang`} accessibilityRole="button">
-                  <Text style={[s.star, restaurantRating >= n && s.starOn]}>★</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <Text style={s.sectionLabel}>Danh gia tai xe:</Text>
-            <View style={s.starRow}>
-              {[1,2,3,4,5].map(n => (
-                <TouchableOpacity key={n} onPress={() => setDriverRating(n)}
-                  accessibilityLabel={`${n} sao tai xe`} accessibilityRole="button">
-                  <Text style={[s.star, driverRating >= n && s.starOn]}>★</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <TouchableOpacity style={s.primaryBtn} onPress={handleReview} disabled={loading}
-              accessibilityRole="button">
-              {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.primaryBtnText}>Gui danh gia</Text>}
-            </TouchableOpacity>
-          </View>
-        )}
+              <View style={[s.ratingBox, s.shadow]}>
+                <Text style={s.ratingLabel}>Đánh giá nhà hàng:</Text>
+                <View style={s.starRow}>
+                  {[1,2,3,4,5].map(n => (
+                    <TouchableOpacity key={n} onPress={() => setRestaurantRating(n)}>
+                      <MaterialCommunityIcons 
+                        name="star" 
+                        size={36} 
+                        color={restaurantRating >= n ? "#FBBF24" : theme.colors.border} 
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
 
-        {/* ── REVIEWING ── */}
-        {stage === 'REVIEWING' && (
-          <View style={s.section}>
-            <MaterialCommunityIcons name="heart-outline" size={56} color="#00B14F" style={s.icon} />
-            <Text style={s.successText}>Cam on ban!</Text>
-            <Text style={s.hint}>Danh gia da duoc ghi nhan.</Text>
-            <TouchableOpacity style={s.primaryBtn} onPress={reset} accessibilityRole="button">
-              <Text style={s.primaryBtnText}>Dat moi</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={s.ghostBtn} onPress={() => navigation.goBack()} accessibilityRole="button">
-              <Text style={s.ghostBtnText}>Ve trang chu</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </ScrollView>
-    </View>
+                <Text style={[s.ratingLabel, { marginTop: 20 }]}>Đánh giá tài xế:</Text>
+                <View style={s.starRow}>
+                  {[1,2,3,4,5].map(n => (
+                    <TouchableOpacity key={n} onPress={() => setDriverRating(n)}>
+                      <MaterialCommunityIcons 
+                        name="star" 
+                        size={36} 
+                        color={driverRating >= n ? "#FBBF24" : theme.colors.border} 
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <TouchableOpacity style={s.primaryBtn} onPress={handleReview} disabled={loading}>
+                {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.primaryBtnText}>Gửi đánh giá</Text>}
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* ── REVIEWING ── */}
+          {stage === 'REVIEWING' && (
+            <View style={s.section}>
+              <MaterialCommunityIcons name="heart" size={64} color={theme.colors.primary} style={s.iconCentred} />
+              <Text style={s.successText}>Cảm ơn bạn!</Text>
+              <Text style={s.hint}>Đánh giá của bạn giúp dịch vụ tốt hơn.</Text>
+              <TouchableOpacity style={s.primaryBtn} onPress={reset}>
+                <Text style={s.primaryBtnText}>Đặt mới</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.ghostBtn} onPress={() => navigation.goBack()}>
+                <Text style={s.ghostBtnText}>Về trang chủ</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </ScrollView>
+      </SafeAreaView>
+    </BrandedBackground>
   );
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F9F9FF' },
-  safeTop: { backgroundColor: '#F9F9FF' },
-  header: {
-    height: 56, paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center',
-    borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
-  },
-  backBtn: { width: 48, height: 48, justifyContent: 'center', alignItems: 'center' },
-  headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '600', color: '#111827' },
+  root: { flex: 1, backgroundColor: 'transparent' },
   scroll: { flex: 1 },
-  content: { padding: 20, paddingBottom: 48 },
+  content: { padding: 20 },
+  shadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+  },
   toggleRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fff',
-    borderRadius: 14, padding: 14, marginBottom: 24,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 1,
+    flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg, padding: 16, marginBottom: 24, borderSize: 1, borderColor: theme.colors.border,
   },
-  toggleLabel: { flex: 1, fontSize: 14, color: '#374151' },
-  centerBlock: { alignItems: 'center', paddingTop: 40, gap: 16 },
+  toggleRowDark: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'transparent',
+  },
+  toggleLabel: { flex: 1, fontSize: 15, color: theme.colors.textPrimary, fontWeight: '600' },
+  toggleLabelDark: { color: 'white' },
+  centerBlock: { alignItems: 'center', paddingTop: 60, gap: 20 },
   bigMic: {
-    width: 120, height: 120, borderRadius: 60, backgroundColor: '#00B14F',
+    width: 140, height: 140, borderRadius: 70, backgroundColor: theme.colors.primary,
     justifyContent: 'center', alignItems: 'center',
-    shadowColor: '#00B14F', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.35, shadowRadius: 16, elevation: 8,
+    shadowColor: theme.colors.primary, shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.4, shadowRadius: 20, elevation: 12,
   },
-  idleHint: { fontSize: 20, fontWeight: '700', color: '#111827' },
-  idleSub: { fontSize: 14, color: '#9CA3AF' },
-  listeningLabel: { fontSize: 18, fontWeight: '600', color: '#00B14F' },
+  idleHint: { fontSize: 24, fontWeight: '800', color: theme.colors.textPrimary, marginTop: 10 },
+  idleSub: { fontSize: 16, color: theme.colors.textSecondary, fontWeight: '500' },
+  listeningLabel: { fontSize: 20, fontWeight: '800', color: theme.colors.primary, textTransform: 'uppercase', letterSpacing: 1 },
   liveBox: {
-    backgroundColor: '#F0FDF4', borderRadius: 12, borderWidth: 1, borderColor: '#BBF7D0',
-    padding: 14, width: '100%',
+    backgroundColor: 'rgba(0,177,79,0.1)', borderRadius: theme.radius.lg, borderWidth: 1.5, borderColor: theme.colors.primary,
+    padding: 20, width: '100%',
   },
-  liveText: { fontSize: 16, color: '#166534', lineHeight: 24, textAlign: 'center' },
+  liveText: { fontSize: 22, color: 'white', lineHeight: 32, textAlign: 'center', fontWeight: '600' },
   stopBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#EF4444',
-    borderRadius: 14, paddingVertical: 14, paddingHorizontal: 32,
+    flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: theme.colors.error,
+    borderRadius: theme.radius.full, paddingVertical: 16, paddingHorizontal: 40, marginTop: 20,
   },
-  stopBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  inputBlock: { gap: 12 },
+  stopBtnText: { color: '#fff', fontSize: 18, fontWeight: '800' },
+  inputBlock: { gap: 16 },
   promptBox: {
-    backgroundColor: '#F0FDF4', borderRadius: 14, borderWidth: 1, borderColor: '#BBF7D0', padding: 14,
+    backgroundColor: theme.colors.primarySoft, borderRadius: theme.radius.card, padding: 20, borderWidth: 1, borderColor: 'rgba(0,177,79,0.1)',
   },
-  promptText: { fontSize: 16, color: '#166534', lineHeight: 24 },
-  voiceReBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    borderWidth: 2, borderColor: '#00B14F', borderRadius: 14, paddingVertical: 14,
+  promptBoxDark: {
+    backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: theme.radius.card, padding: 20,
   },
-  voiceReBtnText: { fontSize: 16, fontWeight: '700', color: '#00B14F' },
+  promptText: { fontSize: 20, color: theme.colors.textPrimary, lineHeight: 30, fontWeight: '500' },
+  promptTextDark: { fontSize: 20, color: 'white', lineHeight: 30, fontWeight: '500' },
+  voiceReBtnDark: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
+    borderWidth: 2, borderColor: theme.colors.primary, borderRadius: theme.radius.full, paddingVertical: 16,
+  },
+  voiceReBtnTextDark: { fontSize: 18, fontWeight: '800', color: theme.colors.primary },
+  inputDark: {
+    backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: theme.radius.lg, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.2)',
+    padding: 16, fontSize: 18, color: 'white', minHeight: 80, textAlignVertical: 'top',
+  },
   input: {
-    backgroundColor: '#fff', borderRadius: 14, borderWidth: 1, borderColor: '#E5E7EB',
-    padding: 16, fontSize: 16, color: '#111827', minHeight: 72, textAlignVertical: 'top',
+    backgroundColor: theme.colors.surface, borderRadius: theme.radius.lg, borderWidth: 1.5, borderColor: theme.colors.border,
+    padding: 18, fontSize: 18, color: theme.colors.textPrimary, minHeight: 80, textAlignVertical: 'top',
   },
   primaryBtn: {
-    backgroundColor: '#00B14F', borderRadius: 14, paddingVertical: 18,
-    alignItems: 'center', minHeight: 56, justifyContent: 'center',
+    backgroundColor: theme.colors.primary, borderRadius: theme.radius.full, paddingVertical: 20,
+    alignItems: 'center', minHeight: 64, justifyContent: 'center', marginTop: 8,
   },
-  primaryBtnText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  primaryBtnText: { color: '#fff', fontSize: 19, fontWeight: '800' },
+  ghostBtnDark: {
+    borderRadius: theme.radius.full, paddingVertical: 16, alignItems: 'center',
+    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)', marginTop: 4,
+  },
+  ghostBtnTextDark: { color: 'rgba(255,255,255,0.7)', fontSize: 16, fontWeight: '700' },
   ghostBtn: {
-    borderRadius: 14, paddingVertical: 14, alignItems: 'center',
-    borderWidth: 1, borderColor: '#E5E7EB', marginTop: 4,
+    borderRadius: theme.radius.full, paddingVertical: 16, alignItems: 'center',
+    borderWidth: 1.5, borderColor: theme.colors.border, marginTop: 4,
   },
-  ghostBtnText: { color: '#6B7280', fontSize: 15 },
-  section: { gap: 12 },
-  sectionLabel: { fontSize: 13, fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', marginTop: 4 },
+  ghostBtnText: { color: theme.colors.textSecondary, fontSize: 16, fontWeight: '700' },
+  section: { gap: 16 },
+  sectionLabel: { fontSize: 12, fontWeight: '800', color: theme.colors.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginTop: 8 },
   quoteCard: {
-    backgroundColor: '#fff', borderRadius: 16, padding: 18, borderWidth: 1, borderColor: '#E5E7EB',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 1,
+    backgroundColor: theme.colors.surface, borderRadius: theme.radius.card, padding: 20, borderWidth: 1, borderColor: theme.colors.border,
   },
-  quoteRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  quoteName: { fontSize: 17, fontWeight: '700', color: '#111827' },
-  quotePrice: { fontSize: 17, fontWeight: '700', color: '#00B14F' },
-  quoteEta: { fontSize: 13, color: '#9CA3AF' },
-  statusText: { fontSize: 26, fontWeight: '800', color: '#00B14F', textAlign: 'center', paddingVertical: 12 },
+  quoteRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  partnerRow: { flex: 1 },
+  partnerLogo: { width: 64, height: 24 },
+  quoteName: { fontSize: 18, fontWeight: '800', color: theme.colors.textPrimary },
+  quotePrice: { fontSize: 19, fontWeight: '800', color: theme.colors.primary },
+  quoteEta: { fontSize: 14, color: theme.colors.textSecondary, fontWeight: '500' },
+  statusTextDisplay: { fontSize: 28, fontWeight: '800', color: theme.colors.primary, textAlign: 'center', paddingVertical: 20 },
   driverCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fff',
-    borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#E5E7EB',
+    flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg, padding: 20, borderWidth: 1, borderColor: theme.colors.border,
   },
-  driverText: { fontSize: 16, color: '#374151', fontWeight: '500' },
-  hint: { fontSize: 13, color: '#9CA3AF', textAlign: 'center', marginTop: 8 },
-  icon: { alignSelf: 'center', marginBottom: 8 },
-  successText: { fontSize: 22, fontWeight: '800', color: '#111827', textAlign: 'center', marginBottom: 8 },
-  starRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', marginBottom: 8 },
-  star: { fontSize: 40, color: '#D1D5DB' },
-  starOn: { color: '#FBBF24' },
+  driverText: { fontSize: 17, color: theme.colors.textPrimary, fontWeight: '700' },
+  hint: { fontSize: 14, color: theme.colors.textMuted, textAlign: 'center', marginTop: 8, fontWeight: '500' },
+  iconCentred: { alignSelf: 'center', marginBottom: 12 },
+  successHero: { alignItems: 'center', gap: 12, marginBottom: 20 },
+  successText: { fontSize: 26, fontWeight: '800', color: theme.colors.textPrimary, textAlign: 'center' },
+  ratingBox: {
+    backgroundColor: theme.colors.surface, borderRadius: theme.radius.card, padding: 24, marginBottom: 12,
+  },
+  ratingLabel: { fontSize: 16, fontWeight: '700', color: theme.colors.textSecondary, marginBottom: 12, textAlign: 'center' },
+  starRow: { flexDirection: 'row', gap: 10, justifyContent: 'center' },
 });
