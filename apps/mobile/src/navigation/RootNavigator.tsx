@@ -18,6 +18,9 @@ import RideTrackingScreen from '../screens/S13_RideTracking';
 import VoiceAssistantScreen from '../screens/S06_VoiceAssistant';
 
 import CancellationAlertScreen from '../screens/S14_CancellationAlert';
+import DeliverySuccessScreen from '../screens/S15_DeliverySuccess';
+import RatingScreen from '../screens/S16_RatingScreen';
+import OrderHistoryScreen from '../screens/S17_OrderHistory';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -88,9 +91,9 @@ export const RootNavigator = () => {
         options={{ presentation: 'modal', headerShown: false, gestureEnabled: false }}
       />
 
-      <Stack.Screen name="DeliverySuccess" component={() => <Placeholder name="DeliverySuccess" />} />
-      <Stack.Screen name="RatingScreen" component={() => <Placeholder name="RatingScreen" />} />
-      <Stack.Screen name="OrderHistory" component={() => <Placeholder name="OrderHistory" />} />
+      <Stack.Screen name="DeliverySuccess" component={DeliverySuccessScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="RatingScreen" component={RatingScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 };
