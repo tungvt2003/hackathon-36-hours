@@ -1,0 +1,10 @@
+{
+  "name": "voice-mobility",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:api": "cd apps/api && npm run start:dev",
+    "build:api": "cd apps/api && npm run build",
+    "start:api": "cd apps/api && npm run start:prod"
+  }
+}

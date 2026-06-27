@@ -1,0 +1,37 @@
+# ── IDE / Tools ─────────────────────────────────────────────────
+.claude/
+.cursor/
+.vscode/
+.idea/
+
+# ── Dependencies ─────────────────────────────────────────────────
+node_modules/
+
+# ── Build output ─────────────────────────────────────────────────
+dist/
+build/
+
+# ── Environment ──────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Prisma generated ─────────────────────────────────────────────
+/generated/
+
+# ── Logs ─────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+
+# ── OS ───────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Test coverage ────────────────────────────────────────────────
+coverage/
+
+# ── TypeScript ───────────────────────────────────────────────────
+*.tsbuildinfo
+
+# ── OpenAPI snapshot (optional: bỏ comment nếu muốn commit spec) ─
+# openapi.json

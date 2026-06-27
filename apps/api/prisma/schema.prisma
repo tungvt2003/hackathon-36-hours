@@ -1,0 +1,77 @@
+// Prisma 7 schema — datasource URL cấu hình trong prisma.config.ts (không hardcode ở đây)
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// Dữ liệu CỦA MÌNH — không lưu response thô của đối tác
+// ============================================================
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  phone     String?
+  orders    Order[]
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id           String       @id @default(cuid())
+  userId       String?
+  user         User?        @relation(fields: [userId], references: [id])
+  type         String       // OrderType enum (RIDE | FOOD)
+  origin       String?
+  destination  String?
+  restaurant   String?
+  items        Json?        // mảng tên món
+  status       String       // OrderStatus enum (QUOTED | CONFIRMED | CANCELLED)
+  partner      String?      // PartnerCode (GRAB | BE | XANH_SM)
+  quotePrice   Float?
+  etaMinutes   Int?
+  responseText String?
+  createdAt    DateTime     @default(now())
+  events       OrderEvent[]
+}
+
+model OrderEvent {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  step      String   // vd: "STT", "NLU", "PLACES", "WEATHER", "PARTNER_QUOTE", "CONFIRM"
+  payload   Json     // dữ liệu đầu ra của bước đó
+  createdAt DateTime @default(now())
+}
+
+// ============================================================
+// Dữ liệu chuẩn bị sẵn — seed bằng data mẫu, provider đọc từ đây
+// ============================================================
+
+// Địa điểm / quán ăn — MockPlacesProvider đọc từ bảng này
+model Place {
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  openHour  Int      // 0-23, giờ mở cửa
+  closeHour Int      // 0-23, giờ đóng cửa (24 = không đóng)
+  keywords  String[] // từ khoá match với intent (lowercase)
+  createdAt DateTime @default(now())
+}
+
+// Báo giá mô phỏng từng đối tác — DbPartnersService đọc từ bảng này
+// Sau này thay bằng gọi API thật, bảng này không cần nữa
+model PartnerRate {
+  id          String   @id @default(cuid())
+  partner     String   // GRAB | BE | XANH_SM
+  serviceType String   // vd: "GrabCar", "beCar", "XanhSM Car"
+  basePriceVnd Int     // giá cơ bản VND
+  etaMinutes  Int      // phút đến điểm đón
+  available   Boolean  @default(true)
+  driverName  String?  // tên tài xế mẫu để hiển thị
+  createdAt   DateTime @default(now())
+}

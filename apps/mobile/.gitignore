@@ -1,0 +1,51 @@
+# ── IDE / Tools ─────────────────────────────────────────────────
+.claude/
+.cursor/
+.vscode/
+.idea/
+
+# ── Dependencies ─────────────────────────────────────────────────
+node_modules/
+
+# ── Expo ─────────────────────────────────────────────────────────
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# ── Generated (openapi-typescript codegen) ───────────────────────
+src/api-types.ts
+
+# ── Native build artifacts ────────────────────────────────────────
+/ios/
+/android/
+.kotlin/
+
+# ── Signing / certificates ────────────────────────────────────────
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+# ── Metro ─────────────────────────────────────────────────────────
+.metro-health-check*
+
+# ── Environment ───────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Logs ──────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── OS ────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── TypeScript ────────────────────────────────────────────────────
+*.tsbuildinfo
