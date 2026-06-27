@@ -17,6 +17,8 @@ import FoodTrackingScreen from '../screens/S12_FoodTracking';
 import RideTrackingScreen from '../screens/S13_RideTracking';
 import VoiceAssistantScreen from '../screens/S06_VoiceAssistant';
 
+import CancellationAlertScreen from '../screens/S14_CancellationAlert';
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const Placeholder = ({ name }: { name: string }) => (
@@ -82,8 +84,8 @@ export const RootNavigator = () => {
 
       <Stack.Screen
         name="CancellationAlert"
-        component={() => <Placeholder name="CancellationAlert" />}
-        options={{ presentation: 'modal' }}
+        component={CancellationAlertScreen}
+        options={{ presentation: 'modal', headerShown: false, gestureEnabled: false }}
       />
 
       <Stack.Screen name="DeliverySuccess" component={() => <Placeholder name="DeliverySuccess" />} />

@@ -36,4 +36,5 @@ async function playSound(key: string) {
 
 export const soundService = {
   playSuccess: () => playSound('success'),
+  playError: () => playSound('success'),
 };

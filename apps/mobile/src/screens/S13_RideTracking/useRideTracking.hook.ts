@@ -10,6 +10,7 @@ import {
   RideStatus, 
   RideStep 
 } from './rideTracking.service';
+import { soundService } from '../../services/sound.service';
 
 export interface RideTrackingViewModel {
   currentStatus: RideStatus;
@@ -22,6 +23,9 @@ export interface RideTrackingViewModel {
   onCancel: () => void;
   onBack: () => void;
   announcement: string | null;
+  otpDigits: string[];
+  showOtp: boolean;
+  etaLabel: string;
 }
 
 export const useRideTracking = (): RideTrackingViewModel => {
@@ -34,6 +38,19 @@ export const useRideTracking = (): RideTrackingViewModel => {
   
   const stepIndex = RIDE_STEPS.findIndex(s => s.id === currentStatus);
   const canCancel = currentStatus === 'finding' || currentStatus === 'en_route';
+
+  const otpDigits = useMemo(() => MOCK_DRIVER.otp.split(''), []);
+  const showOtp = currentStatus === 'arrived';
+
+  const etaLabel = useMemo(() => {
+    switch (currentStatus) {
+      case 'finding': return '–';
+      case 'en_route': return '6 phút';
+      case 'arrived': return 'Đã đến';
+      case 'completed': return 'Xong';
+      default: return '–';
+    }
+  }, [currentStatus]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -55,6 +72,10 @@ export const useRideTracking = (): RideTrackingViewModel => {
     setAnnouncement(text);
     AccessibilityInfo.announceForAccessibility(text);
 
+    if (currentStatus === 'arrived' || currentStatus === 'completed') {
+      soundService.playSuccess();
+    }
+
     if (currentStatus === 'completed') {
       const timeout = setTimeout(() => {
         navigation.navigate('DeliverySuccess', { orderId });
@@ -65,6 +86,7 @@ export const useRideTracking = (): RideTrackingViewModel => {
 
   const onCancel = useCallback(() => {
     if (canCancel) {
+      soundService.playError();
       navigation.navigate('CancellationAlert', { orderId, intent });
     }
   }, [canCancel, navigation, orderId, intent]);
@@ -84,5 +106,8 @@ export const useRideTracking = (): RideTrackingViewModel => {
     onCancel,
     onBack,
     announcement,
+    otpDigits,
+    showOtp,
+    etaLabel,
   };
 };
