@@ -9,6 +9,7 @@ import LoginScreen from '../screens/S03_Login';
 import ProfileSetupScreen from '../screens/S04_ProfileSetup';
 import VoiceListeningScreen from '../screens/S06_VoiceListening';
 import VoiceProcessingScreen from '../screens/S07_VoiceProcessing';
+import VoiceSpeakingScreen from '../screens/S08_VoiceSpeaking';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -36,6 +37,12 @@ export const RootNavigator = () => {
       <Stack.Screen
         name="VoiceProcessing"
         component={VoiceProcessingScreen}
+        options={{ presentation: 'transparentModal', animation: 'fade', headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="VoiceSpeaking"
+        component={VoiceSpeakingScreen}
         options={{ presentation: 'transparentModal', animation: 'fade', headerShown: false }}
       />
 
