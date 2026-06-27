@@ -1,4 +1,5 @@
 import * as Speech from 'expo-speech';
+import { Audio } from 'expo-av';
 import { requireOptionalNativeModule } from 'expo';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -62,6 +63,24 @@ function tts(text: string) {
   AccessibilityInfo.announceForAccessibility(text);
 }
 
+const TypewriterText = ({ text, style }: { text: string; style: any }) => {
+  const [displayedText, setDisplayedText] = useState('');
+
+  useEffect(() => {
+    setDisplayedText('');
+    if (!text) return;
+    let i = 0;
+    const interval = setInterval(() => {
+      setDisplayedText((prev) => text.substring(0, i + 1));
+      i++;
+      if (i >= text.length) clearInterval(interval);
+    }, 25);
+    return () => clearInterval(interval);
+  }, [text]);
+
+  return <Text style={style}>{displayedText}</Text>;
+};
+
 export default function VoiceAssistantScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -79,6 +98,7 @@ export default function VoiceAssistantScreen() {
   const [driverRating, setDriverRating] = useState(5);
   const [collectingInput, setCollectingInput] = useState('');
   const [liveTranscript, setLiveTranscript] = useState('');
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const prevStatusRef = useRef<OrderStatus | null>(null);
@@ -160,45 +180,118 @@ export default function VoiceAssistantScreen() {
 
   submitTranscriptRef.current = submitTranscript;
 
+  async function submitAudio(uri: string) {
+    setLoading(true);
+    try {
+      // Gọi lên Backend, truyền file âm thanh
+      const res = await api.voiceFlow.sendAudio(uri, sessionIdRef.current || '', { lat: 10.7769, lng: 106.7009 });
+      
+      if (res.session_id) setSessionId(res.session_id);
+      
+      // Xử lý VoiceFlowResponse từ AI Service trả về
+      if (res.step === 'select_destination' && res.data?.ride_options) {
+        setRideQuotes(res.data.ride_options);
+        setStage('QUOTING');
+        tts('Đã tìm thấy chuyến xe. Vui lòng chọn.');
+      } else if (res.step === 'search_restaurant' && res.data?.restaurants) {
+        // Tạm gán vào foodQuotes để hiển thị UI
+        const mappedFood = res.data.restaurants.map((r: any) => ({
+          partner: PartnerCode.GRAB,
+          totalVnd: 50000,
+          etaMinutes: r.estimated_delivery_min,
+          promoDescription: r.name,
+          available: true
+        }));
+        setFoodQuotes(mappedFood);
+        setStage('QUOTING');
+        tts(`Đã tìm thấy ${res.data.restaurants.length} nhà hàng.`);
+      } else if (res.message) {
+        tts(res.message);
+        setPromptText(res.message);
+        setStage('COLLECTING');
+      } else {
+        setStage('IDLE');
+      }
+
+    } catch (err) {
+      Alert.alert('Lỗi', (err as Error).message);
+      setStage('IDLE');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function startListening() {
     setLiveTranscript('');
     finalTranscriptRef.current = '';
     setStage('LISTENING');
 
-    if (!STT_AVAILABLE) {
-      tts('Hãy nhập yêu cầu của bạn');
-      return;
-    }
     try {
-      const speechModule = getSpeechRecognitionModule();
-      if (!speechModule) {
-        tts('Hãy nhập yêu cầu của bạn');
-        return;
-      }
-      const perm = await speechModule.requestPermissionsAsync();
-      if (!perm.granted) {
+      const perm = await Audio.requestPermissionsAsync();
+      if (perm.status !== 'granted') {
         Alert.alert('Cần quyền microphone');
         setStage('IDLE');
         return;
       }
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+      setRecording(recording);
+      
+      // Đồng thời bật STT để hiển thị live transcript ("nhảy chữ")
+      if (STT_AVAILABLE) {
+        const speechModule = getSpeechRecognitionModule();
+        if (speechModule) {
+          const sttPerm = await speechModule.requestPermissionsAsync();
+          if (sttPerm.granted) {
+            speechModule.start({ lang: 'vi-VN', continuous: false, interimResults: true });
+          }
+        }
+      }
+
       tts('Đang lắng nghe');
-      speechModule.start({ lang: 'vi-VN', continuous: false, interimResults: true });
     } catch (e) {
-      console.warn('STT start failed', e);
+      console.warn('Audio record start failed', e);
       setStage('IDLE');
     }
   }
 
-  function stopListening() {
-    const speechModule = getSpeechRecognitionModule();
-    if (speechModule) {
-      try { speechModule.stop(); } catch { /* ignore */ }
-    } else {
-      const text = liveTranscript.trim();
-      setLiveTranscript('');
-      if (text) submitTranscript(text);
-      else setStage('IDLE');
+  async function stopListening() {
+    if (recording) {
+      try {
+        await recording.stopAndUnloadAsync();
+        const uri = recording.getURI();
+        setRecording(null);
+
+        // Tắt STT
+        if (STT_AVAILABLE) {
+          const speechModule = getSpeechRecognitionModule();
+          if (speechModule) {
+            try { speechModule.stop(); } catch { /* ignore */ }
+          }
+        }
+        
+        setLiveTranscript('');
+
+        if (uri) {
+          setStage('IDLE'); // Show loading while processing audio
+          await submitAudio(uri);
+          return;
+        }
+      } catch (err) {
+        console.warn('Audio record stop failed', err);
+      }
     }
+    
+    // Fallback STT text if any
+    const text = liveTranscript.trim();
+    setLiveTranscript('');
+    if (text) submitTranscript(text);
+    else setStage('IDLE');
   }
 
   async function submitCollecting() {
@@ -299,10 +392,9 @@ export default function VoiceAssistantScreen() {
     <BrandedBackground variant={isDarkStage ? "voice" : "default"}>
       <SafeAreaView edges={['top', 'bottom']} style={s.root}>
         <ScreenHeader 
-          title="Trợ lý giọng nói" 
-          showLogo={stage === 'IDLE'} 
+          title="Trợ lý Suara" 
+          showLogo 
           onBack={() => navigation.goBack()}
-          dark={isDarkStage}
         />
 
         <ScrollView 
@@ -374,7 +466,7 @@ export default function VoiceAssistantScreen() {
               {promptText !== '' && (
                 <View style={s.promptBoxDark} accessible accessibilityLabel={promptText}>
                   <MaterialCommunityIcons name="robot" size={20} color={theme.colors.primary} style={{ marginBottom: 8 }} />
-                  <Text style={s.promptTextDark}>{promptText}</Text>
+                  <TypewriterText style={s.promptTextDark} text={promptText} />
                 </View>
               )}
               <TouchableOpacity style={s.voiceReBtnDark} onPress={startListening}>
@@ -528,7 +620,7 @@ const s = StyleSheet.create({
   },
   toggleRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.lg, padding: 16, marginBottom: 24, borderSize: 1, borderColor: theme.colors.border,
+    borderRadius: theme.radius.lg, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: theme.colors.border,
   },
   toggleRowDark: {
     backgroundColor: 'rgba(255,255,255,0.08)',

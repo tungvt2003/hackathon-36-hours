@@ -128,4 +128,37 @@ export const api = {
     review: (orderId: string, body: ReviewRequest): Promise<ReviewResponse> =>
       request(`/orders/${orderId}/review`, { method: 'POST', body: JSON.stringify(body) }),
   },
+
+  voiceFlow: {
+    sendAudio: async (audioUri: string, sessionId: string, location?: { lat: number; lng: number }): Promise<any> => {
+      const formData = new FormData();
+      
+      // Chuyển local URI thành cấu trúc file cho React Native
+      formData.append('audio', {
+        uri: audioUri,
+        name: 'recording.m4a',
+        type: 'audio/m4a',
+      } as any);
+
+      if (sessionId) formData.append('session_id', sessionId);
+      if (location) {
+        formData.append('lat', String(location.lat));
+        formData.append('lng', String(location.lng));
+      }
+
+      const res = await fetch(`${BASE_URL}/voice-flow/audio`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          // Không set Content-Type, trình duyệt/React Native sẽ tự set multipart/form-data kèm boundary
+        },
+        body: formData,
+      });
+
+      const rawBody = await res.text();
+      if (!res.ok) throw new Error(`${res.status}: ${rawBody}`);
+      return JSON.parse(rawBody);
+    },
+  },
 };
+

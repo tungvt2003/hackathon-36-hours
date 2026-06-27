@@ -45,6 +45,44 @@ export class VoiceFlowService {
     private readonly conversationService: ConversationService,
   ) { }
 
+  async processAudio(file: any, body: any): Promise<VoiceFlowResponse> {
+    const aiServiceUrl = process.env.AI_SERVICE_URL || 'http://localhost:5000/process-audio';
+    this.logger.log(`[voice-flow] processAudio: Forwarding to AI Service at ${aiServiceUrl}`);
+
+    const formData = new FormData();
+    // Chuyển buffer thành Blob để FormData có thể nhận diện đúng format multipart
+    const blob = new Blob([new Uint8Array(file.buffer)], { type: file.mimetype });
+    formData.append('audio', blob, file.originalname || 'audio.m4a');
+    
+    // Gắn thêm các thông tin metadata khác từ frontend truyền lên
+    if (body.session_id) formData.append('session_id', body.session_id);
+    if (body.lat) formData.append('lat', body.lat);
+    if (body.lng) formData.append('lng', body.lng);
+
+    try {
+      const aiResponse = await fetch(aiServiceUrl, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!aiResponse.ok) {
+        this.logger.error(`AI Service trả về lỗi: ${aiResponse.status} ${aiResponse.statusText}`);
+        throw new Error('AI Service processing failed');
+      }
+
+      // Lấy JSON đã có cấu trúc từ AI Service
+      const structuredRequest: VoiceFlowRequest = await aiResponse.json();
+      this.logger.log(`[voice-flow] Nhận request JSON từ AI Service: intent=${structuredRequest.intent}, step=${structuredRequest.step}`);
+      
+      // Chuyển tiếp vào pipeline nội bộ
+      return this.handle(structuredRequest);
+
+    } catch (error) {
+      this.logger.error(`Lỗi khi gọi AI Service: ${(error as Error).message}`);
+      throw error;
+    }
+  }
+
   async handle(req: VoiceFlowRequest): Promise<VoiceFlowResponse> {
     this.logger.log(`[voice-flow] step=${req.step} session=${req.session_id}`);
 
