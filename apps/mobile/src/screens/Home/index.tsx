@@ -1,90 +1,38 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  View,
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  StyleSheet,
-  Alert,
-  AccessibilityInfo,
+  View,
 } from 'react-native';
-import { api } from './api';
-import {
-  PartnerCode,
-  PartnerQuote,
-  VoiceOrderResponse,
-  ConfirmOrderResponse,
-} from './types';
-
-// TODO (team voice): sau khi có expo-audio + expo-speech, thay TextInput bằng:
-//   1. Nút "Giữ để nói" -> dùng expo-audio ghi âm -> gửi audioBase64 lên API
-//   2. responseText nhận về -> dùng expo-speech để đọc lại cho người dùng
-//   3. expo-haptics rung xác nhận sau mỗi thao tác
-//   Cài: npx expo install expo-audio expo-speech expo-haptics
-
-const PARTNER_LABEL: Record<PartnerCode, string> = {
-  [PartnerCode.GRAB]: 'Grab',
-  [PartnerCode.BE]: 'Be',
-  [PartnerCode.XANH_SM]: 'Xanh SM',
-};
+import { useHome } from './useHome.hook';
 
 export default function HomeScreen() {
-  const [transcript, setTranscript] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [orderResult, setOrderResult] = useState<VoiceOrderResponse | null>(null);
-  const [confirmResult, setConfirmResult] = useState<ConfirmOrderResponse | null>(null);
-
-  async function handleSend() {
-    if (!transcript.trim()) {
-      Alert.alert('Vui lòng nhập yêu cầu');
-      return;
-    }
-    setLoading(true);
-    setOrderResult(null);
-    setConfirmResult(null);
-    try {
-      const result = await api.voiceOrder({ transcript });
-      setOrderResult(result);
-      // TODO (team voice): gọi expo-speech đọc result.responseText
-      AccessibilityInfo.announceForAccessibility(result.responseText);
-    } catch (err) {
-      Alert.alert('Lỗi', (err as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleConfirm(partner: PartnerCode) {
-    if (!orderResult) return;
-    setLoading(true);
-    try {
-      const result = await api.confirmOrder({ orderId: orderResult.orderId, partner });
-      setConfirmResult(result);
-      // TODO (team voice): gọi expo-speech đọc result.responseText
-      AccessibilityInfo.announceForAccessibility(result.responseText);
-    } catch (err) {
-      Alert.alert('Lỗi', (err as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const {
+    transcript,
+    loading,
+    orderResult,
+    confirmResult,
+    availableQuotes,
+    setTranscript,
+    handleSend,
+    handleConfirm,
+    handleReset,
+    getPartnerLabel,
+  } = useHome();
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      accessible={false}
-    >
+    <ScrollView style={styles.container} contentContainerStyle={styles.content} accessible={false}>
       <Text style={styles.title} accessibilityRole="header">
         Voice Mobility
       </Text>
       <Text style={styles.subtitle}>Đặt xe · Đồ ăn · Bằng giọng nói</Text>
 
-      {/* Input tạm thời — team voice thay bằng nút ghi âm */}
       <Text style={styles.label}>
-        Nhập yêu cầu{'\n'}
+        Nhập yêu cầu{"\n"}
         <Text style={styles.hint}>(tạm gõ tay, sau thay bằng giọng nói)</Text>
       </Text>
       <TextInput
@@ -99,8 +47,6 @@ export default function HomeScreen() {
         onSubmitEditing={handleSend}
       />
 
-      {/* TODO (team voice): đặt nút ghi âm ở đây thay TextInput */}
-
       <TouchableOpacity
         style={styles.primaryBtn}
         onPress={handleSend}
@@ -109,52 +55,39 @@ export default function HomeScreen() {
         accessibilityRole="button"
         accessibilityHint="Nhấn để gửi yêu cầu đặt xe hoặc đặt đồ ăn"
       >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.primaryBtnText}>Gửi yêu cầu</Text>
-        )}
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryBtnText}>Gửi yêu cầu</Text>}
       </TouchableOpacity>
 
-      {/* Kết quả báo giá */}
       {orderResult && !confirmResult && (
         <View style={styles.resultBox} accessible accessibilityLabel={orderResult.responseText}>
           <Text style={styles.responseText}>{orderResult.responseText}</Text>
 
           <Text style={styles.sectionLabel}>Chọn đối tác:</Text>
-          {orderResult.quotes
-            .filter((q) => q.available)
-            .sort((a, b) => a.price - b.price)
-            .map((q: PartnerQuote) => (
-              <TouchableOpacity
-                key={q.partner}
-                style={styles.quoteBtn}
-                onPress={() => handleConfirm(q.partner)}
-                accessibilityLabel={`${PARTNER_LABEL[q.partner]}, ${q.price.toLocaleString('vi-VN')} đồng, khoảng ${q.etaMinutes} phút`}
-                accessibilityRole="button"
-              >
-                <Text style={styles.quoteBtnName}>{PARTNER_LABEL[q.partner]}</Text>
-                <Text style={styles.quoteBtnDetail}>
-                  {q.price.toLocaleString('vi-VN')} đ · {q.etaMinutes} phút
-                  {q.driverName ? `  · ${q.driverName}` : ''}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          {availableQuotes.map((quote) => (
+            <TouchableOpacity
+              key={quote.partner}
+              style={styles.quoteBtn}
+              onPress={() => handleConfirm(quote.partner)}
+              accessibilityLabel={`${getPartnerLabel(quote.partner)}, ${quote.price.toLocaleString('vi-VN')} đồng, khoảng ${quote.etaMinutes} phút`}
+              accessibilityRole="button"
+            >
+              <Text style={styles.quoteBtnName}>{getPartnerLabel(quote.partner)}</Text>
+              <Text style={styles.quoteBtnDetail}>
+                {quote.price.toLocaleString('vi-VN')} đ · {quote.etaMinutes} phút
+                {quote.driverName ? `  · ${quote.driverName}` : ''}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
       )}
 
-      {/* Kết quả xác nhận */}
       {confirmResult && (
         <View style={styles.resultBox} accessible accessibilityLabel={confirmResult.responseText}>
           <Text style={styles.successTitle}>Đặt thành công!</Text>
           <Text style={styles.responseText}>{confirmResult.responseText}</Text>
           <TouchableOpacity
             style={styles.secondaryBtn}
-            onPress={() => {
-              setOrderResult(null);
-              setConfirmResult(null);
-              setTranscript('');
-            }}
+            onPress={handleReset}
             accessibilityLabel="Đặt chuyến mới"
             accessibilityRole="button"
           >

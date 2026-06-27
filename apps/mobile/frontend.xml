@@ -1,0 +1,766 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.gitignore
+AGENTS.md
+app.json
+App.tsx
+assets/android-icon-background.png
+assets/android-icon-foreground.png
+assets/android-icon-monochrome.png
+assets/favicon.png
+assets/icon.png
+assets/splash-icon.png
+CLAUDE.md
+index.ts
+LICENSE
+package.json
+src/api.ts
+src/screens/Home/home.service.ts
+src/screens/Home/index.tsx
+src/screens/Home/useHome.hook.ts
+src/services/api.ts
+src/stores/useAppStore.ts
+src/types.ts
+tsconfig.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path=".gitignore">
+# ── IDE / Tools ─────────────────────────────────────────────────
+.claude/
+.cursor/
+.vscode/
+.idea/
+
+# ── Dependencies ─────────────────────────────────────────────────
+node_modules/
+
+# ── Expo ─────────────────────────────────────────────────────────
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# ── Generated (openapi-typescript codegen) ───────────────────────
+src/api-types.ts
+
+# ── Native build artifacts ────────────────────────────────────────
+/ios/
+/android/
+.kotlin/
+
+# ── Signing / certificates ────────────────────────────────────────
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+# ── Metro ─────────────────────────────────────────────────────────
+.metro-health-check*
+
+# ── Environment ───────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Logs ──────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── OS ────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── TypeScript ────────────────────────────────────────────────────
+*.tsbuildinfo
+</file>
+
+<file path="AGENTS.md">
+# Expo HAS CHANGED
+
+Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before writing any code.
+</file>
+
+<file path="app.json">
+{
+  "expo": {
+    "name": "mobile",
+    "slug": "mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "apiUrl": "http://localhost:3000"
+    }
+  }
+}
+</file>
+
+<file path="App.tsx">
+import { StatusBar } from 'expo-status-bar';
+import HomeScreen from './src/screens/Home';
+
+export default function App() {
+  return (
+    <>
+      <StatusBar style="light" />
+      <HomeScreen />
+    </>
+  );
+}
+</file>
+
+<file path="CLAUDE.md">
+@AGENTS.md
+</file>
+
+<file path="index.ts">
+import { registerRootComponent } from 'expo';
+
+import App from './App';
+
+// registerRootComponent calls AppRegistry.registerComponent('main', () => App);
+// It also ensures that whether you load the app in Expo Go or in a native build,
+// the environment is set up appropriately
+registerRootComponent(App);
+</file>
+
+<file path="LICENSE">
+The MIT License (MIT)
+
+Copyright (c) 2015-present 650 Industries, Inc. (aka Expo)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+</file>
+
+<file path="package.json">
+{
+  "name": "mobile",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "dependencies": {
+    "expo": "~56.0.12",
+    "expo-status-bar": "~56.0.4",
+    "react": "19.2.3",
+    "react-native": "0.85.3",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "openapi-typescript": "^7.13.0",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "gen:types": "openapi-typescript http://localhost:3000/api-json -o src/api-types.ts",
+    "gen:types:file": "openapi-typescript ../api/openapi.json -o src/api-types.ts"
+  },
+  "private": true
+}
+</file>
+
+<file path="src/api.ts">
+import Constants from 'expo-constants';
+
+type QueryValue = string | number | boolean | null | undefined;
+
+export interface HttpHelperOptions {
+  baseUrl?: string;
+  defaultHeaders?: Record<string, string>;
+}
+
+export interface RequestOptions extends Omit<RequestInit, 'body' | 'headers'> {
+  headers?: Record<string, string>;
+  query?: Record<string, QueryValue>;
+  body?: unknown;
+}
+
+function getDefaultBaseUrl(): string {
+  const configuredBaseUrl = (Constants.expoConfig?.extra as { apiUrl?: string } | undefined)?.apiUrl;
+
+  return configuredBaseUrl ?? 'http://localhost:3000';
+}
+
+function toQueryString(query?: Record<string, QueryValue>): string {
+  if (!query) {
+    return '';
+  }
+
+  const searchParams = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(query)) {
+    if (value === undefined || value === null) {
+      continue;
+    }
+
+    searchParams.append(key, String(value));
+  }
+
+  const queryString = searchParams.toString();
+  return queryString ? `?${queryString}` : '';
+}
+
+export class HttpHelper {
+  private readonly baseUrl: string;
+
+  private readonly defaultHeaders: Record<string, string>;
+
+  constructor(options: HttpHelperOptions = {}) {
+    this.baseUrl = (options.baseUrl ?? getDefaultBaseUrl()).replace(/\/$/, '');
+    this.defaultHeaders = {
+      'Content-Type': 'application/json',
+      ...(options.defaultHeaders ?? {}),
+    };
+  }
+
+  async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+    const { query, body, headers, ...requestInit } = options;
+
+    const response = await fetch(`${this.baseUrl}${path}${toQueryString(query)}`, {
+      ...requestInit,
+      headers: {
+        ...this.defaultHeaders,
+        ...(headers ?? {}),
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const responseBody = await response.text();
+      throw new Error(`API ${path} failed ${response.status}: ${responseBody}`);
+    }
+
+    return response.json() as Promise<T>;
+  }
+
+  get<T>(path: string, options: Omit<RequestOptions, 'body'> = {}): Promise<T> {
+    return this.request<T>(path, {
+      ...options,
+      method: 'GET',
+    });
+  }
+
+  post<T>(path: string, body?: unknown, options: Omit<RequestOptions, 'body'> = {}): Promise<T> {
+    return this.request<T>(path, {
+      ...options,
+      method: 'POST',
+      body,
+    });
+  }
+}
+
+export const httpHelper = new HttpHelper();
+</file>
+
+<file path="src/screens/Home/home.service.ts">
+import { api } from '../../services/api';
+import { ConfirmOrderRequest, ConfirmOrderResponse, VoiceOrderRequest, VoiceOrderResponse } from '../../types';
+
+export const homeService = {
+  submitVoiceOrder: (body: VoiceOrderRequest): Promise<VoiceOrderResponse> => api.voiceOrder(body),
+
+  confirmOrder: (body: ConfirmOrderRequest): Promise<ConfirmOrderResponse> =>
+    api.confirmOrder(body),
+};
+</file>
+
+<file path="src/screens/Home/index.tsx">
+import React from 'react';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useHome } from './useHome.hook';
+
+export default function HomeScreen() {
+  const {
+    transcript,
+    loading,
+    orderResult,
+    confirmResult,
+    availableQuotes,
+    setTranscript,
+    handleSend,
+    handleConfirm,
+    handleReset,
+    getPartnerLabel,
+  } = useHome();
+
+  return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.content} accessible={false}>
+      <Text style={styles.title} accessibilityRole="header">
+        Voice Mobility
+      </Text>
+      <Text style={styles.subtitle}>Đặt xe · Đồ ăn · Bằng giọng nói</Text>
+
+      <Text style={styles.label}>
+        Nhập yêu cầu{"\n"}
+        <Text style={styles.hint}>(tạm gõ tay, sau thay bằng giọng nói)</Text>
+      </Text>
+      <TextInput
+        style={styles.input}
+        value={transcript}
+        onChangeText={setTranscript}
+        placeholder="vd: đặt xe từ nhà đến sân bay Tân Sơn Nhất"
+        multiline
+        accessibilityLabel="Ô nhập yêu cầu đặt xe hoặc đặt đồ ăn"
+        accessibilityRole="none"
+        returnKeyType="send"
+        onSubmitEditing={handleSend}
+      />
+
+      <TouchableOpacity
+        style={styles.primaryBtn}
+        onPress={handleSend}
+        disabled={loading}
+        accessibilityLabel="Gửi yêu cầu"
+        accessibilityRole="button"
+        accessibilityHint="Nhấn để gửi yêu cầu đặt xe hoặc đặt đồ ăn"
+      >
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryBtnText}>Gửi yêu cầu</Text>}
+      </TouchableOpacity>
+
+      {orderResult && !confirmResult && (
+        <View style={styles.resultBox} accessible accessibilityLabel={orderResult.responseText}>
+          <Text style={styles.responseText}>{orderResult.responseText}</Text>
+
+          <Text style={styles.sectionLabel}>Chọn đối tác:</Text>
+          {availableQuotes.map((quote) => (
+            <TouchableOpacity
+              key={quote.partner}
+              style={styles.quoteBtn}
+              onPress={() => handleConfirm(quote.partner)}
+              accessibilityLabel={`${getPartnerLabel(quote.partner)}, ${quote.price.toLocaleString('vi-VN')} đồng, khoảng ${quote.etaMinutes} phút`}
+              accessibilityRole="button"
+            >
+              <Text style={styles.quoteBtnName}>{getPartnerLabel(quote.partner)}</Text>
+              <Text style={styles.quoteBtnDetail}>
+                {quote.price.toLocaleString('vi-VN')} đ · {quote.etaMinutes} phút
+                {quote.driverName ? `  · ${quote.driverName}` : ''}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      {confirmResult && (
+        <View style={styles.resultBox} accessible accessibilityLabel={confirmResult.responseText}>
+          <Text style={styles.successTitle}>Đặt thành công!</Text>
+          <Text style={styles.responseText}>{confirmResult.responseText}</Text>
+          <TouchableOpacity
+            style={styles.secondaryBtn}
+            onPress={handleReset}
+            accessibilityLabel="Đặt chuyến mới"
+            accessibilityRole="button"
+          >
+            <Text style={styles.secondaryBtnText}>Đặt chuyến mới</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#0f172a' },
+  content: { padding: 24, paddingTop: 64, paddingBottom: 48 },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#f8fafc',
+    marginBottom: 4,
+  },
+  subtitle: { fontSize: 14, color: '#94a3b8', marginBottom: 32 },
+  label: { fontSize: 16, color: '#e2e8f0', marginBottom: 8 },
+  hint: { fontSize: 12, color: '#64748b' },
+  input: {
+    backgroundColor: '#1e293b',
+    color: '#f8fafc',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    minHeight: 80,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#334155',
+    textAlignVertical: 'top',
+  },
+  primaryBtn: {
+    backgroundColor: '#3b82f6',
+    borderRadius: 12,
+    paddingVertical: 18,
+    alignItems: 'center',
+    minHeight: 56,
+    justifyContent: 'center',
+  },
+  primaryBtnText: { color: '#fff', fontSize: 18, fontWeight: '600' },
+  resultBox: {
+    marginTop: 24,
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    padding: 16,
+  },
+  responseText: { color: '#e2e8f0', fontSize: 16, lineHeight: 24, marginBottom: 16 },
+  sectionLabel: { color: '#94a3b8', fontSize: 14, marginBottom: 8 },
+  quoteBtn: {
+    backgroundColor: '#0f172a',
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 10,
+    minHeight: 56,
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  quoteBtnName: { color: '#f8fafc', fontSize: 17, fontWeight: '600' },
+  quoteBtnDetail: { color: '#94a3b8', fontSize: 13, marginTop: 2 },
+  successTitle: { color: '#22c55e', fontSize: 20, fontWeight: '700', marginBottom: 8 },
+  secondaryBtn: {
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: '#3b82f6',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    minHeight: 48,
+    justifyContent: 'center',
+  },
+  secondaryBtnText: { color: '#3b82f6', fontSize: 16, fontWeight: '600' },
+});
+</file>
+
+<file path="src/screens/Home/useHome.hook.ts">
+import { useCallback, useState } from 'react';
+import { AccessibilityInfo, Alert } from 'react-native';
+import { PartnerCode, PartnerQuote, ConfirmOrderResponse, VoiceOrderResponse } from '../../types';
+import { homeService } from './home.service';
+
+const PARTNER_LABEL: Record<PartnerCode, string> = {
+  [PartnerCode.GRAB]: 'Grab',
+  [PartnerCode.BE]: 'Be',
+  [PartnerCode.XANH_SM]: 'Xanh SM',
+};
+
+export interface HomeViewModel {
+  transcript: string;
+  loading: boolean;
+  orderResult: VoiceOrderResponse | null;
+  confirmResult: ConfirmOrderResponse | null;
+  availableQuotes: PartnerQuote[];
+  setTranscript: (transcript: string) => void;
+  handleSend: () => Promise<void>;
+  handleConfirm: (partner: PartnerCode) => Promise<void>;
+  handleReset: () => void;
+  getPartnerLabel: (partner: PartnerCode) => string;
+}
+
+export function useHome(): HomeViewModel {
+  const [transcript, setTranscript] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [orderResult, setOrderResult] = useState<VoiceOrderResponse | null>(null);
+  const [confirmResult, setConfirmResult] = useState<ConfirmOrderResponse | null>(null);
+
+  const handleReset = useCallback(() => {
+    setOrderResult(null);
+    setConfirmResult(null);
+    setTranscript('');
+  }, []);
+
+  const handleSend = useCallback(async () => {
+    if (!transcript.trim()) {
+      Alert.alert('Vui lòng nhập yêu cầu');
+      return;
+    }
+
+    setLoading(true);
+    setOrderResult(null);
+    setConfirmResult(null);
+
+    try {
+      const result = await homeService.submitVoiceOrder({ transcript });
+      setOrderResult(result);
+      AccessibilityInfo.announceForAccessibility(result.responseText);
+    } catch (error) {
+      Alert.alert('Lỗi', error instanceof Error ? error.message : 'Không thể gửi yêu cầu');
+    } finally {
+      setLoading(false);
+    }
+  }, [transcript]);
+
+  const handleConfirm = useCallback(
+    async (partner: PartnerCode) => {
+      if (!orderResult) {
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const result = await homeService.confirmOrder({
+          orderId: orderResult.orderId,
+          partner,
+        });
+        setConfirmResult(result);
+        AccessibilityInfo.announceForAccessibility(result.responseText);
+      } catch (error) {
+        Alert.alert('Lỗi', error instanceof Error ? error.message : 'Không thể xác nhận đơn');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [orderResult],
+  );
+
+  const availableQuotes = orderResult
+    ? [...orderResult.quotes].filter((quote) => quote.available).sort((left, right) => left.price - right.price)
+    : [];
+
+  return {
+    transcript,
+    loading,
+    orderResult,
+    confirmResult,
+    availableQuotes,
+    setTranscript,
+    handleSend,
+    handleConfirm,
+    handleReset,
+    getPartnerLabel: (partner) => PARTNER_LABEL[partner],
+  };
+}
+</file>
+
+<file path="src/services/api.ts">
+import { httpHelper } from '../api';
+import {
+  ConfirmOrderRequest,
+  ConfirmOrderResponse,
+  VoiceOrderRequest,
+  VoiceOrderResponse,
+} from '../types';
+
+export const api = {
+  voiceOrder: (body: VoiceOrderRequest): Promise<VoiceOrderResponse> =>
+    httpHelper.post('/orders/voice', body),
+
+  confirmOrder: (body: ConfirmOrderRequest): Promise<ConfirmOrderResponse> =>
+    httpHelper.post('/orders/confirm', body),
+
+  health: (): Promise<{ ok: boolean }> => httpHelper.get('/health'),
+};
+</file>
+
+<file path="src/stores/useAppStore.ts">
+import { create } from 'zustand';
+
+export interface AppStoreState {
+  apiBaseUrl: string;
+  userId: string | null;
+  isReady: boolean;
+  setApiBaseUrl: (apiBaseUrl: string) => void;
+  setUserId: (userId: string | null) => void;
+  setReady: (isReady: boolean) => void;
+  resetSession: () => void;
+}
+
+const initialState = {
+  apiBaseUrl: 'http://localhost:3000',
+  userId: null,
+  isReady: false,
+};
+
+const useAppStore = create<AppStoreState>((set) => ({
+  ...initialState,
+  setApiBaseUrl: (apiBaseUrl) => set({ apiBaseUrl }),
+  setUserId: (userId) => set({ userId }),
+  setReady: (isReady) => set({ isReady }),
+  resetSession: () => set({ userId: null }),
+}));
+
+export default useAppStore;
+</file>
+
+<file path="src/types.ts">
+// ============================================================
+// COPY từ packages/shared/src/index.ts
+// Giữ đồng bộ với packages/shared — khi sửa type ở shared,
+// cập nhật file này cùng nội dung.
+// apps/mobile là standalone nên không import trực tiếp shared package.
+// ============================================================
+
+export enum OrderType {
+  RIDE = 'RIDE',
+  FOOD = 'FOOD',
+}
+
+export enum OrderStatus {
+  QUOTED = 'QUOTED',
+  CONFIRMED = 'CONFIRMED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum PartnerCode {
+  GRAB = 'GRAB',
+  BE = 'BE',
+  XANH_SM = 'XANH_SM',
+}
+
+export interface Intent {
+  type: OrderType;
+  origin?: string;
+  destination?: string;
+  restaurant?: string;
+  items?: string[];
+  note?: string;
+  confidence?: number;
+}
+
+export interface PlaceStatus {
+  name: string;
+  isOpen: boolean;
+  address?: string;
+}
+
+export interface WeatherInfo {
+  tempC: number;
+  condition: string;
+  willRain: boolean;
+}
+
+export interface Enrichment {
+  place?: PlaceStatus;
+  weather?: WeatherInfo;
+}
+
+export interface PartnerQuote {
+  partner: PartnerCode;
+  price: number;
+  etaMinutes: number;
+  driverName?: string;
+  available: boolean;
+}
+
+export interface VoiceOrderRequest {
+  userId?: string;
+  transcript?: string;
+  audioBase64?: string;
+}
+
+export interface VoiceOrderResponse {
+  orderId: string;
+  transcript: string;
+  intent: Intent;
+  enrichment: Enrichment;
+  quotes: PartnerQuote[];
+  responseText: string;
+}
+
+export interface ConfirmOrderRequest {
+  orderId: string;
+  partner: PartnerCode;
+}
+
+export interface ConfirmOrderResponse {
+  orderId: string;
+  status: OrderStatus;
+  partner: PartnerCode;
+  responseText: string;
+}
+</file>
+
+<file path="tsconfig.json">
+{
+  "extends": "./node_modules/expo/tsconfig.base.json",
+  "compilerOptions": {
+    "strict": true
+  }
+}
+</file>
+
+</files>
