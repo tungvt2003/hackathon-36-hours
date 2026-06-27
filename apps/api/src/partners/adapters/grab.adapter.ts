@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Intent, PartnerCode, PartnerQuote } from '../../types';
 import { RideProvider } from '../partner.provider';
-import { GRAB_MOCK_QUOTE, GRAB_MOCK_CONFIRM, GrabRawQuote } from '../fixtures/grab.fixture';
+import {
+  GRAB_MOCK_QUOTE,
+  GRAB_MOCK_CONFIRM,
+  GrabRawQuote,
+} from '../fixtures/grab.fixture';
 
 @Injectable()
 export class GrabAdapter implements RideProvider {
@@ -13,7 +17,9 @@ export class GrabAdapter implements RideProvider {
     return this.mapToQuote(raw);
   }
 
-  async confirm(_orderId: string): Promise<{ externalId: string; message: string }> {
+  async confirm(
+    _orderId: string,
+  ): Promise<{ externalId: string; message: string }> {
     // TODO: gọi Grab Booking API thật
     const raw = GRAB_MOCK_CONFIRM;
     return {

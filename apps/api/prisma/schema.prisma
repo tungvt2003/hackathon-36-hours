@@ -1,4 +1,4 @@
-// Prisma 7 schema — datasource URL cấu hình trong prisma.config.ts (không hardcode ở đây)
+// Prisma 7 schema
 
 generator client {
   provider   = "prisma-client-js"
@@ -11,68 +11,307 @@ datasource db {
 }
 
 // ============================================================
-// Dữ liệu CỦA MÌNH — không lưu response thô của đối tác
+// AccessAI own tables — khong luu raw data cua doi tac
 // ============================================================
 
 model User {
-  id        String   @id @default(cuid())
-  name      String?
-  phone     String?
-  orders    Order[]
-  createdAt DateTime @default(now())
+  id           String                @id @default(cuid())
+  name         String?
+  phone        String?
+  savedAddress String?
+  orders       Order[]
+  sessions     ConversationSession[]
+  createdAt    DateTime              @default(now())
 }
 
 model Order {
-  id           String       @id @default(cuid())
-  userId       String?
-  user         User?        @relation(fields: [userId], references: [id])
-  type         String       // OrderType enum (RIDE | FOOD)
-  origin       String?
-  destination  String?
-  restaurant   String?
-  items        Json?        // mảng tên món
-  status       String       // OrderStatus enum (QUOTED | CONFIRMED | CANCELLED)
-  partner      String?      // PartnerCode (GRAB | BE | XANH_SM)
-  quotePrice   Float?
-  etaMinutes   Int?
-  responseText String?
-  createdAt    DateTime     @default(now())
-  events       OrderEvent[]
+  id                String       @id @default(cuid())
+  userId            String?
+  user              User?        @relation(fields: [userId], references: [id])
+  type              String       // RIDE | FOOD
+  origin            String?
+  destination       String?
+  deliveryAddress   String?
+  partnerRestaurantId String?    // ID trong bang GrabRestaurant / BeRestaurant / ShopeeRestaurant
+  restaurant        String?      // ten quan (display)
+  items             Json?        // [{ menuItemId, name, qty, priceVnd }]
+  status            String       // QUOTED|CONFIRMED|DRIVER_ASSIGNED|IN_TRANSIT|DELIVERED|CANCELLED
+  partner           String?      // GRAB|BE|XANH_SM|SHOPEE
+  partnerDriverId   String?      // ID trong bang GrabDriver / BeDriver / etc.
+  driverName        String?      // cache ten tai xe de khoi query lai
+  subtotalVnd       Int?
+  deliveryFeeVnd    Int?
+  discountVnd       Int?
+  totalVnd          Int?
+  etaMinutes        Int?
+  responseText      String?
+  accessibilityFlag Boolean      @default(false)
+  createdAt         DateTime     @default(now())
+  events            OrderEvent[]
+  review            OrderReview?
 }
 
 model OrderEvent {
   id        String   @id @default(cuid())
   orderId   String
   order     Order    @relation(fields: [orderId], references: [id])
-  step      String   // vd: "STT", "NLU", "PLACES", "WEATHER", "PARTNER_QUOTE", "CONFIRM"
-  payload   Json     // dữ liệu đầu ra của bước đó
+  step      String
+  payload   Json
   createdAt DateTime @default(now())
 }
 
-// ============================================================
-// Dữ liệu chuẩn bị sẵn — seed bằng data mẫu, provider đọc từ đây
-// ============================================================
+model OrderReview {
+  id                String   @id @default(cuid())
+  orderId           String   @unique
+  order             Order    @relation(fields: [orderId], references: [id])
+  restaurantRating  Int      // 1-5
+  driverRating      Int      // 1-5
+  voiceText         String?  // raw transcript cua user
+  createdAt         DateTime @default(now())
+}
 
-// Địa điểm / quán ăn — MockPlacesProvider đọc từ bảng này
 model Place {
   id        String   @id @default(cuid())
   name      String
   address   String
-  openHour  Int      // 0-23, giờ mở cửa
-  closeHour Int      // 0-23, giờ đóng cửa (24 = không đóng)
-  keywords  String[] // từ khoá match với intent (lowercase)
+  openHour  Int
+  closeHour Int
+  keywords  String[]
   createdAt DateTime @default(now())
 }
 
-// Báo giá mô phỏng từng đối tác — DbPartnersService đọc từ bảng này
-// Sau này thay bằng gọi API thật, bảng này không cần nữa
-model PartnerRate {
-  id          String   @id @default(cuid())
-  partner     String   // GRAB | BE | XANH_SM
-  serviceType String   // vd: "GrabCar", "beCar", "XanhSM Car"
-  basePriceVnd Int     // giá cơ bản VND
-  etaMinutes  Int      // phút đến điểm đón
-  available   Boolean  @default(true)
-  driverName  String?  // tên tài xế mẫu để hiển thị
-  createdAt   DateTime @default(now())
+model ConversationSession {
+  id            String   @id @default(cuid())
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id])
+  state         String   // COLLECTING|CONFIRMING|ORDERING|TRACKING|DONE
+  intent        Json
+  missingFields String[]
+  orderId       String?
+  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now())
+}
+
+// ============================================================
+// GRAB — simulate he thong rieng cua Grab
+// ============================================================
+
+model GrabRestaurant {
+  id             String          @id @default(cuid())
+  name           String
+  address        String
+  openHour       Int
+  closeHour      Int
+  cuisineType    String
+  rating         Float           @default(4.5) // rating tu phia Grab (cold-start fallback)
+  reviewCount    Int             @default(0)
+  keywords       String[]
+  deliveryFeeVnd Int             @default(15000)
+  minOrderVnd    Int             @default(30000)
+  available      Boolean         @default(true)
+  items          GrabMenuItem[]
+  promotions     GrabPromotion[]
+  createdAt      DateTime        @default(now())
+}
+
+model GrabMenuItem {
+  id               String         @id @default(cuid())
+  grabRestaurantId String
+  restaurant       GrabRestaurant @relation(fields: [grabRestaurantId], references: [id])
+  categoryName     String
+  name             String
+  description      String?
+  priceVnd         Int
+  available        Boolean        @default(true)
+  keywords         String[]
+  createdAt        DateTime       @default(now())
+}
+
+model GrabRideOption {
+  id           String   @id @default(cuid())
+  serviceType  String   // GrabCar | GrabBike
+  basePriceVnd Int
+  etaMinutes   Int
+  available    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model GrabDriver {
+  id           String   @id @default(cuid())
+  name         String
+  phone        String
+  vehicleType  String   // GrabCar | GrabBike
+  vehiclePlate String
+  rating       Float    @default(4.8)
+  available    Boolean  @default(true)
+  currentLat   Float
+  currentLng   Float
+  createdAt    DateTime @default(now())
+}
+
+model GrabPromotion {
+  id               String         @id @default(cuid())
+  grabRestaurantId String?
+  restaurant       GrabRestaurant? @relation(fields: [grabRestaurantId], references: [id])
+  discountType     String         // PERCENT | FIXED | FREE_DELIVERY
+  discountValue    Int
+  minOrderVnd      Int            @default(0)
+  maxDiscountVnd   Int?
+  active           Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+}
+
+// ============================================================
+// BE — simulate he thong rieng cua Be
+// ============================================================
+
+model BeRestaurant {
+  id             String        @id @default(cuid())
+  name           String
+  address        String
+  openHour       Int
+  closeHour      Int
+  cuisineType    String
+  rating         Float         @default(4.5)
+  reviewCount    Int           @default(0)
+  keywords       String[]
+  deliveryFeeVnd Int           @default(10000)
+  minOrderVnd    Int           @default(20000)
+  available      Boolean       @default(true)
+  items          BeMenuItem[]
+  promotions     BePromotion[]
+  createdAt      DateTime      @default(now())
+}
+
+model BeMenuItem {
+  id             String       @id @default(cuid())
+  beRestaurantId String
+  restaurant     BeRestaurant @relation(fields: [beRestaurantId], references: [id])
+  categoryName   String
+  name           String
+  description    String?
+  priceVnd       Int
+  available      Boolean      @default(true)
+  keywords       String[]
+  createdAt      DateTime     @default(now())
+}
+
+model BeRideOption {
+  id           String   @id @default(cuid())
+  serviceType  String   // beCar | beBike
+  basePriceVnd Int
+  etaMinutes   Int
+  available    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model BeDriver {
+  id           String   @id @default(cuid())
+  name         String
+  phone        String
+  vehicleType  String   // beCar | beBike
+  vehiclePlate String
+  rating       Float    @default(4.8)
+  available    Boolean  @default(true)
+  currentLat   Float
+  currentLng   Float
+  createdAt    DateTime @default(now())
+}
+
+model BePromotion {
+  id             String       @id @default(cuid())
+  beRestaurantId String?
+  restaurant     BeRestaurant? @relation(fields: [beRestaurantId], references: [id])
+  discountType   String
+  discountValue  Int
+  minOrderVnd    Int          @default(0)
+  maxDiscountVnd Int?
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+}
+
+// ============================================================
+// XANH SM — ride only, khong co food
+// ============================================================
+
+model XanhSmRideOption {
+  id           String   @id @default(cuid())
+  serviceType  String   // XanhSM Car
+  basePriceVnd Int
+  etaMinutes   Int
+  available    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model XanhSmDriver {
+  id           String   @id @default(cuid())
+  name         String
+  phone        String
+  vehicleType  String   // XanhSM Car (VinFast)
+  vehiclePlate String
+  rating       Float    @default(4.8)
+  available    Boolean  @default(true)
+  currentLat   Float
+  currentLng   Float
+  createdAt    DateTime @default(now())
+}
+
+// ============================================================
+// SHOPEE — food only, khong co ride
+// ============================================================
+
+model ShopeeRestaurant {
+  id             String             @id @default(cuid())
+  name           String
+  address        String
+  openHour       Int
+  closeHour      Int
+  cuisineType    String
+  rating         Float              @default(4.5)
+  reviewCount    Int                @default(0)
+  keywords       String[]
+  deliveryFeeVnd Int                @default(12000)
+  minOrderVnd    Int                @default(25000)
+  available      Boolean            @default(true)
+  items          ShopeeMenuItem[]
+  promotions     ShopeePromotion[]
+  createdAt      DateTime           @default(now())
+}
+
+model ShopeeMenuItem {
+  id                 String           @id @default(cuid())
+  shopeeRestaurantId String
+  restaurant         ShopeeRestaurant @relation(fields: [shopeeRestaurantId], references: [id])
+  categoryName       String
+  name               String
+  description        String?
+  priceVnd           Int
+  available          Boolean          @default(true)
+  keywords           String[]
+  createdAt          DateTime         @default(now())
+}
+
+model ShopeeDriver {
+  id           String   @id @default(cuid())
+  name         String
+  phone        String
+  vehicleType  String   // Shopee Bike
+  vehiclePlate String
+  rating       Float    @default(4.8)
+  available    Boolean  @default(true)
+  currentLat   Float
+  currentLng   Float
+  createdAt    DateTime @default(now())
+}
+
+model ShopeePromotion {
+  id                 String            @id @default(cuid())
+  shopeeRestaurantId String?
+  restaurant         ShopeeRestaurant? @relation(fields: [shopeeRestaurantId], references: [id])
+  discountType       String
+  discountValue      Int
+  minOrderVnd        Int               @default(0)
+  maxDiscountVnd     Int?
+  active             Boolean           @default(true)
+  createdAt          DateTime          @default(now())
 }

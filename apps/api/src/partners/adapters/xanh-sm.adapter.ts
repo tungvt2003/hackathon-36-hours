@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Intent, PartnerCode, PartnerQuote } from '../../types';
 import { RideProvider } from '../partner.provider';
-import { XANH_SM_MOCK_QUOTE, XANH_SM_MOCK_CONFIRM, XanhSmRawQuote } from '../fixtures/xanh-sm.fixture';
+import {
+  XANH_SM_MOCK_QUOTE,
+  XANH_SM_MOCK_CONFIRM,
+  XanhSmRawQuote,
+} from '../fixtures/xanh-sm.fixture';
 
 @Injectable()
 export class XanhSmAdapter implements RideProvider {
@@ -11,7 +15,9 @@ export class XanhSmAdapter implements RideProvider {
     return this.mapToQuote(raw);
   }
 
-  async confirm(_orderId: string): Promise<{ externalId: string; message: string }> {
+  async confirm(
+    _orderId: string,
+  ): Promise<{ externalId: string; message: string }> {
     const raw = XANH_SM_MOCK_CONFIRM;
     return {
       externalId: raw.order_id,

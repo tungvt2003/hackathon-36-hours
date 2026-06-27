@@ -9,6 +9,9 @@ export enum OrderType {
 export enum OrderStatus {
   QUOTED = 'QUOTED',
   CONFIRMED = 'CONFIRMED',
+  DRIVER_ASSIGNED = 'DRIVER_ASSIGNED',
+  IN_TRANSIT = 'IN_TRANSIT',
+  DELIVERED = 'DELIVERED',
   CANCELLED = 'CANCELLED',
 }
 
@@ -16,6 +19,7 @@ export enum PartnerCode {
   GRAB = 'GRAB',
   BE = 'BE',
   XANH_SM = 'XANH_SM',
+  SHOPEE = 'SHOPEE',
 }
 
 export interface Intent {
@@ -55,12 +59,57 @@ export interface PartnerQuote {
   available: boolean;
 }
 
+export interface OrderedItem {
+  menuItemId: string;
+  name: string;
+  qty: number;
+  priceVnd: number;
+}
+
+export interface FoodQuote {
+  partner: PartnerCode;
+  subtotalVnd: number;
+  deliveryFeeVnd: number;
+  discountVnd: number;
+  totalVnd: number;
+  promoDescription?: string;
+  etaMinutes: number;
+  driverName?: string;
+  available: boolean;
+}
+
+export interface PartnerRestaurant {
+  partner: PartnerCode;
+  restaurantId: string;
+  name: string;
+  address: string;
+  rating: number; // partner seed rating (cold-start fallback)
+  displayRating: number; // accessAiAvgRating ?? partnerRating
+  reviewCount: number;
+  deliveryFeeVnd: number;
+  minOrderVnd: number;
+  cuisineType: string;
+  keywords: string[];
+  available: boolean;
+  openHour: number;
+  closeHour: number;
+}
+
 export interface VoiceOrderResponse {
   orderId: string;
   transcript: string;
   intent: Intent;
   enrichment: Enrichment;
   quotes: PartnerQuote[];
+  foodQuotes?: FoodQuote[];
+  resolvedRestaurant?: {
+    id: string;
+    partner: string;
+    name: string;
+    address: string;
+    isOpen: boolean;
+  };
+  resolvedItems?: OrderedItem[];
   responseText: string;
 }
 

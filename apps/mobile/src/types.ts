@@ -1,10 +1,3 @@
-// ============================================================
-// COPY từ packages/shared/src/index.ts
-// Giữ đồng bộ với packages/shared — khi sửa type ở shared,
-// cập nhật file này cùng nội dung.
-// apps/mobile là standalone nên không import trực tiếp shared package.
-// ============================================================
-
 export enum OrderType {
   RIDE = 'RIDE',
   FOOD = 'FOOD',
@@ -13,6 +6,9 @@ export enum OrderType {
 export enum OrderStatus {
   QUOTED = 'QUOTED',
   CONFIRMED = 'CONFIRMED',
+  DRIVER_ASSIGNED = 'DRIVER_ASSIGNED',
+  IN_TRANSIT = 'IN_TRANSIT',
+  DELIVERED = 'DELIVERED',
   CANCELLED = 'CANCELLED',
 }
 
@@ -20,33 +16,7 @@ export enum PartnerCode {
   GRAB = 'GRAB',
   BE = 'BE',
   XANH_SM = 'XANH_SM',
-}
-
-export interface Intent {
-  type: OrderType;
-  origin?: string;
-  destination?: string;
-  restaurant?: string;
-  items?: string[];
-  note?: string;
-  confidence?: number;
-}
-
-export interface PlaceStatus {
-  name: string;
-  isOpen: boolean;
-  address?: string;
-}
-
-export interface WeatherInfo {
-  tempC: number;
-  condition: string;
-  willRain: boolean;
-}
-
-export interface Enrichment {
-  place?: PlaceStatus;
-  weather?: WeatherInfo;
+  SHOPEE = 'SHOPEE',
 }
 
 export interface PartnerQuote {
@@ -57,31 +27,66 @@ export interface PartnerQuote {
   available: boolean;
 }
 
-export interface VoiceOrderRequest {
-  userId?: string;
-  transcript?: string;
-  audioBase64?: string;
-}
-
-export interface VoiceOrderResponse {
-  orderId: string;
-  transcript: string;
-  intent: Intent;
-  enrichment: Enrichment;
-  quotes: PartnerQuote[];
-  responseText: string;
-}
-
-export interface ConfirmOrderRequest {
-  orderId: string;
+export interface FoodQuote {
   partner: PartnerCode;
+  subtotalVnd: number;
+  deliveryFeeVnd: number;
+  discountVnd: number;
+  totalVnd: number;
+  promoDescription?: string;
+  etaMinutes: number;
+  driverName?: string;
+  available: boolean;
 }
 
-export interface ConfirmOrderResponse {
+// ── Conversation API ──────────────────────────────────────────
+
+export interface ConversationStartResponse {
+  sessionId: string;
+  promptText: string;
+}
+
+export interface ConversationInputResponse {
+  sessionId: string;
+  state: 'COLLECTING' | 'ORDERING' | 'DONE';
+  missingField?: string;
+  promptText: string;
+  quotes?: PartnerQuote[];
+  foodQuotes?: FoodQuote[];
+  orderId?: string;
+}
+
+export interface ConversationConfirmResponse {
+  sessionId: string;
+  state: string;
+  promptText: string;
+  orderId: string;
+}
+
+// ── Order status ──────────────────────────────────────────────
+
+export interface OrderStatusResponse {
   orderId: string;
   status: OrderStatus;
-  partner: PartnerCode;
+  partner?: string;
   responseText: string;
+  etaMinutes?: number;
+  partnerDriverId?: string;
+  driverName?: string;
+}
+
+// ── Review ────────────────────────────────────────────────────
+
+export interface ReviewRequest {
+  restaurantRating: number;
+  driverRating: number;
+  voiceText?: string;
+}
+
+export interface ReviewResponse {
+  reviewId: string;
+  responseText: string;
+  earnedPoints: number;
 }
 
 export interface RestaurantMatch {
