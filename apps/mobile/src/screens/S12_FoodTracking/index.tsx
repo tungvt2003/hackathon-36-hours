@@ -17,7 +17,6 @@ import { ASSETS } from '../../assets';
 import { theme } from '../../theme/theme';
 import { SuaraLogo } from '../../components/SuaraLogo';
 import { BrandedBackground } from '../../components/BrandedBackground';
-import { useVoice } from '../../contexts/VoiceContext';
 
 export default function FoodTrackingScreen() {
   const insets = useSafeAreaInsets();
@@ -31,7 +30,6 @@ export default function FoodTrackingScreen() {
     onBack,
     announcement 
   } = useFoodTracking();
-  const { openVoice } = useVoice();
 
   const [showToast, setShowToast] = useState(false);
   const toastOpacity = useRef(new Animated.Value(0)).current;
@@ -209,16 +207,6 @@ export default function FoodTrackingScreen() {
             </View>
           )}
         </View>
-
-        {/* Floating Mic FAB */}
-        <TouchableOpacity
-          style={[styles.micFab, { bottom: Math.max(insets.bottom, 16) + 80 }]}
-          onPress={() => openVoice('home', 'Bạn cần trợ giúp gì? Tôi có thể đặt lại hoặc thay đổi đơn hàng cho bạn.')}
-          accessibilityRole="button"
-          accessibilityLabel="Voice Assistant"
-        >
-          <MaterialCommunityIcons name="microphone" size={32} color="white" />
-        </TouchableOpacity>
       </SafeAreaView>
     </BrandedBackground>
   );
@@ -481,20 +469,5 @@ const styles = StyleSheet.create({
     color: theme.colors.textMuted,
     fontWeight: '600',
     marginLeft: 6,
-  },
-  micFab: {
-    position: 'absolute',
-    right: 20,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: theme.colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
 });

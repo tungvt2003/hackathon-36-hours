@@ -7,10 +7,10 @@ export interface RideStep {
 }
 
 export const RIDE_STEPS: RideStep[] = [
-  { id: 'finding', label: 'Finding Driver', icon: 'magnify' },
-  { id: 'en_route', label: 'Driver On the Way', icon: 'car' },
-  { id: 'arrived', label: 'Driver Arrived', icon: 'map-marker-check' },
-  { id: 'completed', label: 'Completed', icon: 'check-circle' },
+  { id: 'finding', label: 'Đang tìm tài xế', icon: 'magnify' },
+  { id: 'en_route', label: 'Tài xế đang đến', icon: 'car' },
+  { id: 'arrived', label: 'Tài xế đã đến', icon: 'map-marker-check' },
+  { id: 'completed', label: 'Hoàn thành', icon: 'check-circle' },
 ];
 
 export const MOCK_DRIVER = {
@@ -22,8 +22,8 @@ export const MOCK_DRIVER = {
 };
 
 export const RIDE_STATUS_ANNOUNCEMENTS: Record<RideStatus, string> = {
-  finding: 'Looking for a driver for you.',
-  en_route: 'Your driver has accepted the ride and is on the way.',
-  arrived: 'Your driver has arrived. Your OTP is 8, 4, 7, 2.',
-  completed: 'Your ride is complete. Thank you for riding with Suara!',
+  finding: 'Đang tìm tài xế cho bạn.',
+  en_route: 'Tài xế đã nhận chuyến và đang đến.',
+  arrived: 'Tài xế đã đến. Mã OTP của bạn là 8, 4, 7, 2.',
+  completed: 'Chuyến đi đã hoàn thành. Cảm ơn bạn đã sử dụng Suara!',
 };

@@ -74,7 +74,7 @@ export default function SettingsScreen() {
           style={styles.voiceFab}
           onPress={onMicPress}
           accessibilityRole="button"
-          accessibilityLabel="Tap to speak with AI"
+          accessibilityLabel="Chạm để nói với AI"
         >
           <MaterialCommunityIcons name="microphone" size={32} color="white" />
         </TouchableOpacity>

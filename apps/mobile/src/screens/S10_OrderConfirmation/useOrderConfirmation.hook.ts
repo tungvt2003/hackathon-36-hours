@@ -26,8 +26,8 @@ export const useOrderConfirmation = (): OrderConfirmationViewModel => {
 
   useEffect(() => {
     const summary = isRide
-      ? `Ride to ${order.restaurantName}, fare ${order.total} dong. Confirm to book the ride.`
-      : `Order from ${order.restaurantName}, total ${order.total} dong. Confirm to place order.`;
+      ? `Chuyến đi đến ${order.restaurantName}, giá ${order.total} đồng. Hãy xác nhận để đặt xe.`
+      : `Đơn hàng từ ${order.restaurantName}, tổng cộng ${order.total} đồng. Hãy xác nhận để đặt món.`;
     AccessibilityInfo.announceForAccessibility(summary);
   }, [order, isRide]);
 
@@ -37,7 +37,7 @@ export const useOrderConfirmation = (): OrderConfirmationViewModel => {
         orderId,
         intent: {
           type: OrderType.RIDE,
-          origin: '123 Le Loi, District 1',
+          origin: '123 Lê Lợi, Quận 1',
           destination: order.restaurantName,
         },
       });

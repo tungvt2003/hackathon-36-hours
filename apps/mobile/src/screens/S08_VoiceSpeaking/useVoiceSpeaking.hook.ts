@@ -26,7 +26,7 @@ export const useVoiceSpeaking = (): VoiceSpeakingViewModel => {
     if (context === 'ride') {
       navigation.navigate('RideTracking', {
         orderId,
-        intent: { type: OrderType.RIDE, origin: '123 Lê Lợi, Q.1', destination: 'Bến Thành Market' },
+        intent: { type: OrderType.RIDE, origin: '123 Lê Lợi, Quận 1', destination: 'Chợ Bến Thành' },
       });
       return;
     }

@@ -74,9 +74,9 @@ export default function VoiceSpeakingScreen() {
             style={styles.cancelBtn} 
             onPress={onCancel}
             accessibilityRole="button"
-            accessibilityLabel="Cancel"
+            accessibilityLabel="Hủy"
           >
-            <Text style={styles.cancelBtnText}>Cancel</Text>
+            <Text style={styles.cancelBtnText}>Hủy</Text>
           </TouchableOpacity>
 
           <TouchableOpacity

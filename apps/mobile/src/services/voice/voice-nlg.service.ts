@@ -1,58 +1,58 @@
 import { PartnerCode } from '../../types';
-import { PARTNER_LABEL, VALID_PLACES } from './voice.constants';
-import type { VoiceNluIntent, VoiceNluResult } from './voice-nlu.service';
+import { PARTNER_LABEL } from './voice.constants';
+import type { VoiceNluResult } from './voice-nlu.service';
 
 function formatVnd(amount: number): string {
-  return amount.toLocaleString('en-US');
+  return amount.toLocaleString('vi-VN');
 }
 
 export const voiceNlg = {
   platformGreeting(): string {
-    return "Hello! I'm Suara, your voice assistant. Which platform would you like to use? You can say Grab, Be, Xanh SM, or Shopee Food.";
+    return 'Xin chào, tôi là Suara. Bạn muốn dùng dịch vụ nào? Hiện tại bạn có thể nói Grab để tiếp tục.';
   },
 
   platformGrabSelected(): string {
-    return "You've selected Grab. Great! What would you like to do today? You can say: order food, or book a ride.";
+    return 'Bạn đã chọn Grab. Hôm nay bạn muốn đặt đồ ăn hay đặt xe?';
   },
 
   platformGrabConfirmedAfterFallback(): string {
-    return "Great! You've selected Grab. What would you like to do today? You can say: order food, or book a ride.";
+    return 'Đã chọn Grab. Hôm nay bạn muốn đặt đồ ăn hay đặt xe?';
   },
 
   platformUnsupported(platform: PartnerCode): string {
     const name = PARTNER_LABEL[platform];
-    return `Sorry, ${name} is not available yet. Right now, Suara only supports Grab. Would you like to use Grab instead?`;
+    return `Hiện tại ${name} chưa được hỗ trợ. Suara chỉ hỗ trợ Grab trong bản demo này. Bạn có muốn dùng Grab không?`;
   },
 
   platformRetryPrompt(): string {
-    return 'No problem. Which platform would you like to use? Grab, Be, Xanh SM, or Shopee Food?';
+    return 'Không sao. Bạn muốn dùng dịch vụ nào? Hiện tại bạn có thể nói Grab.';
   },
 
   platformUnclear(retryCount: number): string {
     if (retryCount >= 3) {
-      return "I'm having trouble understanding. Please tap the microphone to try again.";
+      return 'Tôi vẫn chưa nghe rõ. Bạn hãy chạm vào nút micro để thử lại.';
     }
-    return "Sorry, I didn't catch that. Please say one of these: Grab, Be, Xanh SM, or Shopee Food.";
+    return 'Tôi chưa nghe rõ. Bạn có thể nói Grab để tiếp tục.';
   },
 
   servicePrompt(): string {
-    return 'What would you like to do today? You can say: order food, or book a ride.';
+    return 'Bạn muốn đặt đồ ăn hay đặt xe?';
   },
 
   serviceFoodSelected(): string {
-    return 'Sure! What would you like to eat? For example, you can say: pho, broken rice, fried chicken, or a burger.';
+    return 'Bạn muốn ăn món gì? Bạn có thể nói tên món, hoặc nói gợi ý nếu chưa biết ăn gì.';
   },
 
   serviceRideSelected(): string {
-    return 'Sure! Where would you like to go?';
+    return 'Bạn muốn đi đâu?';
   },
 
   serviceUnclear(): string {
-    return "I didn't quite catch that. Would you like to order food, or book a ride?";
+    return 'Tôi chưa nghe rõ. Bạn muốn đặt đồ ăn hay đặt xe?';
   },
 
   foodDishPrompt(): string {
-    return 'What would you like to eat?';
+    return 'Bạn muốn ăn món gì?';
   },
 
   foodSingleMatch(
@@ -62,109 +62,109 @@ export const voiceNlg = {
     distanceKm: number,
     etaMin: number,
   ): string {
-    return `I found ${restaurantName}, ${distanceKm} kilometers away, delivering in about ${etaMin} minutes. They have ${dishName} for ${formatVnd(priceVnd)} Vietnamese dong. Would you like to order that?`;
+    return `Tôi tìm thấy ${restaurantName}, cách khoảng ${distanceKm} ki lô mét, giao trong khoảng ${etaMin} phút. Quán có ${dishName}, giá ${formatVnd(priceVnd)} đồng. Bạn muốn đặt món này không?`;
   },
 
   foodMultipleRestaurants(count: number, dishName: string): string {
-    return `I found ${count} restaurants with that dish. Which one would you like? Say one, two, or the restaurant name.`;
+    return `Tôi tìm thấy ${count} quán có ${dishName}. Bạn muốn chọn quán nào? Hãy nói tên quán.`;
   },
 
   foodNotFound(): string {
-    return "Sorry, I couldn't find that dish on Grab right now. Would you like to try something else? For example: pho, broken rice, or fried chicken.";
+    return 'Hiện tôi chưa tìm thấy món này trên Grab gần bạn. Bạn muốn thử món khác không? Tôi có thể gợi ý cơm tấm, phở bò hoặc gà rán.';
   },
 
   foodUnclear(): string {
-    return "Sorry, I didn't catch that. What would you like to eat? You can say something like: pho, broken rice, or fried chicken.";
+    return 'Tôi chưa nghe rõ món bạn muốn ăn. Bạn có thể nói phở bò, cơm tấm, hoặc gà rán.';
   },
 
   foodDeclined(): string {
-    return 'No problem. What else would you like to eat?';
+    return 'Không sao. Bạn muốn ăn món gì khác?';
   },
 
   restaurantSelectPrompt(): string {
-    return 'Which restaurant would you like? Say one, two, three, the name, closest, or cheapest.';
+    return 'Bạn muốn chọn quán nào? Hãy nói tên quán, ví dụ KFC Bến Thành.';
   },
 
   restaurantChosen(name: string): string {
-    return `You've chosen ${name}. Let me pull up your order.`;
+    return `Bạn đã chọn ${name}. Tôi sẽ mở thông tin đơn hàng.`;
   },
 
   rideDestinationPrompt(): string {
-    return 'Where would you like to go?';
+    return 'Bạn muốn đi đâu?';
   },
 
   rideDestinationValid(placeName: string): string {
-    return `You want to go to ${placeName}. I'm finding a ride for you now...`;
+    return `Bạn muốn đi đến ${placeName}. Tôi đang tìm chuyến xe phù hợp cho bạn.`;
   },
 
   rideDestinationInvalid(): string {
-    return "Sorry, I couldn't find that destination. Right now I can take you to: Tan Son Nhat Airport, Mien Dong Bus Station, Ben Thanh Market, Bitexco Tower, or District 1. Which one would you like?";
+    return 'Tôi chưa tìm thấy điểm đến đó. Hiện demo có thể đi đến sân bay Tân Sơn Nhất, bến xe Miền Đông, chợ Bến Thành, Bitexco, hoặc Quận 1. Bạn muốn đi đâu?';
   },
 
   rideUnclear(): string {
-    return "Sorry, I didn't catch that. Where would you like to go? For example: the airport, Ben Thanh Market, or Bitexco Tower.";
+    return 'Tôi chưa nghe rõ điểm đến. Bạn có thể nói sân bay, chợ Bến Thành, hoặc Bitexco.';
   },
 
   rideQuote(placeName: string, priceVnd: number, etaMin: number): string {
-    return `Here are your ride details: GrabCar from your current location to ${placeName}. Estimated fare: ${formatVnd(priceVnd)} Vietnamese dong. Your driver will arrive in about ${etaMin} minutes. Say confirm to book the ride, or cancel to go back.`;
+    return `Thông tin chuyến đi: GrabCar từ vị trí hiện tại đến ${placeName}. Giá dự kiến ${formatVnd(priceVnd)} đồng. Tài xế đến trong khoảng ${etaMin} phút. Bạn muốn xác nhận đặt xe hay hủy?`;
   },
 
   rideConfirmed(driverName: string, plate: string, etaMin: number, otp: string): string {
-    return `Ride booked successfully! Driver ${driverName} is on the way. Plate number: ${plate}. Estimated ${etaMin} minutes. Your OTP is ${otp.split('').join(', ')}.`;
+    return `Đặt xe thành công. Tài xế ${driverName} đang đến. Biển số xe là ${plate}. Dự kiến ${etaMin} phút. Mã OTP của bạn là ${otp.split('').join(', ')}.`;
   },
 
   orderConfirmed(orderId: string): string {
-    return `Order placed successfully! Your order ID is ${orderId}. The restaurant is preparing your food. I'll notify you when there is an update.`;
+    return `Đặt món thành công. Mã đơn hàng là ${orderId}. Quán đang chuẩn bị món. Tôi sẽ thông báo khi có cập nhật.`;
   },
 
   orderCancelled(): string {
-    return 'Order cancelled. Would you like to order something else?';
+    return 'Đơn đã được hủy. Bạn muốn đặt món khác không?';
   },
 
   globalHelp(): string {
-    return 'You can speak naturally. For example: order pho, or take me to the airport. Say help anytime for guidance.';
+    return 'Bạn có thể nói tự nhiên, ví dụ: đặt gà rán, hoặc đặt xe đến sân bay. Bạn cũng có thể nói hủy để dừng.';
   },
 
   globalCancel(): string {
-    return 'Cancelled. What would you like to do next?';
+    return 'Đã hủy. Bạn muốn làm gì tiếp theo?';
   },
 
   sttError(): string {
-    return "Sorry, I didn't hear you clearly. Please try again.";
+    return 'Tôi chưa nghe rõ. Bạn vui lòng thử lại.';
   },
 
   networkError(): string {
-    return "Sorry, something went wrong. I'll try again right away.";
+    return 'Có lỗi xảy ra. Tôi sẽ thử lại ngay.';
   },
 
   networkFatal(): string {
-    return "I'm having trouble connecting. Please check your internet connection and try again.";
+    return 'Tôi đang gặp lỗi kết nối. Bạn hãy kiểm tra mạng và thử lại.';
   },
 
   idleTimeout(): string {
-    return 'Are you still there? Tap the microphone to try again, or say go home.';
+    return 'Bạn còn ở đó không? Hãy chạm micro để thử lại, hoặc nói về trang chủ.';
   },
 
   ratingPrompt(isRide = false): string {
     return isRide
-      ? 'How many stars would you give your driver? Say one star, two stars, three stars, four stars, or five stars.'
-      : 'How many stars would you give this order? Say one star, two stars, three stars, four stars, or five stars.';
+      ? 'Bạn muốn đánh giá tài xế mấy sao? Hãy nói từ một sao đến năm sao.'
+      : 'Bạn muốn đánh giá đơn hàng mấy sao? Hãy nói từ một sao đến năm sao.';
   },
 
   ratingReceived(stars: number): string {
-    return `You gave ${stars} stars. Would you like to add a comment? Say yes to add one, or no to submit.`;
+    return `Bạn đã đánh giá ${stars} sao. Bạn có muốn thêm nhận xét không?`;
   },
 
   ratingCommentPrompt(): string {
-    return 'Please go ahead and speak your comment.';
+    return 'Bạn hãy nói nhận xét của mình.';
   },
 
   ratingThankYou(): string {
-    return 'Thank you for your review! Taking you back to the home screen.';
+    return 'Cảm ơn bạn đã đánh giá. Tôi sẽ đưa bạn về trang chủ.';
   },
 
   voiceErrorPrompt(): string {
-    return 'Sorry, something went wrong. Would you like to try again, or go back to the home screen?';
+    return 'Có lỗi xảy ra. Bạn muốn thử lại hay quay về trang chủ?';
   },
 
   fromNlu(context: string, nlu: VoiceNluResult, retryCount = 0): string {

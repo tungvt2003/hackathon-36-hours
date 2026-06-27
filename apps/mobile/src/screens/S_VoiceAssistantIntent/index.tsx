@@ -42,11 +42,11 @@ export default function VoiceAssistantIntentScreen() {
               style={styles.micButton}
               onPress={onMicPress}
               accessibilityRole="button"
-              accessibilityLabel="Speak now"
+              accessibilityLabel="Nói ngay"
             >
               <MaterialCommunityIcons name="microphone" size={48} color="white" />
             </TouchableOpacity>
-            <Text style={styles.hint}>Speak now</Text>
+            <Text style={styles.hint}>Nói ngay</Text>
           </>
         )}
 
@@ -56,9 +56,9 @@ export default function VoiceAssistantIntentScreen() {
               style={styles.textInput}
               value={textInput}
               onChangeText={setTextInput}
-              placeholder="Type your response..."
+              placeholder="Nhập câu trả lời..."
               placeholderTextColor="rgba(255,255,255,0.4)"
-              accessibilityLabel="Type your response"
+              accessibilityLabel="Nhập câu trả lời"
               onSubmitEditing={submitTextInput}
               returnKeyType="send"
             />
@@ -66,7 +66,7 @@ export default function VoiceAssistantIntentScreen() {
               style={styles.sendButton}
               onPress={submitTextInput}
               accessibilityRole="button"
-              accessibilityLabel="Send"
+              accessibilityLabel="Gửi"
             >
               <MaterialCommunityIcons name="send" size={22} color="white" />
             </TouchableOpacity>

@@ -10,13 +10,13 @@ export function getSuccessContent(orderId: string): SuccessContent {
   const isFood = orderId.includes('food') || orderId.includes('mock-food') || orderId.startsWith('h');
   return {
     isFood,
-    heading: isFood ? 'Delivered!' : 'Ride Complete!',
+    heading: isFood ? 'Đã giao!' : 'Chuyến đi hoàn thành!',
     body: isFood
-      ? 'Your order from Phở Hà Nội has been delivered.'
-      : 'Your ride has been completed safely.',
-    timeLabel: isFood ? 'Delivered at 12:34 PM' : 'Completed at 12:34 PM',
+      ? 'Đơn hàng từ Phở Hà Nội đã được giao.'
+      : 'Chuyến đi của bạn đã hoàn thành an toàn.',
+    timeLabel: isFood ? 'Đã giao lúc 12:34' : 'Hoàn thành lúc 12:34',
     announcement: isFood
-      ? 'Your order has been delivered! Would you like to rate your experience?'
-      : 'Your ride is complete! Would you like to rate your driver?',
+      ? 'Đơn hàng đã được giao. Bạn có muốn đánh giá trải nghiệm không?'
+      : 'Chuyến đi đã hoàn thành. Bạn có muốn đánh giá tài xế không?',
   };
 }
