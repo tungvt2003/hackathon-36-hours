@@ -3,10 +3,14 @@ import { OrdersService } from './orders.service';
 import { VoiceOrderDto } from './dto/voice-order.dto';
 import { ConfirmOrderDto } from './dto/confirm-order.dto';
 import { Inject } from '@nestjs/common';
-import { STT_PROVIDER, SttProvider } from '../stt/stt.provider';
-import { NLU_PROVIDER, NluProvider } from '../nlu/nlu.provider';
-import { PLACES_PROVIDER, PlacesProvider } from '../places/places.provider';
-import { WEATHER_PROVIDER, WeatherProvider } from '../weather/weather.provider';
+import { STT_PROVIDER } from '../stt/stt.provider';
+import type { SttProvider } from '../stt/stt.provider';
+import { NLU_PROVIDER } from '../nlu/nlu.provider';
+import type { NluProvider } from '../nlu/nlu.provider';
+import { PLACES_PROVIDER } from '../places/places.provider';
+import type { PlacesProvider } from '../places/places.provider';
+import { WEATHER_PROVIDER } from '../weather/weather.provider';
+import type { WeatherProvider } from '../weather/weather.provider';
 
 @Controller()
 export class OrdersController {

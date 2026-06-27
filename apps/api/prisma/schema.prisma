@@ -1,8 +1,9 @@
 // Prisma 7 schema — datasource URL cấu hình trong prisma.config.ts (không hardcode ở đây)
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider   = "prisma-client-js"
+  output     = "../src/generated/prisma"
+  engineType = "library"
 }
 
 datasource db {
