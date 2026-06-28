@@ -1,4 +1,4 @@
-# Suara - Voice-First Accessibility Layer for Ride & Food Ordering
+# Suara — Voice-First Accessibility Layer for Ride & Food Ordering
 
 ![Platform](https://img.shields.io/badge/platform-Android%20%7C%20iOS-blue)
 ![React Native](https://img.shields.io/badge/mobile-React%20Native%20%2F%20Expo-61dafb?logo=react)
