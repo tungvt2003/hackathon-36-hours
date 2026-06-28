@@ -1,4 +1,4 @@
-# Suara — Voice-First Accessibility Layer for Ride & Food Ordering
+# Suara - Voice-First Accessibility Layer for Ride & Food Ordering
 
 ![Platform](https://img.shields.io/badge/platform-Android%20%7C%20iOS-blue)
 ![React Native](https://img.shields.io/badge/mobile-React%20Native%20%2F%20Expo-61dafb?logo=react)
@@ -6,6 +6,8 @@
 ![PostgreSQL](https://img.shields.io/badge/database-PostgreSQL%2016-4169e1?logo=postgresql)
 ![Docker](https://img.shields.io/badge/infra-Docker-2496ed?logo=docker)
 ![License](https://img.shields.io/badge/license-MIT-green)
+
+**Demo video:** [Watch on Google Drive](https://drive.google.com/file/d/1qo7MGT0IAun_8y6bPcdFEbHB1JCKI2ZX/view?usp=drive_link)
 
 ---
 
@@ -95,6 +97,13 @@ The mobile app posts audio or transcript to `POST /voice/turn`. The NestJS backe
 
 **Prerequisites:** Node.js 20+, Docker and Docker Compose, Expo CLI (`npm install -g expo-cli`), Android or iOS device or emulator.
 
+**Dependency files included in this repository:**
+
+| File | Location |
+|---|---|
+| `package.json` | `apps/api/` and `apps/mobile/` |
+| `.env.example` | `apps/api/.env.example` — all required environment variables documented |
+
 **1. Clone the repository**
 
 ```bash
@@ -114,7 +123,7 @@ Key variables in `.env`:
 ```env
 DATABASE_URL=postgresql://vmuser:vmpass@localhost:5432/voice_mobility
 
-# Set to "mock" to run fully offline
+# Set to "mock" to run fully offline — no external API keys needed
 PROVIDER_STT=mock        # mock | deepgram | azure
 PROVIDER_NLU=mock        # mock | openrouter
 PROVIDER_PLACES=db       # db | mock | google | serpapi
