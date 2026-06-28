@@ -7,7 +7,7 @@ export interface SuccessContent {
 }
 
 export function getSuccessContent(orderId: string): SuccessContent {
-  const isFood = orderId.includes('food') || orderId.includes('mock-food') || orderId.startsWith('h');
+  const isFood = !orderId.includes('ride');
   return {
     isFood,
     heading: isFood ? 'Đã giao hàng!' : 'Chuyến đi hoàn tất!',

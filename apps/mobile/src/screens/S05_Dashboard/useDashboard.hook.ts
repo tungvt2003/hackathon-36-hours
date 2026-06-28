@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import * as Speech from 'expo-speech';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
 import { BottomNavTab } from '../../components/BottomNavBar';
@@ -56,13 +56,27 @@ export const useDashboard = (): DashboardViewModel => {
   const voiceContextRef = useRef<VoiceNluContext>('platform_select');
   const awaitingGrabRef = useRef(false);
   const awaitingFoodRef = useRef(false);
-  const scriptPhoStepRef = useRef<ScriptPhoStep>('none');
-  const scriptPhoQuantityRef = useRef(1);
-  const scriptPhoPaymentRef = useRef<ScriptPaymentMethod>('tiền mặt');
   const pendingFoodRef = useRef<{ restaurantId: string } | null>(null);
   const beginListeningRef = useRef<() => void>(() => { });
   const lastSpokenTextRef = useRef('');
+  const sttStartedRef = useRef(false);
+  const stopFallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => { platformRef.current = platform; }, [platform]);
+
+  // Reset voice session khi Dashboard được focus lại (sau khi hoàn thành đơn)
+  useFocusEffect(useCallback(() => {
+    if (voiceContextRef.current !== 'platform_select') {
+      voiceContextRef.current = 'platform_select';
+      awaitingGrabRef.current = false;
+      awaitingFoodRef.current = false;
+      pendingFoodRef.current = null;
+      lastSpokenTextRef.current = '';
+      setUserText('');
+      setStage('idle');
+      setPlatform(null);
+      setAiText(PLATFORM_SELECT_GREETING);
+    }
+  }, []));
 
   useEffect(() => {
     if (lastSpokenTextRef.current === aiText) {
@@ -84,6 +98,7 @@ export const useDashboard = (): DashboardViewModel => {
   const processTranscript = useCallback(async (transcript: string) => {
     setUserText(transcript);
     setStage('thinking');
+    try {
 
     if (voiceContextRef.current === 'ride' && transcript.trim()) {
       tts(RIDE_LOADING_MESSAGE);
@@ -141,13 +156,6 @@ export const useDashboard = (): DashboardViewModel => {
 
     const ctx = voiceContextRef.current;
 
-    if (ctx === 'food' && wantsScriptPhoOrder(transcript)) {
-      scriptPhoStepRef.current = 'offer';
-      setAiText(scriptPhoOfferText());
-      setStage('idle');
-      return;
-    }
-
     const nlu = parseVoiceInput(transcript, ctx);
     const aiResponse = voiceNlg.fromNlu(ctx, nlu, 0);
 
@@ -182,15 +190,6 @@ export const useDashboard = (): DashboardViewModel => {
     }
 
     if (nlu.intent === 'SELECT_FOOD_DISH') {
-      if (isScriptPhoOrderSlot(nlu.slots)) {
-        pendingFoodRef.current = null;
-        awaitingFoodRef.current = false;
-        scriptPhoStepRef.current = 'offer';
-        setAiText(scriptPhoOfferText());
-        setStage('idle');
-        return;
-      }
-
       if (Number(nlu.slots.restaurantCount) > 1) {
         navigation.navigate('RestaurantSelection', {
           intent: {
@@ -249,11 +248,13 @@ export const useDashboard = (): DashboardViewModel => {
     if (nlu.intent === 'GLOBAL_CANCEL') {
       voiceContextRef.current = 'home';
       setAiText(aiResponse);
-      setStage('idle');
       return;
     }
-
-    setStage('idle');
+    } catch (e) {
+      console.warn('processTranscript error', e);
+    } finally {
+      setStage('idle');
+    }
   }, [navigation]);
 
   useEffect(() => {
@@ -269,6 +270,8 @@ export const useDashboard = (): DashboardViewModel => {
           if (event.isFinal && text) finalTranscriptRef.current = text;
         }),
         speechModule.addListener('end', () => {
+          if (stopFallbackRef.current) { clearTimeout(stopFallbackRef.current); stopFallbackRef.current = null; }
+          sttStartedRef.current = false;
           const text = finalTranscriptRef.current;
           finalTranscriptRef.current = '';
           if (text) processTranscript(text);
@@ -292,9 +295,9 @@ export const useDashboard = (): DashboardViewModel => {
   const beginListening = useCallback(async () => {
     setUserText('');
     setStage('listening');
+    sttStartedRef.current = false;
 
     if (TEXT_INPUT_MODE) {
-      // simulator / dev: chỉ mở modal nhập text, không đụng STT thật
       return;
     }
     try {
@@ -310,6 +313,7 @@ export const useDashboard = (): DashboardViewModel => {
         return;
       }
       speechModule.start({ lang: 'vi-VN', continuous: false, interimResults: true });
+      sttStartedRef.current = true;
     } catch (e) {
       console.warn('STT start failed', e);
       setStage('idle');
@@ -322,9 +326,19 @@ export const useDashboard = (): DashboardViewModel => {
     if (stage === 'thinking') return;
 
     if (stage === 'listening') {
-      const speechModule = getSpeechRecognitionModule();
-      if (speechModule && !TEXT_INPUT_MODE) {
-        try { speechModule.stop(); } catch { /* ignore */ }
+      if (!TEXT_INPUT_MODE) {
+        if (sttStartedRef.current) {
+          const speechModule = getSpeechRecognitionModule();
+          try { speechModule?.stop(); } catch { /* ignore */ }
+          // Fallback: if end event doesn't fire within 1s, force idle
+          if (stopFallbackRef.current) clearTimeout(stopFallbackRef.current);
+          stopFallbackRef.current = setTimeout(() => {
+            setStage(prev => prev === 'listening' ? 'idle' : prev);
+          }, 1000);
+        } else {
+          // STT not started yet (permission pending) — just reset
+          setStage('idle');
+        }
       } else {
         setStage('idle');
       }

@@ -13,15 +13,17 @@
 
 ## Table of Contents
 
-- [Problem Statement](#problem-statement)
-- [Solution Overview](#solution-overview)
-- [Features](#features)
-- [Tech Stack and Architecture](#tech-stack-and-architecture)
-- [Setup and Installation](#setup-and-installation)
-- [Run Instructions](#run-instructions)
-- [User Guide](#user-guide)
-- [AI Disclosure](#ai-disclosure)
-- [Attribution and License](#attribution-and-license)
+- [Suara — Voice-First Accessibility Layer for Ride \& Food Ordering](#suara--voice-first-accessibility-layer-for-ride--food-ordering)
+  - [Table of Contents](#table-of-contents)
+  - [Problem Statement](#problem-statement)
+  - [Solution Overview](#solution-overview)
+  - [Features](#features)
+  - [Tech Stack and Architecture](#tech-stack-and-architecture)
+  - [Setup and Installation](#setup-and-installation)
+  - [Run Instructions](#run-instructions)
+  - [User Guide](#user-guide)
+  - [AI Disclosure](#ai-disclosure)
+  - [Attribution and License](#attribution-and-license)
 
 ---
 
@@ -61,7 +63,7 @@ A spoken request flows through the backend pipeline: Speech-to-Text transcriptio
 
 | Layer | Technology |
 |---|---|
-| Mobile client | React Native (Expo SDK 52), TypeScript |
+| Mobile client | React Native (Expo SDK 54), TypeScript |
 | Navigation | React Navigation v7 |
 | Voice input | `expo-speech-recognition` |
 | Voice output | `expo-speech` |

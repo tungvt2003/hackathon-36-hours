@@ -24,11 +24,25 @@ function isEnglishTtsText(text: string): boolean {
   return asciiLetters > 0 && vietnameseLetters === 0;
 }
 
+let _pendingDone: (() => void) | undefined;
+
 /** Stop any in-progress speech, then speak the next line in Vietnamese. */
 export function tts(text: string, onDone?: () => void) {
+  // Discard any pending onDone from the utterance we're about to stop
+  _pendingDone = undefined;
+  Speech.stop();
+
   const useEnglishVoice = isEnglishTtsText(text);
   const spokenText = useEnglishVoice ? text : normalizeVietnameseTtsText(text);
-  Speech.stop();
-  Speech.speak(spokenText, { language: useEnglishVoice ? 'en-US' : 'vi-VN', onDone, onStopped: onDone });
+
+  _pendingDone = onDone;
+  const guard = () => {
+    if (_pendingDone === onDone) {
+      _pendingDone = undefined;
+      onDone?.();
+    }
+  };
+
+  Speech.speak(spokenText, { language: useEnglishVoice ? 'en-US' : 'vi-VN', onDone: guard });
   AccessibilityInfo.announceForAccessibility(spokenText);
 }

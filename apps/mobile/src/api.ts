@@ -85,16 +85,24 @@ export const httpHelper = new HttpHelper();
 
 const BASE_URL = getDefaultBaseUrl();
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
+async function request<T>(path: string, options?: RequestInit, timeoutMs = 20000): Promise<T> {
   const url = `${BASE_URL}${path}`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   let res: Response;
   try {
     res = await fetch(url, {
       headers: { 'Content-Type': 'application/json' },
       ...options,
+      signal: controller.signal,
     });
   } catch (err) {
+    if ((err as Error).name === 'AbortError') {
+      throw new Error(`Yêu cầu quá hạn (${timeoutMs / 1000}s). Vui lòng thử lại.`);
+    }
     throw new Error(`Network error: ${(err as Error).message}`);
+  } finally {
+    clearTimeout(timer);
   }
   const rawBody = await res.text();
   if (!res.ok) throw new Error(`${res.status}: ${rawBody}`);
@@ -153,6 +161,6 @@ export const api = {
       currentLng?: number;
       accessibilityFlag?: boolean;
     }): Promise<any> =>
-      request('/voice/turn', { method: 'POST', body: JSON.stringify(body) }),
+      request('/voice/turn', { method: 'POST', body: JSON.stringify(body) }, 30000),
   },
 };

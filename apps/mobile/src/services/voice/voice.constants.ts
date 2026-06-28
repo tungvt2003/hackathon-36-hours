@@ -1,10 +1,10 @@
 import { PartnerCode } from '../../types';
 
 export const PLATFORM_KEYWORDS: Record<string, string[]> = {
-  GRAB: ['grab'],
-  BE: ['be'],
-  XANH_SM: ['xanh sm', 'xanh'],
-  SHOPEE: ['shopee', 'shopee food'],
+  GRAB: ['grab', 'gờ ráp', 'go rap', 'ráp', 'grap'],
+  BE: ['be', 'bê', 'xe be', 'xe bê'],
+  XANH_SM: ['xanh sm', 'xanh', 'xanh ét em', 'xanh et em', 'xanh s m'],
+  SHOPEE: ['shopee', 'shopee food', 'sốp pi', 'sop pi', 'sốp', 'sop'],
 };
 
 export const SUPPORTED_PLATFORMS: PartnerCode[] = [PartnerCode.GRAB];

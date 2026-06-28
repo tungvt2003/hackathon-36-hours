@@ -15,7 +15,7 @@ import {
   Image,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { AudioVisualizer } from '../../components/AudioVisualizer';
 import { api } from '../../api';
@@ -95,6 +95,7 @@ function matchPartnerFromVoice(
 export default function VoiceAssistantScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const isFocused = useIsFocused();
   const [stage, setStage] = useState<Stage>('IDLE');
   const [loading, setLoading] = useState(false);
   const [promptText, setPromptText] = useState('');
@@ -123,11 +124,25 @@ export default function VoiceAssistantScreen() {
   // fallback: nếu native 'end' không tự bắn sau khi im lặng (gặp trên 1 số Android), tự dừng
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const SILENCE_TIMEOUT_MS = 4000;
-  // mic đang mở nhưng chưa có tiếng nói nào (đang suy nghĩ / mic đã chết) -> báo người khiếm thị bấm tay
+  // mic đang mở nhưng chưa có tiếng nói nào -> tự dừng sau timeout
   const noInputTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const NO_INPUT_TIMEOUT_MS = 3000;
+  const NO_INPUT_TIMEOUT_MS = 4000;
+  // tracking voice activity for AudioVisualizer
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const speakingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => { sessionIdRef.current = sessionId; }, [sessionId]);
+
+  // Stop STT when screen loses focus (navigating to S10 etc.) to avoid listener conflicts
+  useEffect(() => {
+    if (!isFocused) {
+      const speechModule = getSpeechRecognitionModule();
+      try { speechModule?.stop(); } catch { /* ignore */ }
+      if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
+      if (noInputTimerRef.current) { clearTimeout(noInputTimerRef.current); noInputTimerRef.current = null; }
+      if (stage === 'LISTENING') setStage('IDLE');
+    }
+  }, [isFocused]);
 
   function clearNoInputTimer() {
     if (noInputTimerRef.current) {
@@ -136,15 +151,12 @@ export default function VoiceAssistantScreen() {
     }
   }
 
-  /** Mic mở rồi mà 3s không có tiếng nói nào -> coi như mic đã hết tác dụng, báo người dùng bấm tay */
+  /** Mic mở mà không có tiếng nói sau timeout -> tự dừng, về IDLE */
   function armNoInputTimer() {
     clearNoInputTimer();
     noInputTimerRef.current = setTimeout(() => {
       const speechModule = getSpeechRecognitionModule();
       try { speechModule?.stop(); } catch { /* ignore */ }
-      const cue = 'Mình chưa nghe thấy gì. Hãy nhấn biểu tượng microphone ở giữa màn hình để nói.';
-      setPromptText(cue);
-      tts(cue);
       setStage('IDLE');
     }, NO_INPUT_TIMEOUT_MS);
   }
@@ -184,15 +196,21 @@ export default function VoiceAssistantScreen() {
     try {
       subs = [
         speechModule.addListener('result', (event: any) => {
-          clearNoInputTimer(); // đã có tiếng nói -> hết nguy cơ "mic chết im lặng"
+          clearNoInputTimer();
           const text: string = event.results?.[0]?.transcript ?? '';
           setLiveTranscript(text);
           if (event.isFinal && text) finalTranscriptRef.current = text;
           armSilenceTimer();
+          // drive AudioVisualizer with actual voice activity
+          setIsSpeaking(true);
+          if (speakingTimerRef.current) clearTimeout(speakingTimerRef.current);
+          speakingTimerRef.current = setTimeout(() => setIsSpeaking(false), 600);
         }),
         speechModule.addListener('end', () => {
           clearSilenceTimer();
           clearNoInputTimer();
+          if (speakingTimerRef.current) clearTimeout(speakingTimerRef.current);
+          setIsSpeaking(false);
           const text = finalTranscriptRef.current;
           finalTranscriptRef.current = '';
           setLiveTranscript('');
@@ -202,6 +220,8 @@ export default function VoiceAssistantScreen() {
         speechModule.addListener('error', (event: any) => {
           clearSilenceTimer();
           clearNoInputTimer();
+          if (speakingTimerRef.current) clearTimeout(speakingTimerRef.current);
+          setIsSpeaking(false);
           console.warn('STT error', event.error, event.message);
           setStage('IDLE');
         }),
@@ -213,6 +233,7 @@ export default function VoiceAssistantScreen() {
     return () => {
       clearSilenceTimer();
       clearNoInputTimer();
+      if (speakingTimerRef.current) clearTimeout(speakingTimerRef.current);
       subs.forEach(s => s?.remove());
       try { speechModule.abort(); } catch { /* ignore */ }
     };
@@ -358,7 +379,13 @@ export default function VoiceAssistantScreen() {
       }
       const begin = () => {
         try {
-          speechModule.start({ lang: 'vi-VN', continuous: false, interimResults: true });
+          speechModule.start({
+            lang: 'vi-VN',
+            continuous: false,
+            interimResults: true,
+            iosTaskHint: 'unspecified',
+            requiresOnDeviceRecognition: false,
+          });
           armNoInputTimer();
         } catch (e) {
           console.warn('STT start failed', e);
@@ -506,7 +533,7 @@ export default function VoiceAssistantScreen() {
         {/* ── LISTENING ── */}
           {stage === 'LISTENING' && (
             <View style={s.centerBlock}>
-              <AudioVisualizer active={!USE_TEXT_INPUT} />
+              <AudioVisualizer active={isSpeaking} />
               <Text style={s.listeningLabel}>
                 {USE_TEXT_INPUT ? 'Nhập yêu cầu' : 'Đang lắng nghe...'}
               </Text>

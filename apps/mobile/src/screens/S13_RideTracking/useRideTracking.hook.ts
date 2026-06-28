@@ -171,39 +171,40 @@ export const useRideTracking = (): RideTrackingViewModel => {
   }, [handleRatingTranscript]);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentStatus(prev => {
-        const idx = RIDE_STEPS.findIndex(s => s.id === prev);
-        if (idx < RIDE_STEPS.length - 1) {
-          return RIDE_STEPS[idx + 1].id;
-        }
-        clearInterval(timer);
-        return prev;
+    let cancelled = false;
+
+    const advance = (status: RideStatus) => {
+      if (cancelled) return;
+      setCurrentStatus(status);
+
+      if (status === 'completed') {
+        const completePrompt = RIDE_STATUS_ANNOUNCEMENTS['completed'];
+        setAnnouncement(completePrompt);
+        soundService.playSuccess();
+        tts(completePrompt, () => {
+          if (cancelled) return;
+          setRatingStep('ask_rate');
+          tts('Bạn có muốn đánh giá tài xế không? Nói Có hoặc Không.');
+        });
+        return;
+      }
+
+      const text = RIDE_STATUS_ANNOUNCEMENTS[status];
+      setAnnouncement(text);
+      if (status === 'arrived') soundService.playSuccess();
+
+      const idx = RIDE_STEPS.findIndex(s => s.id === status);
+      tts(text, () => {
+        if (cancelled) return;
+        setTimeout(() => {
+          if (!cancelled) advance(RIDE_STEPS[idx + 1].id);
+        }, 800);
       });
-    }, 4000);
+    };
 
-    return () => clearInterval(timer);
+    advance('finding');
+    return () => { cancelled = true; };
   }, []);
-
-  useEffect(() => {
-    if (currentStatus === 'completed') {
-      const completePrompt = 'Your ride is complete! Would you like to rate your driver?';
-      setAnnouncement(completePrompt);
-      soundService.playSuccess();
-      setRatingStep('ask_rate');
-      tts(completePrompt);
-      return;
-    }
-
-    const text = RIDE_STATUS_ANNOUNCEMENTS[currentStatus];
-    setAnnouncement(text);
-    tts(text);
-
-    if (currentStatus === 'arrived') {
-      soundService.playSuccess();
-    }
-
-  }, [currentStatus, navigation, orderId]);
 
   const onCancel = useCallback(() => {
     if (canCancel) {

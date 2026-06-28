@@ -34,33 +34,34 @@ export const useFoodTracking = (): FoodTrackingViewModel => {
   const canCancel = stepIndex < 2;
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentStatus(prev => {
-        const idx = TRACKING_STEPS.findIndex(s => s.id === prev);
-        if (idx < TRACKING_STEPS.length - 1) {
-          const nextStatus = TRACKING_STEPS[idx + 1].id;
-          return nextStatus;
+    let cancelled = false;
+
+    const advance = (status: TrackingStatus) => {
+      if (cancelled) return;
+      const text = STATUS_ANNOUNCEMENTS[status];
+      setCurrentStatus(status);
+      setAnnouncement(text);
+
+      const idx = TRACKING_STEPS.findIndex(s => s.id === status);
+      const isLast = idx >= TRACKING_STEPS.length - 1;
+
+      tts(text, () => {
+        if (cancelled) return;
+        if (isLast) {
+          setTimeout(() => {
+            if (!cancelled) navigation.navigate('DeliverySuccess', { orderId });
+          }, 600);
+        } else {
+          setTimeout(() => {
+            if (!cancelled) advance(TRACKING_STEPS[idx + 1].id);
+          }, 800);
         }
-        clearInterval(timer);
-        return prev;
       });
-    }, 3500); // 3.5s to show UI transitions better
+    };
 
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    const text = STATUS_ANNOUNCEMENTS[currentStatus];
-    setAnnouncement(text);
-    tts(text);
-
-    if (currentStatus === 'delivered') {
-      const timeout = setTimeout(() => {
-        navigation.navigate('DeliverySuccess', { orderId });
-      }, 2000);
-      return () => clearTimeout(timeout);
-    }
-  }, [currentStatus, navigation, orderId]);
+    advance('received');
+    return () => { cancelled = true; };
+  }, [navigation, orderId]);
 
   const onCancel = useCallback(() => {
     if (canCancel) {

@@ -84,7 +84,7 @@ export const useOrderConfirmation = (): OrderConfirmationViewModel => {
       if (!perm.granted) return;
       handledRef.current = false;
       setIsListening(true);
-      speechModule.start({ lang: 'vi-VN', continuous: false, interimResults: false });
+      speechModule.start({ lang: 'vi-VN', continuous: false, interimResults: true });
       timeoutRef.current = setTimeout(() => stopListening(), LISTEN_TIMEOUT_MS);
     } catch { /* ignore */ }
   }, [stopListening]);
@@ -97,7 +97,17 @@ export const useOrderConfirmation = (): OrderConfirmationViewModel => {
       .replace(/[đĐ]/g, 'd')
       .replace(/[.!?,;:]+$/g, '')
       .trim();
-    return isYes(transcript) || text.includes('xac nhan') || text === 'co' || text.startsWith('co ');
+    return (
+      isYes(transcript) ||
+      text.includes('xac nhan') ||
+      text.includes('dat don') ||
+      text.includes('dat hang') ||
+      text.includes('dat di') ||
+      text.includes('dat luon') ||
+      text === 'co' ||
+      text.startsWith('co ') ||
+      /\bco\b/.test(text)
+    );
   }, []);
 
   const handleAnswer = useCallback((transcript: string) => {
@@ -135,17 +145,16 @@ export const useOrderConfirmation = (): OrderConfirmationViewModel => {
     startRecognition();
   }, [isViewMode, isListening, stopListening, startRecognition, submitTextInput]);
 
-  // Mount: speak order summary then start listening
+  // Mount: speak short summary, then start listening immediately after brief cue
   useEffect(() => {
     if (isViewMode) return;
 
     const itemList = order.items.map((i) => `${i.qty} ${i.name}`).join(', ');
     const summary = isRide
-      ? `Here are your ride details. Grab Car from your current location to Ben Thanh Market. Estimated fare: ${order.total.toLocaleString('vi-VN')} Vietnamese Dong. Your driver will arrive in about 3 minutes. Say confirm to book the ride or cancel to go back.`
-      : `Đơn từ ${order.restaurantName} gồm ${itemList}. Tổng cộng ${order.total.toLocaleString('vi-VN')} đồng.`;
-    const question = isRide ? '' : ' Bạn có muốn đặt không? Nói Có để xác nhận, Không để huỷ.';
+      ? `Xe từ vị trí của bạn đến điểm đến. Tổng ${order.total.toLocaleString('vi-VN')} đồng. Nói Có để đặt, Không để huỷ.`
+      : `Đơn ${order.restaurantName}: ${itemList}. Tổng ${order.total.toLocaleString('vi-VN')} đồng. Nói Có để đặt, Không để huỷ.`;
 
-    tts(summary + question, () => {
+    tts(summary, () => {
       if (USE_VOICE_INPUT) startRecognition();
     });
 
@@ -161,18 +170,28 @@ export const useOrderConfirmation = (): OrderConfirmationViewModel => {
     if (!speechModule) return;
 
     const subs = [
-      speechModule.addListener('result', (event: { results?: { transcript?: string }[] }) => {
+      speechModule.addListener('result', (event: { results?: { transcript?: string }[]; isFinal?: boolean }) => {
         const transcript = event.results?.[0]?.transcript ?? '';
         if (!transcript || handledRef.current) return;
-        handledRef.current = true;
-        stopListening();
-        handleAnswer(transcript);
+        // act on final result or any result matching confirmation
+        if (event.isFinal || isConfirmText(transcript) || isNo(transcript)) {
+          handledRef.current = true;
+          stopListening();
+          handleAnswer(transcript);
+        }
+      }),
+      speechModule.addListener('end', () => {
+        // STT ended without a handled result — restart if still on screen
+        if (!handledRef.current) {
+          setIsListening(false);
+          if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
+        }
       }),
       speechModule.addListener('error', () => { stopListening(); }),
     ];
 
     return () => { subs.forEach((s) => s.remove()); };
-  }, [isViewMode, stopListening, handleAnswer]);
+  }, [isViewMode, stopListening, handleAnswer, isConfirmText]);
 
   return {
     order,

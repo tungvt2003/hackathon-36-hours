@@ -4,12 +4,9 @@ import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useDeliverySuccess } from './useDeliverySuccess.hook';
-import { PrimaryButton } from '../../components/PrimaryButton';
-import { SecondaryButton } from '../../components/SecondaryButton';
 import { theme } from '../../theme/theme';
 import { SuaraLogo } from '../../components/SuaraLogo';
 import { BrandedBackground } from '../../components/BrandedBackground';
-import { useVoice } from '../../contexts/VoiceContext';
 
 const DeliverySuccessScreen = () => {
   const insets = useSafeAreaInsets();
@@ -17,11 +14,11 @@ const DeliverySuccessScreen = () => {
     content,
     circleScale,
     confettiAnims,
+    isListening,
     onRateNow,
     onOrderAgain,
     onDone,
   } = useDeliverySuccess();
-  const { openVoice } = useVoice();
 
   return (
     <BrandedBackground variant="success">
@@ -89,30 +86,25 @@ const DeliverySuccessScreen = () => {
         </View>
 
         <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-          <PrimaryButton
-            label="Đánh giá ngay"
-            onPress={onRateNow}
-          />
-          <View style={styles.buttonSpacer} />
-          <SecondaryButton label="Đặt lại" onPress={onOrderAgain} />
+          <View style={styles.voiceHint}>
+            <MaterialCommunityIcons
+              name={isListening ? 'microphone' : 'microphone-outline'}
+              size={28}
+              color={isListening ? theme.colors.primary : theme.colors.textMuted}
+            />
+            <Text style={[styles.voiceHintText, isListening && styles.voiceHintActive]}>
+              {isListening ? 'Đang lắng nghe...' : 'Nói "Có" để tiếp tục · "Không" để thoát'}
+            </Text>
+          </View>
           <TouchableOpacity
             onPress={onDone}
             style={styles.doneBtn}
             accessibilityRole="button"
-            accessibilityLabel="Xong, về trang chủ"
+            accessibilityLabel="Về trang chủ"
           >
-            <Text style={styles.doneText}>Xong</Text>
+            <Text style={styles.doneText}>Về trang chủ</Text>
           </TouchableOpacity>
         </View>
-
-        <TouchableOpacity
-          style={styles.voiceFab}
-          onPress={() => openVoice('home', 'Bạn cần trợ giúp gì? Tôi có thể đặt lại hoặc thay đổi đơn hàng cho bạn.')}
-          accessibilityRole="button"
-          accessibilityLabel="Nhấn để nói với AI"
-        >
-          <MaterialCommunityIcons name="microphone" size={32} color="white" />
-        </TouchableOpacity>
       </SafeAreaView>
     </BrandedBackground>
   );
@@ -201,38 +193,40 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingHorizontal: 24,
+    alignItems: 'center',
+    gap: 12,
   },
-  buttonSpacer: {
-    marginTop: 12,
+  voiceHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(0,177,79,0.08)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0,177,79,0.15)',
+    width: '100%',
+  },
+  voiceHintText: {
+    fontSize: 14,
+    color: theme.colors.textMuted,
+    fontWeight: '500',
+    flex: 1,
+  },
+  voiceHintActive: {
+    color: theme.colors.primary,
+    fontWeight: '700',
   },
   doneBtn: {
-    minHeight: 48,
+    minHeight: 44,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
   },
   doneText: {
     fontSize: 15,
     color: theme.colors.textMuted,
-    fontWeight: '700',
-  },
-  voiceFab: {
-    position: 'absolute',
-    bottom: 24,
-    right: 20,
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: theme.colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.32,
-    shadowRadius: 20,
-    elevation: 10,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.25)',
+    fontWeight: '600',
   },
 });
 
