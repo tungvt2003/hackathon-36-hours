@@ -59,6 +59,7 @@ function normalize(text: string): string {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[đĐ]/g, 'd')
+    .replace(/[.!?,;:]+$/g, '')
     .trim();
 }
 
