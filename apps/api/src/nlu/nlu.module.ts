@@ -10,8 +10,9 @@ import { MockNluProvider } from './mock-nlu.provider';
       provide: NLU_PROVIDER,
       useFactory: (config: ConfigService) => {
         const provider = config.get<string>('PROVIDER_NLU', 'mock');
-        // TODO: thêm case 'openai', 'claude', 'rasa' khi có provider thật
-        if (provider === 'mock') return new MockNluProvider();
+        // Legacy order/conversation endpoints use this provider.
+        // The real voice LLM pipeline is controlled by NLU_MODE in VoiceNluService.
+        if (provider === 'mock' || provider === 'llm') return new MockNluProvider();
         throw new Error(`Unknown NLU provider: ${provider}`);
       },
       inject: [ConfigService],

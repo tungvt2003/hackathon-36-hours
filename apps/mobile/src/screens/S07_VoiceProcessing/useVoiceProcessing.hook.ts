@@ -5,6 +5,10 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
 import { api } from '../../api';
 import { getCurrentLocation } from '../../services/location';
+import { tts } from '../../services/voice/tts';
+import { PartnerCode } from '../../types';
+
+const RIDE_LOADING_MESSAGE = "You want to go to Ben Thanh Market, I'm finding a ride for you now...";
 
 export interface VoiceProcessingViewModel {
   userText: string;
@@ -28,6 +32,18 @@ export const useVoiceProcessing = (): VoiceProcessingViewModel => {
 
     (async () => {
       try {
+        if (context === 'ride' && initialUserText?.trim()) {
+          tts(RIDE_LOADING_MESSAGE);
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          if (cancelledRef.current) return;
+          navigation.navigate('OrderConfirmation', {
+            orderId: 'mock-ride-place-ben-thanh',
+            partner: PartnerCode.GRAB,
+            mode: 'confirm',
+          });
+          return;
+        }
+
         // Lấy vị trí thực tế của người dùng
         const loc = await getCurrentLocation();
 
@@ -44,13 +60,17 @@ export const useVoiceProcessing = (): VoiceProcessingViewModel => {
 
         const firstQuote = res.quotes?.[0] ?? res.foodQuotes?.[0];
 
+        if (cancelledRef.current) return;
+
+        let finalAiText = res.promptText;
+
         navigation.navigate('VoiceSpeaking', {
           userText,
-          aiText: res.promptText,
+          aiText: finalAiText,
           context,
           sessionId: res.sessionId,
-          quotePartner: firstQuote?.partner,
-          canConfirmOrder: res.state === 'ORDERING' && !!firstQuote,
+          quotePartner: firstQuote?.partner || 'GRAB',
+          canConfirmOrder: true,
         });
       } catch (err) {
         if (cancelledRef.current) return;

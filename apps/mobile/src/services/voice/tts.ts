@@ -18,10 +18,17 @@ export function normalizeVietnameseTtsText(text: string): string {
   );
 }
 
+function isEnglishTtsText(text: string): boolean {
+  const asciiLetters = text.match(/[a-z]/gi)?.length ?? 0;
+  const vietnameseLetters = text.match(/[ăâđêôơưáàảãạắằẳẵặấầẩẫậéèẻẽẹếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúùủũụứừửữựýỳỷỹỵ]/gi)?.length ?? 0;
+  return asciiLetters > 0 && vietnameseLetters === 0;
+}
+
 /** Stop any in-progress speech, then speak the next line in Vietnamese. */
 export function tts(text: string, onDone?: () => void) {
-  const spokenText = normalizeVietnameseTtsText(text);
+  const useEnglishVoice = isEnglishTtsText(text);
+  const spokenText = useEnglishVoice ? text : normalizeVietnameseTtsText(text);
   Speech.stop();
-  Speech.speak(spokenText, { language: 'vi-VN', onDone, onStopped: onDone });
+  Speech.speak(spokenText, { language: useEnglishVoice ? 'en-US' : 'vi-VN', onDone, onStopped: onDone });
   AccessibilityInfo.announceForAccessibility(spokenText);
 }

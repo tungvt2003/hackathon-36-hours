@@ -21,13 +21,14 @@ import { PartnerCode } from '../../types';
 import { theme } from '../../theme/theme';
 import { BrandedBackground } from '../../components/BrandedBackground';
 import { useVoice } from '../../contexts/VoiceContext';
+import { FloatingMicButton } from '../../components/FloatingMicButton';
 
 export default function OrderConfirmationScreen() {
   const insets = useSafeAreaInsets();
   const {
     order, isViewMode, isListening,
     useTextInput, textInput, setTextInput, submitTextInput,
-    onConfirm, onBack,
+    onMicPress, onConfirm, onBack,
   } = useOrderConfirmation();
   const { openVoice } = useVoice();
 
@@ -201,46 +202,57 @@ export default function OrderConfirmationScreen() {
               </View>
             </View>
           ) : useTextInput ? (
-            /* Dev mode: text input like dashboard */
-            <View style={styles.devInputRow}>
-              <TextInput
-                style={styles.devInput}
-                value={textInput}
-                onChangeText={setTextInput}
-                placeholder="Nhập Có / Không..."
-                placeholderTextColor={theme.colors.textMuted}
-                autoFocus
-                returnKeyType="send"
-                onSubmitEditing={submitTextInput}
-                accessibilityLabel="Nhập xác nhận đơn hàng"
-              />
-              <TouchableOpacity
-                style={styles.devSendBtn}
-                onPress={submitTextInput}
-                accessibilityRole="button"
-                accessibilityLabel="Gửi"
-              >
-                <MaterialCommunityIcons name="send" size={20} color="white" />
-              </TouchableOpacity>
+            /* Dev/web mode: show both text input and a visible mic button like dashboard */
+            <View style={styles.confirmVoicePanel}>
+              <View style={styles.devInputRow}>
+                <TextInput
+                  style={styles.devInput}
+                  value={textInput}
+                  onChangeText={setTextInput}
+                  placeholder="Nhập Có / Không hoặc xác nhận..."
+                  placeholderTextColor={theme.colors.textMuted}
+                  autoFocus
+                  returnKeyType="send"
+                  onSubmitEditing={submitTextInput}
+                  accessibilityLabel="Nhập xác nhận đơn hàng"
+                />
+                <TouchableOpacity
+                  style={styles.devSendBtn}
+                  onPress={submitTextInput}
+                  accessibilityRole="button"
+                  accessibilityLabel="Gửi"
+                >
+                  <MaterialCommunityIcons name="send" size={20} color="white" />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.confirmMicZone}>
+                <FloatingMicButton onPress={onMicPress} size={88} />
+                <Text style={styles.voiceLabel}>Nhấn để nói</Text>
+              </View>
             </View>
           ) : (
-            /* Voice mode: centered mic indicator */
+            /* Voice mode: pressable mic like dashboard */
             <View style={styles.voicePanel}>
-              <Animated.View style={[styles.micRing, { transform: [{ scale: pulseAnim }] }]}>
-                <View style={[styles.micCore, isListening && styles.micCoreActive]}>
-                  <MaterialCommunityIcons
-                    name="microphone"
-                    size={34}
-                    color="white"
-                  />
-                </View>
-              </Animated.View>
+              <TouchableOpacity
+                onPress={onMicPress}
+                accessibilityRole="button"
+                accessibilityLabel={isListening ? 'Dừng nghe' : 'Nhấn để nói xác nhận đơn hàng'}
+                activeOpacity={0.82}
+              >
+                <Animated.View style={[styles.micRing, { transform: [{ scale: pulseAnim }] }]}>
+                  <View style={[styles.micCore, isListening && styles.micCoreActive]}>
+                    <MaterialCommunityIcons
+                      name={isListening ? 'microphone' : 'microphone-outline'}
+                      size={34}
+                      color="white"
+                    />
+                  </View>
+                </Animated.View>
+              </TouchableOpacity>
               <Text style={[styles.voiceLabel, isListening && styles.voiceLabelActive]}>
-                {isListening ? 'Đang lắng nghe…' : 'Đang chuẩn bị…'}
+                {isListening ? 'Đang lắng nghe…' : 'Nhấn để nói'}
               </Text>
-              {isListening && (
-                <Text style={styles.voiceHint}>Nói "Có" để đặt · "Không" để huỷ</Text>
-              )}
+              <Text style={styles.voiceHint}>Nói "Có" để đặt · "Không" để huỷ</Text>
             </View>
           )}
         </View>
@@ -509,6 +521,15 @@ const styles = StyleSheet.create({
     height: 24,
   },
   /* Centered voice panel */
+  confirmVoicePanel: {
+    alignItems: 'center',
+    gap: 14,
+  },
+  confirmMicZone: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
   voicePanel: {
     alignItems: 'center',
     paddingVertical: 8,
