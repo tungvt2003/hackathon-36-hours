@@ -45,7 +45,7 @@ export default function LoginScreen() {
               <View style={styles.aiIconCircle}>
                 <MaterialCommunityIcons name="robot" size={18} color="#00B14F" />
               </View>
-              <Text style={styles.aiLabel}>Suara SPEAKS</Text>
+              <Text style={styles.aiLabel}>Suara NÓI</Text>
             </View>
             <Text style={styles.aiText}>{PLATFORM_AI_GREETING}</Text>
           </View>
@@ -66,7 +66,7 @@ export default function LoginScreen() {
                   disabled={!tile.available || loading}
                   accessibilityRole="button"
                   accessibilityLabel={
-                    tile.available ? `Connect with ${tile.label}` : `${tile.label} — coming soon`
+                    tile.available ? `Kết nối với ${tile.label}` : `${tile.label} sắp hỗ trợ`
                   }
                   accessibilityState={{ disabled: !tile.available }}
                 >
@@ -84,7 +84,7 @@ export default function LoginScreen() {
                   <Text style={[styles.partnerLabel, !tile.available && styles.partnerLabelLocked]}>
                     {tile.label}
                   </Text>
-                  {!tile.available && <Text style={styles.comingSoonText}>Coming soon</Text>}
+                  {!tile.available && <Text style={styles.comingSoonText}>Sắp hỗ trợ</Text>}
                 </TouchableOpacity>
               );
             })}
@@ -92,18 +92,18 @@ export default function LoginScreen() {
 
           <View style={styles.voiceHint}>
             <MaterialCommunityIcons name="microphone" size={16} color="#00B14F" />
-            <Text style={styles.voiceHintText}>Or say the platform name you want</Text>
+            <Text style={styles.voiceHintText}>Hoặc nói tên nền tảng bạn muốn dùng</Text>
           </View>
         </View>
 
         <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
           <PrimaryButton
-            label={loading ? 'Connecting...' : 'Connect with Grab'}
+            label={loading ? 'Đang kết nối...' : 'Kết nối với Grab'}
             onPress={handleConnect}
             disabled={loading}
           />
           <TouchableOpacity onPress={handleSkip} style={styles.skipButton} accessibilityRole="button">
-            <Text style={styles.skipText}>Try first, connect later</Text>
+            <Text style={styles.skipText}>Dùng thử trước, kết nối sau</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

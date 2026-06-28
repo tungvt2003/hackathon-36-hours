@@ -265,7 +265,7 @@ const RideTrackingScreen = () => {
           <View
             style={[styles.card, styles.shadow]}
             accessibilityLabel={`Từ ${intent?.origin ?? '123 Lê Lợi, Q.1'} đến ${
-              intent?.destination ?? 'Bến Thành Market'
+              intent?.destination ?? 'Chợ Bến Thành'
             }`}
           >
             <View style={styles.locationRow}>
@@ -283,7 +283,7 @@ const RideTrackingScreen = () => {
               <View style={styles.locationInfo}>
                 <Text style={styles.locationLabel}>ĐIỂM ĐẾN</Text>
                 <Text style={styles.locationText}>
-                  {intent?.destination ?? 'Bến Thành Market'}
+                  {intent?.destination ?? 'Chợ Bến Thành'}
                 </Text>
               </View>
             </View>
@@ -337,9 +337,9 @@ const RideTrackingScreen = () => {
         {/* Floating Mic FAB */}
         <TouchableOpacity
           style={[styles.micFab, { bottom: Math.max(insets.bottom, 16) + 80 }]}
-          onPress={() => openVoice('home', 'Bạn cần trợ giúp gì? Tôi có thể đặt lại hoặc thay đổi đơn hàng cho bạn.')}
+          onPress={() => openVoice('home', 'Chuyến đi đang diễn ra. Bạn cần trợ giúp gì?')}
           accessibilityRole="button"
-          accessibilityLabel="Voice Assistant"
+          accessibilityLabel="Trợ lý giọng nói"
         >
           <MaterialCommunityIcons name="microphone" size={32} color="white" />
         </TouchableOpacity>

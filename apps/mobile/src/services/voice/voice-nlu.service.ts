@@ -85,8 +85,8 @@ export function isPlatformSupported(code: PartnerCode): boolean {
 export function matchService(text: string): 'food' | 'ride' | null {
   const raw = text.toLowerCase();
   const n = normalize(text);
-  if (FOOD_SERVICE_PATTERN.test(raw) || FOOD_SERVICE_PATTERN.test(n)) return 'food';
   if (RIDE_SERVICE_PATTERN.test(raw) || RIDE_SERVICE_PATTERN.test(n)) return 'ride';
+  if (FOOD_SERVICE_PATTERN.test(raw) || FOOD_SERVICE_PATTERN.test(n)) return 'food';
   return null;
 }
 
@@ -123,16 +123,16 @@ export function matchPlace(text: string) {
 
 export function matchRestaurantIndex(text: string, count: number): number | null {
   const n = normalize(text);
-  if (/cheapest|lowest price|affordable/.test(n)) {
+  if (/re\s*nhat|gia\s*thap|gia\s*tot|tiet\s*kiem/.test(n)) {
     return count > 0 ? count - 1 : null;
   }
-  if (/closest|nearest|closest one/.test(n)) return 0;
-  if (/fastest|quickest|fastest delivery/.test(n)) return 0;
+  if (/gan\s*nhat|gan\s*day/.test(n)) return 0;
+  if (/nhanh\s*nhat|giao\s*nhanh/.test(n)) return 0;
 
   const ordinals: [RegExp, number][] = [
-    [/^(one|first|number one|1)$|so\s*1|thu\s*nhat|dau\s*tien|^mot$/, 0],
-    [/^(two|second|number two|2)$|so\s*2|thu\s*hai|^hai$/, 1],
-    [/^(three|third|number three|3)$|so\s*3|thu\s*ba|^ba$/, 2],
+    [/^(1)$|so\s*1|thu\s*nhat|dau\s*tien|^mot$/, 0],
+    [/^(2)$|so\s*2|thu\s*hai|^hai$/, 1],
+    [/^(3)$|so\s*3|thu\s*ba|^ba$/, 2],
   ];
   for (const [pattern, idx] of ordinals) {
     if (pattern.test(n) && idx < count) return idx;

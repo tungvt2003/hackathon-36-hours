@@ -25,7 +25,7 @@ export default function ProfileSetupScreen() {
   return (
     <BrandedBackground variant="default">
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-        <ScreenHeader title="Set Up Your Profile" showLogo={false} onBack={handleBack} />
+        <ScreenHeader title="Thiết lập hồ sơ" showLogo={false} onBack={handleBack} />
 
         <ScrollView 
           contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 32 }]}
@@ -36,8 +36,8 @@ export default function ProfileSetupScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionHeading}>Accessibility Mode</Text>
-            <Text style={styles.sectionSubtitle}>Select all that apply</Text>
+            <Text style={styles.sectionHeading}>Chế độ hỗ trợ</Text>
+            <Text style={styles.sectionSubtitle}>Chọn tất cả nhu cầu phù hợp</Text>
             
             {ACCESSIBILITY_OPTIONS.map((option) => {
               const isActive = modes[option.id];
@@ -67,7 +67,7 @@ export default function ProfileSetupScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionHeading}>Speaking Speed</Text>
+            <Text style={styles.sectionHeading}>Tốc độ đọc</Text>
             <View style={styles.speedRow}>
               {SPEED_OPTIONS.map((s) => {
                 const isActive = speed === s;
@@ -80,14 +80,14 @@ export default function ProfileSetupScreen() {
                     ]}
                     onPress={() => setSpeed(s)}
                     accessibilityRole="button"
-                    accessibilityLabel={`${s} speaking speed`}
+                    accessibilityLabel={`Tốc độ đọc ${s}`}
                     accessibilityState={{ selected: isActive }}
                   >
                     <Text style={[
                       styles.speedChipText,
                       isActive ? styles.speedChipTextActive : styles.speedChipTextInactive
                     ]}>
-                      {s.charAt(0).toUpperCase() + s.slice(1)}
+                      {s === 'slow' ? 'Chậm' : s === 'fast' ? 'Nhanh' : 'Bình thường'}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -96,14 +96,14 @@ export default function ProfileSetupScreen() {
           </View>
 
           <View style={styles.footer}>
-            <PrimaryButton label="Save & Continue" onPress={handleSave} />
+            <PrimaryButton label="Lưu và tiếp tục" onPress={handleSave} />
             <TouchableOpacity 
               onPress={handleSave} 
               style={styles.skipButton}
               accessibilityRole="button"
-              accessibilityLabel="Skip for now"
+              accessibilityLabel="Bỏ qua lúc này"
             >
-              <Text style={styles.skipText}>Skip for now</Text>
+              <Text style={styles.skipText}>Bỏ qua lúc này</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

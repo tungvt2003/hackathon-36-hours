@@ -157,7 +157,7 @@ const RatingScreen = () => {
           ]}
         >
           <PrimaryButton
-            label={loading ? 'Submitting...' : 'Submit review'}
+            label={loading ? 'Đang gửi...' : 'Gửi đánh giá'}
             onPress={onSubmit}
             disabled={stars === 0 || loading}
           />
@@ -178,7 +178,7 @@ const RatingScreen = () => {
           style={[styles.voiceFab, { bottom: 180 + insets.bottom }]}
           onPress={() => openVoice('home', 'Bạn cần trợ giúp gì? Tôi có thể đặt lại hoặc thay đổi đơn hàng cho bạn.')}
           accessibilityRole="button"
-          accessibilityLabel="Tap to speak with AI"
+          accessibilityLabel="Nhấn để nói với AI"
         >
           <MaterialCommunityIcons name="microphone" size={32} color="white" />
         </TouchableOpacity>

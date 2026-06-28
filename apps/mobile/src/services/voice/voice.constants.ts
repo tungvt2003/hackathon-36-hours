@@ -10,19 +10,19 @@ export const PLATFORM_KEYWORDS: Record<string, string[]> = {
 export const SUPPORTED_PLATFORMS: PartnerCode[] = [PartnerCode.GRAB];
 
 export const FOOD_SERVICE_PATTERN =
-  /food|eat|hungry|order food|order|pho|rice|noodle|chicken|burger|meal|lunch|dinner|breakfast|snack|kfc|com tam|broken rice/i;
+  /đồ\s*ăn|do\s*an|ăn|an|đói|doi|đặt\s*(?:món|đồ\s*ăn)|dat\s*(?:mon|do\s*an)|gọi\s*(?:món|đồ\s*ăn)|goi\s*(?:mon|do\s*an)|phở|pho|cơm|com|bún|bun|mì|mi|gà|ga|bánh|banh|burger|kfc/i;
 
 export const RIDE_SERVICE_PATTERN =
-  /ride|car|taxi|drive|take me|book a ride|go to|i need a car|transport|airport|destination/i;
+  /đặt\s*xe|dat\s*xe|gọi\s*xe|goi\s*xe|đi\s*xe|di\s*xe|taxi|xe\s*ôm|xe\s*om|đến|den|tới|toi|sân\s*bay|san\s*bay|đi\s*đâu|di\s*dau/i;
 
 export const FOOD_KEYWORDS = [
-  'food', 'eat', 'hungry', 'order food', 'order', 'pho', 'rice', 'noodle',
-  'chicken', 'burger', 'meal', 'lunch', 'dinner', 'breakfast', 'snack', 'kfc',
+  'đồ ăn', 'do an', 'ăn', 'an', 'đói', 'doi', 'đặt món', 'dat mon',
+  'phở', 'pho', 'cơm', 'com', 'bún', 'bun', 'gà', 'ga', 'burger', 'kfc',
 ];
 
 export const RIDE_KEYWORDS = [
-  'ride', 'car', 'taxi', 'drive', 'take me', 'book a ride', 'go to',
-  'transport', 'airport', 'destination',
+  'đặt xe', 'dat xe', 'gọi xe', 'goi xe', 'đi xe', 'di xe', 'taxi',
+  'xe ôm', 'xe om', 'đến', 'den', 'tới', 'toi', 'sân bay', 'san bay',
 ];
 
 export const UNSUPPORTED_FOOD_KEYWORDS = [
@@ -30,30 +30,30 @@ export const UNSUPPORTED_FOOD_KEYWORDS = [
 ];
 
 export const YES_PATTERN =
-  /^(yes|yeah|yep|yup|ok|okay|sure|confirm|correct|right|go ahead|do it|book it|order|absolutely|definitely|please|of course|grab|alright)$/i;
+  /^(có|co|vâng|vang|ừ|uh|ừm|um|ok|okay|được|duoc|đồng ý|dong y|xác nhận|xac nhan|đặt|dat|tiếp tục|tiep tuc|đúng rồi|dung roi|grab)$/i;
 
 export const NO_PATTERN =
-  /^(no|nope|nah|cancel|stop|don't|back|return|never mind|not now|skip|go back|negative)$/i;
+  /^(không|khong|hủy|huy|dừng|dung|thôi|thoi|bỏ qua|bo qua|quay lại|quay lai|về lại|ve lai|chưa|chua)$/i;
 
 export const GLOBAL_PATTERNS: { pattern: RegExp; intent: string }[] = [
-  { pattern: /(cancel|stop|quit|abort)/i, intent: 'GLOBAL_CANCEL' },
-  { pattern: /(go back|back|return|previous)/i, intent: 'GLOBAL_BACK' },
-  { pattern: /(repeat|say again|again|what did you say|come again|read again)/i, intent: 'GLOBAL_REPEAT' },
-  { pattern: /(read options|list options|what are my options|choices)/i, intent: 'GLOBAL_REPEAT_OPTIONS' },
-  { pattern: /(more|more options|show more)/i, intent: 'GLOBAL_MORE_OPTIONS' },
-  { pattern: /(help|what can i say|how does this work|instructions)/i, intent: 'GLOBAL_HELP' },
-  { pattern: /(my order|what's in my order|cart|what did i order)/i, intent: 'GLOBAL_READ_ORDER' },
-  { pattern: /(pause|hold on|wait)/i, intent: 'GLOBAL_PAUSE' },
-  { pattern: /(resume|continue|go on|keep going)/i, intent: 'GLOBAL_RESUME' },
-  { pattern: /(stop listening|mute|be quiet)/i, intent: 'GLOBAL_STOP' },
+  { pattern: /(hủy|huy|dừng|dung|thoát|thoat|bỏ qua|bo qua)/i, intent: 'GLOBAL_CANCEL' },
+  { pattern: /(quay lại|quay lai|trở lại|tro lai|về trước|ve truoc)/i, intent: 'GLOBAL_BACK' },
+  { pattern: /(nhắc lại|nhac lai|nói lại|noi lai|đọc lại|doc lai|lặp lại|lap lai)/i, intent: 'GLOBAL_REPEAT' },
+  { pattern: /(đọc lựa chọn|doc lua chon|danh sách lựa chọn|danh sach lua chon|có lựa chọn nào|co lua chon nao)/i, intent: 'GLOBAL_REPEAT_OPTIONS' },
+  { pattern: /(thêm lựa chọn|them lua chon|xem thêm|xem them)/i, intent: 'GLOBAL_MORE_OPTIONS' },
+  { pattern: /(trợ giúp|tro giup|hướng dẫn|huong dan|tôi nói gì|toi noi gi)/i, intent: 'GLOBAL_HELP' },
+  { pattern: /(đơn của tôi|don cua toi|giỏ hàng|gio hang|tôi đã đặt gì|toi da dat gi)/i, intent: 'GLOBAL_READ_ORDER' },
+  { pattern: /(tạm dừng|tam dung|chờ chút|cho chut|đợi đã|doi da)/i, intent: 'GLOBAL_PAUSE' },
+  { pattern: /(tiếp tục|tiep tuc|nói tiếp|noi tiep)/i, intent: 'GLOBAL_RESUME' },
+  { pattern: /(ngừng nghe|ngung nghe|tắt mic|tat mic|im lặng|im lang)/i, intent: 'GLOBAL_STOP' },
 ];
 
 export const VALID_PLACES = [
-  { id: 'place-tsn', name: 'Tan Son Nhat Airport', keywords: ['tan son nhat', 'airport', 'the airport', 'tsn', 'tansonnhat'] },
-  { id: 'place-ben-xe-md', name: 'Mien Dong Bus Station', keywords: ['mien dong', 'mien dong bus station', 'bus station', 'eastern bus'] },
-  { id: 'place-ben-thanh', name: 'Ben Thanh Market', keywords: ['ben thanh', 'ben thanh market', 'central market', 'market'] },
+  { id: 'place-tsn', name: 'Sân bay Tân Sơn Nhất', keywords: ['tân sơn nhất', 'tan son nhat', 'sân bay', 'san bay', 'tsn'] },
+  { id: 'place-ben-xe-md', name: 'Bến xe Miền Đông', keywords: ['miền đông', 'mien dong', 'bến xe', 'ben xe'] },
+  { id: 'place-ben-thanh', name: 'Chợ Bến Thành', keywords: ['bến thành', 'ben thanh', 'chợ', 'cho'] },
   { id: 'place-bitexco', name: 'Bitexco Financial Tower', keywords: ['bitexco', 'bitexco tower', 'financial tower'] },
-  { id: 'place-quan-1', name: 'District 1', keywords: ['district one', 'district 1', 'd1', 'quan 1'] },
+  { id: 'place-quan-1', name: 'Quận 1', keywords: ['quận 1', 'quan 1', 'q1'] },
 ];
 
 export interface FoodMenuMatch {
@@ -74,7 +74,7 @@ export const FOOD_MENU_CATALOG: FoodMenuMatch[] = [
     priceVnd: 65000,
     distanceKm: 1.2,
     etaMin: 25,
-    keywords: ['pho', 'pho bo', 'beef pho', 'pho bo tai', 'rare beef', 'beef noodle'],
+    keywords: ['phở', 'pho', 'phở bò', 'pho bo', 'phở bò tái', 'pho bo tai'],
   },
   {
     restaurantId: 'r-pho-hn',
@@ -83,7 +83,7 @@ export const FOOD_MENU_CATALOG: FoodMenuMatch[] = [
     priceVnd: 65000,
     distanceKm: 1.2,
     etaMin: 25,
-    keywords: ['well done beef', 'pho bo chin', 'cooked beef pho'],
+    keywords: ['phở bò chín', 'pho bo chin', 'bò chín', 'bo chin'],
   },
   {
     restaurantId: 'r-pho-hn',
@@ -92,7 +92,7 @@ export const FOOD_MENU_CATALOG: FoodMenuMatch[] = [
     priceVnd: 55000,
     distanceKm: 1.2,
     etaMin: 25,
-    keywords: ['chicken pho', 'pho ga', 'chicken noodle'],
+    keywords: ['phở gà', 'pho ga', 'gà', 'ga'],
   },
   {
     restaurantId: 'r-pho-hn',
@@ -101,7 +101,7 @@ export const FOOD_MENU_CATALOG: FoodMenuMatch[] = [
     priceVnd: 85000,
     distanceKm: 1.2,
     etaMin: 25,
-    keywords: ['special pho', 'pho dac biet', 'pho special'],
+    keywords: ['phở đặc biệt', 'pho dac biet', 'đặc biệt', 'dac biet'],
   },
   {
     restaurantId: 'r-com-tk',
@@ -110,7 +110,7 @@ export const FOOD_MENU_CATALOG: FoodMenuMatch[] = [
     priceVnd: 55000,
     distanceKm: 0.8,
     etaMin: 20,
-    keywords: ['broken rice', 'com tam', 'grilled pork rice', 'suon', 'pork chop rice'],
+    keywords: ['cơm tấm', 'com tam', 'cơm sườn', 'com suon', 'sườn', 'suon'],
   },
   {
     restaurantId: 'r-com-tk',
@@ -119,7 +119,7 @@ export const FOOD_MENU_CATALOG: FoodMenuMatch[] = [
     priceVnd: 50000,
     distanceKm: 0.8,
     etaMin: 20,
-    keywords: ['pork skin rice', 'com bi'],
+    keywords: ['cơm bì', 'com bi', 'bì', 'bi'],
   },
   {
     restaurantId: 'r-com-tk',
@@ -128,7 +128,7 @@ export const FOOD_MENU_CATALOG: FoodMenuMatch[] = [
     priceVnd: 70000,
     distanceKm: 0.8,
     etaMin: 20,
-    keywords: ['combo rice', 'sbc', 'full combo', 'pork combo'],
+    keywords: ['sườn bì chả', 'suon bi cha', 'cơm tấm đặc biệt', 'com tam dac biet'],
   },
   {
     restaurantId: 'r-com-tk',
@@ -137,7 +137,7 @@ export const FOOD_MENU_CATALOG: FoodMenuMatch[] = [
     priceVnd: 50000,
     distanceKm: 0.8,
     etaMin: 20,
-    keywords: ['steamed pork rice', 'com cha', 'meatloaf rice'],
+    keywords: ['cơm chả', 'com cha', 'chả', 'cha'],
   },
   {
     restaurantId: 'r-com-tk',
@@ -146,7 +146,7 @@ export const FOOD_MENU_CATALOG: FoodMenuMatch[] = [
     priceVnd: 55000,
     distanceKm: 0.8,
     etaMin: 20,
-    keywords: ['chicken rice', 'com ga'],
+    keywords: ['cơm gà', 'com ga', 'gà', 'ga'],
   },
   {
     restaurantId: 'r-kfc',
@@ -155,7 +155,7 @@ export const FOOD_MENU_CATALOG: FoodMenuMatch[] = [
     priceVnd: 45000,
     distanceKm: 1.5,
     etaMin: 30,
-    keywords: ['fried chicken', 'kfc', 'kentucky', 'crispy chicken', 'chicken piece'],
+    keywords: ['gà rán', 'ga ran', 'kfc', 'gà giòn', 'ga gion'],
   },
   {
     restaurantId: 'r-kfc',
@@ -164,7 +164,7 @@ export const FOOD_MENU_CATALOG: FoodMenuMatch[] = [
     priceVnd: 85000,
     distanceKm: 1.5,
     etaMin: 30,
-    keywords: ['two piece chicken', '2 piece', 'double chicken'],
+    keywords: ['gà rán 2 miếng', 'ga ran 2 mieng', 'hai miếng gà', 'hai mieng ga'],
   },
   {
     restaurantId: 'r-kfc',
@@ -173,7 +173,7 @@ export const FOOD_MENU_CATALOG: FoodMenuMatch[] = [
     priceVnd: 55000,
     distanceKm: 1.5,
     etaMin: 30,
-    keywords: ['chicken burger', 'crispy burger', 'burger'],
+    keywords: ['burger gà', 'burger ga', 'burger', 'gà giòn', 'ga gion'],
   },
   {
     restaurantId: 'r-kfc',
@@ -182,7 +182,7 @@ export const FOOD_MENU_CATALOG: FoodMenuMatch[] = [
     priceVnd: 35000,
     distanceKm: 1.5,
     etaMin: 30,
-    keywords: ['fries', 'french fries', 'potato', 'chips'],
+    keywords: ['khoai tây chiên', 'khoai tay chien', 'khoai chiên', 'khoai chien'],
   },
   {
     restaurantId: 'r-pho-hn',
@@ -191,7 +191,7 @@ export const FOOD_MENU_CATALOG: FoodMenuMatch[] = [
     priceVnd: 10000,
     distanceKm: 1.2,
     etaMin: 25,
-    keywords: ['iced tea', 'tea', 'tra da'],
+    keywords: ['trà đá', 'tra da', 'trà', 'tra'],
   },
   {
     restaurantId: 'r-kfc',
@@ -200,7 +200,7 @@ export const FOOD_MENU_CATALOG: FoodMenuMatch[] = [
     priceVnd: 20000,
     distanceKm: 1.5,
     etaMin: 30,
-    keywords: ['soda', 'coke', 'pepsi', 'cola', 'soft drink'],
+    keywords: ['pepsi', 'nước ngọt', 'nuoc ngot', 'cola'],
   },
 ];
 
@@ -219,9 +219,9 @@ export const PARTNER_LABEL: Record<PartnerCode, string> = {
 };
 
 export const STAR_KEYWORDS: { stars: number; words: string[] }[] = [
-  { stars: 1, words: ['one star', '1 star', 'one', '1'] },
-  { stars: 2, words: ['two stars', '2 stars', 'two', '2'] },
-  { stars: 3, words: ['three stars', '3 stars', 'three', '3', 'okay', 'average'] },
-  { stars: 4, words: ['four stars', '4 stars', 'four', '4', 'good'] },
-  { stars: 5, words: ['five stars', '5 stars', 'five', '5', 'excellent', 'perfect', 'amazing', 'great'] },
+  { stars: 1, words: ['một sao', 'mot sao', '1 sao', 'một', 'mot', '1', 'kém', 'kem'] },
+  { stars: 2, words: ['hai sao', '2 sao', 'hai', '2'] },
+  { stars: 3, words: ['ba sao', '3 sao', 'ba', '3', 'bình thường', 'binh thuong', 'ổn', 'on'] },
+  { stars: 4, words: ['bốn sao', 'bon sao', '4 sao', 'bốn', 'bon', '4', 'tốt', 'tot'] },
+  { stars: 5, words: ['năm sao', 'nam sao', '5 sao', 'năm', 'nam', '5', 'rất tốt', 'rat tot', 'tuyệt vời', 'tuyet voi'] },
 ];

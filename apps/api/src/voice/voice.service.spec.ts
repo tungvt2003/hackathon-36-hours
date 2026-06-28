@@ -49,13 +49,13 @@ describe('VoiceService', () => {
             available: true,
           },
         ],
-        responseText: 'Co 2 lua chon. Ban muon chon doi tac nao?',
+        responseText: 'Có 2 lựa chọn. Bạn muốn chọn đối tác nào?',
       })),
       confirmOrder: jest.fn(async () => ({
         orderId: 'order-1',
         status: 'CONFIRMED',
         partner: PartnerCode.BE,
-        responseText: 'Da xac nhan Be',
+        responseText: 'Đã xác nhận Be',
       })),
     };
 
@@ -77,7 +77,7 @@ describe('VoiceService', () => {
     const result = await service.start('user-1');
 
     expect(result.session_id).toBeTruthy();
-    expect(result.nlg.plain_text).toContain('dat xe');
+    expect(result.nlg.plain_text).toContain('đặt xe');
     expect(result.nlg.expected_intents).toContain('ORDER_FOOD');
   });
 
@@ -91,7 +91,7 @@ describe('VoiceService', () => {
     });
 
     expect(orders.processVoice).toHaveBeenCalledWith(
-      expect.objectContaining({ transcript: 'dat xe den san bay' }),
+      expect.objectContaining({ transcript: 'đặt xe đến san bay' }),
     );
     expect(turn.orderId).toBe('order-1');
     expect(turn.session_state.current_state).toBe('QUOTING');
@@ -104,6 +104,6 @@ describe('VoiceService', () => {
 
     expect(orders.confirmOrder).toHaveBeenCalledWith('order-1', PartnerCode.BE);
     expect(confirm.session_state.current_state).toBe('ORDER_PLACED');
-    expect(confirm.nlg.plain_text).toContain('Da xac nhan Be');
+    expect(confirm.nlg.plain_text).toContain('Đã xác nhận Be');
   });
 });

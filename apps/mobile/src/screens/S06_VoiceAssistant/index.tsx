@@ -51,7 +51,7 @@ const ORDINAL_WORDS = ['mot', 'nhat', '1', 'hai', '2', 'ba', '3', 'bon', '4', 'n
 
 function tts(text: string, onDone?: () => void) {
   Speech.stop();
-  Speech.speak(text, { language: 'en-US', onDone, onStopped: onDone });
+  Speech.speak(text, { language: 'vi-VN', onDone, onStopped: onDone });
   AccessibilityInfo.announceForAccessibility(text);
 }
 
@@ -111,6 +111,7 @@ export default function VoiceAssistantScreen() {
   const [driverRating, setDriverRating] = useState(5);
   const [collectingInput, setCollectingInput] = useState('');
   const [liveTranscript, setLiveTranscript] = useState('');
+  const nextActionCue = USE_TEXT_INPUT ? 'Bạn có thể bắt đầu nhập.' : 'Bạn có thể bắt đầu nói.';
 
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -141,14 +142,14 @@ export default function VoiceAssistantScreen() {
     noInputTimerRef.current = setTimeout(() => {
       const speechModule = getSpeechRecognitionModule();
       try { speechModule?.stop(); } catch { /* ignore */ }
-      const cue = "I didn't hear anything. Tap the microphone icon in the center of the screen to speak.";
+      const cue = 'Mình chưa nghe thấy gì. Hãy nhấn biểu tượng microphone ở giữa màn hình để nói.';
       setPromptText(cue);
       tts(cue);
       setStage('IDLE');
     }, NO_INPUT_TIMEOUT_MS);
   }
 
-  // get GPS once on mount — best-effort, never blocks the flow
+    // Lấy GPS một lần khi mở màn hình, không chặn luồng chính nếu thất bại.
   useEffect(() => {
     (async () => {
       try {
@@ -156,7 +157,7 @@ export default function VoiceAssistantScreen() {
         if (status !== 'granted') return;
         const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
         setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-      } catch { /* GPS not available — fall back to no-location search */ }
+    } catch { /* GPS không khả dụng, tìm kiếm không kèm vị trí. */ }
     })();
   }, []);
 
@@ -238,6 +239,10 @@ export default function VoiceAssistantScreen() {
     ].sort((a, b) => a.price - b.price);
   }
 
+  function speakPromptWithCue(text: string, onDone?: () => void) {
+    tts(`${text} ${nextActionCue}`, onDone);
+  }
+
   /** Nghe xong khi đang ở QUOTING -> hiểu câu trả lời là chọn đối tác, không gửi qua conversation API */
   async function handleVoicePartnerChoice(text: string) {
     const quotes = getAllQuotes();
@@ -246,12 +251,12 @@ export default function VoiceAssistantScreen() {
       await handleConfirm(partner);
       return;
     }
-    const retryText = "Sorry, I didn't catch which partner you chose. Please say the partner name again, for example Be or Grab.";
+    const retryText = 'Mình chưa nghe rõ bạn chọn đối tác nào. Vui lòng nói lại tên đối tác, ví dụ Be hoặc Grab.';
     setPromptText(retryText);
-    if (accessibilityFlag) {
-      tts(retryText, () => startListening(true));
+    if (autoChain) {
+      speakPromptWithCue(retryText, () => startListening(false, true));
     } else {
-      tts(retryText);
+      speakPromptWithCue(retryText);
     }
   }
 
@@ -266,23 +271,23 @@ export default function VoiceAssistantScreen() {
         const msg = voiceNlg.platformUnsupported(platformNlu.slots.platform as PartnerCode);
         setPromptText(msg);
         setStage('COLLECTING');
-        if (autoChain) tts(msg, () => startListening(true));
-        else tts(msg);
+        if (autoChain) speakPromptWithCue(msg, () => startListening(false, true));
+        else speakPromptWithCue(msg);
         return;
       }
       if (platformNlu.intent === 'SELECT_PLATFORM') {
         const msg = voiceNlg.platformGrabSelected();
         setPromptText(msg);
         setStage('COLLECTING');
-        if (autoChain) tts(msg, () => startListening(true));
-        else tts(msg);
+        if (autoChain) speakPromptWithCue(msg, () => startListening(false, true));
+        else speakPromptWithCue(msg);
         return;
       }
       if (platformNlu.intent === 'UNKNOWN' && !sessionIdRef.current) {
         const msg = voiceNlg.platformUnclear(0);
         setPromptText(msg);
-        if (autoChain) tts(msg, () => startListening(true));
-        else tts(msg);
+        if (autoChain) speakPromptWithCue(msg, () => startListening(false, true));
+        else speakPromptWithCue(msg);
         return;
       }
     }
@@ -302,9 +307,9 @@ export default function VoiceAssistantScreen() {
         setCollectingInput('');
         setStage('COLLECTING');
         if (autoChain) {
-          tts(res.promptText, () => startListening(true));
+          speakPromptWithCue(res.promptText, () => startListening(false, true));
         } else {
-          tts(res.promptText);
+          speakPromptWithCue(res.promptText);
         }
       } else if (res.state === 'ORDERING') {
         setPromptText(res.promptText);
@@ -312,10 +317,10 @@ export default function VoiceAssistantScreen() {
         setFoodQuotes(res.foodQuotes ?? []);
         setOrderId(res.orderId ?? null);
         setStage('QUOTING');
-        if (accessibilityFlag) {
-          tts(res.promptText, () => startListening(true));
+        if (autoChain) {
+          speakPromptWithCue(res.promptText, () => startListening(false, true));
         } else {
-          tts(res.promptText);
+          speakPromptWithCue(res.promptText);
         }
       }
     } catch (err) {
@@ -330,19 +335,19 @@ export default function VoiceAssistantScreen() {
 
   /** autoCue=true: đọc "Bạn có thể bắt đầu nói" rồi mới mở mic — dùng cho luồng tự động chain theo voice.
    *  autoCue=false (mặc định, nút bấm tay): mở mic ngay, giữ nguyên hành vi cũ. Nút bấm luôn còn để backup. */
-  async function startListening(autoCue = false) {
+  async function startListening(autoCue = false, skipCue = false) {
     setLiveTranscript('');
     finalTranscriptRef.current = '';
     setStage('LISTENING');
 
     if (USE_TEXT_INPUT) {
-      tts('Hãy nhập yêu cầu của bạn');
+      if (!skipCue) tts(nextActionCue);
       return;
     }
     try {
       const speechModule = getSpeechRecognitionModule();
       if (!speechModule) {
-        tts('Hãy nhập yêu cầu của bạn');
+        if (!skipCue) tts('Bạn có thể bắt đầu nhập.');
         return;
       }
       const perm = await speechModule.requestPermissionsAsync();
@@ -353,7 +358,7 @@ export default function VoiceAssistantScreen() {
       }
       const begin = () => {
         try {
-          speechModule.start({ lang: 'en-US', continuous: false, interimResults: true });
+          speechModule.start({ lang: 'vi-VN', continuous: false, interimResults: true });
           armNoInputTimer();
         } catch (e) {
           console.warn('STT start failed', e);
@@ -361,9 +366,9 @@ export default function VoiceAssistantScreen() {
         }
       };
       if (autoCue) {
-        tts('You can start speaking now.', begin);
+        tts(nextActionCue, begin);
       } else {
-        tts('Dang lang nghe');
+        if (!skipCue) tts('Đang lắng nghe');
         begin();
       }
     } catch (e) {
@@ -480,21 +485,21 @@ export default function VoiceAssistantScreen() {
       <ScrollView style={s.scroll} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <View style={s.toggleRow}>
           <MaterialCommunityIcons name="eye-off-outline" size={20} color="#6B7280" />
-          <Text style={s.toggleLabel}>Accessibility support</Text>
+          <Text style={s.toggleLabel}>Hỗ trợ tiếp cận</Text>
           <Switch value={accessibilityFlag} onValueChange={setAccessibilityFlag}
             trackColor={{ false: '#D1D5DB', true: '#00B14F' }}
-            accessibilityLabel="Enable accessibility support" />
+            accessibilityLabel="Bật hỗ trợ tiếp cận" />
         </View>
 
         {/* ── IDLE ── */}
         {stage === 'IDLE' && (
           <View style={s.centerBlock}>
             <TouchableOpacity style={s.bigMic} onPress={() => startListening()}
-              accessibilityLabel="Tap to start speaking" accessibilityRole="button">
+              accessibilityLabel="Nhấn để bắt đầu nói" accessibilityRole="button">
               <MaterialCommunityIcons name="microphone-outline" size={56} color="#fff" />
             </TouchableOpacity>
-            <Text style={s.idleHint}>Tap to speak</Text>
-            <Text style={s.idleSub}>Rides · Food · By voice</Text>
+            <Text style={s.idleHint}>Nhấn để nói</Text>
+            <Text style={s.idleSub}>Đặt xe · Đặt món · Bằng giọng nói</Text>
           </View>
         )}
 
@@ -503,7 +508,7 @@ export default function VoiceAssistantScreen() {
             <View style={s.centerBlock}>
               <AudioVisualizer active={!USE_TEXT_INPUT} />
               <Text style={s.listeningLabel}>
-                {USE_TEXT_INPUT ? 'Type your request' : 'Listening...'}
+                {USE_TEXT_INPUT ? 'Nhập yêu cầu' : 'Đang lắng nghe...'}
               </Text>
 
               {!USE_TEXT_INPUT && liveTranscript !== '' && (
@@ -517,7 +522,7 @@ export default function VoiceAssistantScreen() {
                   style={[s.input, { width: '100%', backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.2)', color: 'white' }]}
                   value={liveTranscript}
                   onChangeText={setLiveTranscript}
-                  placeholder="e.g. book a ride to the airport..."
+                  placeholder="Ví dụ: đặt xe đến sân bay..."
                   placeholderTextColor="rgba(255,255,255,0.4)"
                   autoFocus
                   onSubmitEditing={stopListening}
@@ -527,7 +532,7 @@ export default function VoiceAssistantScreen() {
 
               <TouchableOpacity style={s.stopBtn} onPress={stopListening}>
                 <MaterialCommunityIcons name={USE_TEXT_INPUT ? 'send' : 'stop'} size={24} color="#fff" />
-                <Text style={s.stopBtnText}>{USE_TEXT_INPUT ? 'Send' : 'Stop'}</Text>
+                <Text style={s.stopBtnText}>{USE_TEXT_INPUT ? 'Gửi' : 'Dừng'}</Text>
               </TouchableOpacity>
               {loading && <ActivityIndicator color={theme.colors.primary} style={{ marginTop: 16 }} />}
             </View>
@@ -537,30 +542,31 @@ export default function VoiceAssistantScreen() {
           {stage === 'COLLECTING' && (
             <View style={s.inputBlock}>
               {promptText !== '' && (
-                <View style={s.promptBoxDark} accessible accessibilityLabel={promptText}>
+                <View style={s.promptBoxDark} accessible accessibilityLabel={`${promptText}. ${nextActionCue}`}>
                   <MaterialCommunityIcons name="robot" size={20} color={theme.colors.primary} style={{ marginBottom: 8 }} />
                   <Text style={s.promptTextDark}>{promptText}</Text>
+                  <Text style={s.actionCueDark}>{nextActionCue}</Text>
                 </View>
               )}
               <TouchableOpacity style={s.voiceReBtnDark} onPress={() => startListening()}>
                 <MaterialCommunityIcons name="microphone" size={22} color={theme.colors.primary} />
-                <Text style={s.voiceReBtnTextDark}>{USE_TEXT_INPUT ? 'Type' : 'Speak'}</Text>
+                <Text style={s.voiceReBtnTextDark}>{USE_TEXT_INPUT ? 'Nhập' : 'Nói'}</Text>
               </TouchableOpacity>
               <TextInput 
                 style={s.inputDark} 
                 value={collectingInput} 
                 onChangeText={setCollectingInput}
-                placeholder="Or type manually..." 
+                placeholder="Hoặc nhập thủ công..." 
                 placeholderTextColor="rgba(255,255,255,0.4)"
                 returnKeyType="send" 
                 onSubmitEditing={submitCollecting} 
               />
               <TouchableOpacity style={s.primaryBtn} onPress={submitCollecting}
                 disabled={loading || !collectingInput.trim()}>
-                {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.primaryBtnText}>Send</Text>}
+                {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.primaryBtnText}>Gửi</Text>}
               </TouchableOpacity>
               <TouchableOpacity style={s.ghostBtnDark} onPress={reset}>
-                <Text style={s.ghostBtnTextDark}>Cancel</Text>
+                <Text style={s.ghostBtnTextDark}>Hủy</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -569,12 +575,13 @@ export default function VoiceAssistantScreen() {
           {stage === 'QUOTING' && (
             <View style={s.section}>
               {promptText !== '' && (
-                <View style={[s.promptBox, s.shadow]} accessible accessibilityLabel={promptText}>
+                <View style={[s.promptBox, s.shadow]} accessible accessibilityLabel={`${promptText}. ${nextActionCue}`}>
                   <MaterialCommunityIcons name="robot" size={20} color={theme.colors.primary} style={{ marginBottom: 8 }} />
                   <Text style={s.promptText}>{promptText}</Text>
+                  <Text style={s.actionCue}>{nextActionCue}</Text>
                 </View>
               )}
-              <Text style={s.sectionLabel}>Choose a partner:</Text>
+              <Text style={s.sectionLabel}>Chọn đối tác:</Text>
               {allQuotes.map(q => (
                 <TouchableOpacity key={q.partner} style={[s.quoteCard, s.shadow]}
                   onPress={() => handleConfirm(q.partner)} disabled={loading}>
@@ -593,7 +600,7 @@ export default function VoiceAssistantScreen() {
               ))}
               {loading && <ActivityIndicator color={theme.colors.primary} style={{ marginTop: 16 }} />}
               <TouchableOpacity style={s.ghostBtn} onPress={reset}>
-                <Text style={s.ghostBtnText}>Cancel</Text>
+                <Text style={s.ghostBtnText}>Hủy</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -603,7 +610,7 @@ export default function VoiceAssistantScreen() {
             <View style={s.section}>
               <Text style={s.sectionLabel}>Trạng thái đơn hàng</Text>
               <Text style={s.statusTextDisplay} accessibilityLiveRegion="polite">
-                {orderStatus ?? 'Starting up...'}
+                {orderStatus ?? 'Đang khởi động...'}
               </Text>
               {driverName && (
                 <View style={[s.driverCard, s.shadow]}>
@@ -612,7 +619,7 @@ export default function VoiceAssistantScreen() {
                 </View>
               )}
               <ActivityIndicator color={theme.colors.primary} size="large" style={{ marginTop: 40 }} />
-              <Text style={s.hint}>Updates every 5 seconds</Text>
+              <Text style={s.hint}>Cập nhật mỗi 5 giây</Text>
             </View>
           )}
 
@@ -654,7 +661,7 @@ export default function VoiceAssistantScreen() {
               </View>
 
               <TouchableOpacity style={s.primaryBtn} onPress={handleReview} disabled={loading}>
-                {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.primaryBtnText}>Submit review</Text>}
+                {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.primaryBtnText}>Gửi đánh giá</Text>}
               </TouchableOpacity>
             </View>
           )}
@@ -666,7 +673,7 @@ export default function VoiceAssistantScreen() {
               <Text style={s.successText}>Cảm ơn bạn!</Text>
               <Text style={s.hint}>Đánh giá của bạn giúp dịch vụ tốt hơn.</Text>
               <TouchableOpacity style={s.primaryBtn} onPress={reset}>
-                <Text style={s.primaryBtnText}>Order again</Text>
+                <Text style={s.primaryBtnText}>Đặt lại</Text>
               </TouchableOpacity>
               <TouchableOpacity style={s.ghostBtn} onPress={() => navigation.goBack()}>
                 <Text style={s.ghostBtnText}>Về trang chủ</Text>
@@ -728,6 +735,8 @@ const s = StyleSheet.create({
   },
   promptText: { fontSize: 20, color: theme.colors.textPrimary, lineHeight: 30, fontWeight: '500' },
   promptTextDark: { fontSize: 20, color: 'white', lineHeight: 30, fontWeight: '500' },
+  actionCue: { marginTop: 14, fontSize: 16, color: theme.colors.primary, lineHeight: 24, fontWeight: '800' },
+  actionCueDark: { marginTop: 14, fontSize: 16, color: theme.colors.primary, lineHeight: 24, fontWeight: '800' },
   voiceReBtnDark: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
     borderWidth: 2, borderColor: theme.colors.primary, borderRadius: theme.radius.full, paddingVertical: 16,

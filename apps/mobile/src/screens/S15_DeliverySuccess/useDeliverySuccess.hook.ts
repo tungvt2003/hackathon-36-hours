@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { Animated, AccessibilityInfo } from 'react-native';
+import { Animated } from 'react-native';
+import { tts } from '../../services/voice/tts';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
@@ -73,9 +74,8 @@ export const useDeliverySuccess = (): ViewModel => {
       ).start();
     }, 180);
 
-    // Announce after animations settle
     const announcementTimer = setTimeout(() => {
-      AccessibilityInfo.announceForAccessibility(content.announcement);
+      tts(content.announcement);
     }, 600);
 
     return () => {

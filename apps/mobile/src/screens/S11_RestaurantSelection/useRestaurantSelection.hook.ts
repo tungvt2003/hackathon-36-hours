@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useMemo } from 'react';
-import { AccessibilityInfo } from 'react-native';
+import { tts } from '../../services/voice/tts';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
@@ -22,7 +22,7 @@ export const useRestaurantSelection = (): RestaurantSelectionViewModel => {
   const restaurants = useMemo(() => restaurantSelectionService.getMockRestaurants(), []);
 
   useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(`${restaurants.length} restaurants found for your search.`);
+    tts(`Tìm thấy ${restaurants.length} nhà hàng phù hợp. Nói tên nhà hàng để chọn.`);
   }, [restaurants.length]);
 
   const onSelect = useCallback((r: MockRestaurant) => {

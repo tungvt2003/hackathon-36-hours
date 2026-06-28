@@ -1,10 +1,11 @@
 import { useEffect, useCallback, useState } from 'react';
-import { AccessibilityInfo } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
 import { OrderType, PartnerCode } from '../../types';
 import { api } from '../../api';
+import { DEV_FORCE_TEXT_INPUT } from '../../constants/devFlags';
+import { tts } from '../../services/voice/tts';
 
 export interface VoiceSpeakingViewModel {
   userText: string;
@@ -21,12 +22,14 @@ export const useVoiceSpeaking = (): VoiceSpeakingViewModel => {
   const route = useRoute<RouteProp<RootStackParamList, 'VoiceSpeaking'>>();
   const { userText, aiText, context, sessionId, quotePartner, canConfirmOrder } = route.params;
   const [loading, setLoading] = useState(false);
+  const nextActionCue = DEV_FORCE_TEXT_INPUT ? 'Bạn có thể bắt đầu nhập.' : 'Bạn có thể bắt đầu nói.';
+  const aiTextWithCue = `${aiText} ${nextActionCue}`;
 
   const routeAfterConfirm = useCallback((orderId: string) => {
     if (context === 'ride') {
       navigation.navigate('RideTracking', {
         orderId,
-        intent: { type: OrderType.RIDE, origin: '123 Lê Lợi, Q.1', destination: 'Bến Thành Market' },
+        intent: { type: OrderType.RIDE, origin: '123 Lê Lợi, Q.1', destination: 'Chợ Bến Thành' },
       });
       return;
     }
@@ -69,12 +72,12 @@ export const useVoiceSpeaking = (): VoiceSpeakingViewModel => {
   }, [onCancel]);
 
   useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(aiText);
-  }, [aiText]);
+    tts(aiTextWithCue);
+  }, [aiTextWithCue]);
 
   return {
     userText,
-    aiText,
+    aiText: aiTextWithCue,
     context,
     loading,
     onConfirm,

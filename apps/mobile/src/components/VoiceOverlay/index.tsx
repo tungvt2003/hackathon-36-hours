@@ -15,12 +15,12 @@ export const VoiceOverlay: React.FC<VoiceOverlayProps> = ({ visible, transcript,
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.container}>
         <View style={styles.content}>
-          <Text style={styles.title}>Listening...</Text>
+          <Text style={styles.title}>Đang lắng nghe...</Text>
           <AudioVisualizer active={visible} />
           <View style={styles.transcriptContainer}>
-            <Text style={styles.transcriptText}>{transcript || 'Speak now...'}</Text>
+            <Text style={styles.transcriptText}>{transcript || 'Hãy nói bây giờ...'}</Text>
           </View>
-          <SecondaryButton label="Cancel" onPress={onCancel} />
+          <SecondaryButton label="Hủy" onPress={onCancel} />
         </View>
       </View>
     </Modal>

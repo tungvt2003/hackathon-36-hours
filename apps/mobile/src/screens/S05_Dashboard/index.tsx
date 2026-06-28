@@ -51,7 +51,7 @@ export default function DashboardScreen() {
               style={styles.historyButton}
               onPress={onHistoryPress}
               accessibilityRole="button"
-              accessibilityLabel="Order history"
+              accessibilityLabel="Lịch sử đơn hàng"
             >
               <MaterialCommunityIcons name="history" size={24} color={theme.colors.textSecondary} />
             </TouchableOpacity>
@@ -63,7 +63,7 @@ export default function DashboardScreen() {
             {userText !== '' && (
               <View>
                 <View style={styles.userEcho}>
-                  <Text style={styles.userEchoLabel}>YOU SAID</Text>
+                  <Text style={styles.userEchoLabel}>BẠN ĐÃ NÓI</Text>
                   <Text style={styles.userEchoText}>{userText}</Text>
                 </View>
                 <TouchableOpacity
@@ -84,18 +84,18 @@ export default function DashboardScreen() {
               <>
                 <AudioVisualizer active={sttAvailable} />
                 <Text style={styles.statusLabel}>
-                  {sttAvailable ? 'Listening...' : 'Type your request'}
+                  {sttAvailable ? 'Đang lắng nghe...' : 'Nhập yêu cầu'}
                 </Text>
                 {sttAvailable && (
                   <View style={styles.statusHint}>
                     <View style={[styles.statusDot, styles.statusDotActive]} />
-                    <Text style={styles.statusText}>Recording — tap mic to stop</Text>
+                    <Text style={styles.statusText}>Đang ghi âm - chạm mic để dừng</Text>
                   </View>
                 )}
               </>
             )}
 
-            {stage === 'thinking' && <Text style={styles.statusLabel}>AI is processing...</Text>}
+            {stage === 'thinking' && <Text style={styles.statusLabel}>AI đang xử lý...</Text>}
 
             {!sttAvailable && stage === 'listening' && (
               <View style={styles.manualInputRow}>
@@ -103,18 +103,18 @@ export default function DashboardScreen() {
                   style={styles.manualInput}
                   value={manualInput}
                   onChangeText={setManualInput}
-                  placeholder="Type your request..."
+                  placeholder="Nhập yêu cầu..."
                   placeholderTextColor={theme.colors.textMuted}
                   autoFocus
                   returnKeyType="send"
                   onSubmitEditing={submitManualInput}
-                  accessibilityLabel="Type your request"
+                  accessibilityLabel="Nhập yêu cầu"
                 />
                 <TouchableOpacity
                   style={styles.sendBtn}
                   onPress={submitManualInput}
                   accessibilityRole="button"
-                  accessibilityLabel="Send"
+                  accessibilityLabel="Gửi"
                 >
                   <MaterialCommunityIcons name="send" size={20} color="white" />
                 </TouchableOpacity>
@@ -123,67 +123,13 @@ export default function DashboardScreen() {
 
             <View
               style={styles.micZone}
-              accessibilityLabel="Tap mic and say what you need"
+              accessibilityLabel="Nhấn mic và nói điều bạn cần"
             >
               {stage === 'thinking' ? (
                 <ActivityIndicator color={theme.colors.primary} size="large" />
               ) : (
                 <FloatingMicButton onPress={onMicPress} size={128} />
               )}
-            </View>
-
-            <View style={styles.center}>
-              {stage === 'listening' && (
-                <>
-                  <AudioVisualizer active={sttAvailable} />
-                  <Text style={styles.statusLabel}>
-                    {sttAvailable ? 'Đang lắng nghe...' : 'Nhập yêu cầu'}
-                  </Text>
-                  {sttAvailable && (
-                    <View style={styles.statusHint}>
-                      <View style={[styles.statusDot, styles.statusDotActive]} />
-                      <Text style={styles.statusText}>Đang ghi âm — chạm mic để dừng</Text>
-                    </View>
-                  )}
-                </>
-              )}
-
-              {stage === 'thinking' && <Text style={styles.statusLabel}>AI đang xử lý...</Text>}
-
-              {!sttAvailable && stage === 'listening' && (
-                <View style={styles.manualInputRow}>
-                  <TextInput
-                    style={styles.manualInput}
-                    value={manualInput}
-                    onChangeText={setManualInput}
-                    placeholder="Nhập yêu cầu..."
-                    placeholderTextColor={theme.colors.textMuted}
-                    autoFocus
-                    returnKeyType="send"
-                    onSubmitEditing={submitManualInput}
-                    accessibilityLabel="Nhập yêu cầu"
-                  />
-                  <TouchableOpacity
-                    style={styles.sendBtn}
-                    onPress={submitManualInput}
-                    accessibilityRole="button"
-                    accessibilityLabel="Gửi"
-                  >
-                    <MaterialCommunityIcons name="send" size={20} color="white" />
-                  </TouchableOpacity>
-                </View>
-              )}
-
-              <View
-                style={styles.micZone}
-                accessibilityLabel="Nhấn mic và nói điều bạn cần"
-              >
-                {stage === 'thinking' ? (
-                  <ActivityIndicator color={theme.colors.primary} size="large" />
-                ) : (
-                  <FloatingMicButton onPress={onMicPress} size={128} />
-                )}
-              </View>
             </View>
           </View>
         </SafeAreaView>

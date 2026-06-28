@@ -14,9 +14,9 @@ export interface VoiceProcessingViewModel {
 export const useVoiceProcessing = (): VoiceProcessingViewModel => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'VoiceProcessing'>>();
-  const { audioBase64, context } = route.params;
+  const { audioBase64, userText: initialUserText, context } = route.params;
   const cancelledRef = useRef(false);
-  const [userText, setUserText] = useState('Đang xử lý...');
+  const [userText, setUserText] = useState(initialUserText ?? 'Đang xử lý...');
 
   const onDismiss = useCallback(() => {
     cancelledRef.current = true;
@@ -24,7 +24,7 @@ export const useVoiceProcessing = (): VoiceProcessingViewModel => {
   }, [navigation]);
 
   useEffect(() => {
-    AccessibilityInfo.announceForAccessibility('Processing your request.');
+    AccessibilityInfo.announceForAccessibility('Đang xử lý yêu cầu của bạn.');
 
     (async () => {
       try {
@@ -33,6 +33,7 @@ export const useVoiceProcessing = (): VoiceProcessingViewModel => {
 
         // Gửi audio base64 trực tiếp lên VoiceController của NestJS kèm tọa độ thực tế
         const res = await api.voice.turn({
+          transcript: initialUserText,
           audio_base64: audioBase64,
           sample_rate: 16000, // Google STT / VNPT tiêu chuẩn
           currentLat: loc.lat,

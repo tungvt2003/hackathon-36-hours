@@ -25,25 +25,25 @@ export const orderConfirmationService = {
   getMockOrder: (orderId: string): MockOrder => {
     if (orderId.includes('ride')) {
       const destination = orderId.includes('place-tsn')
-        ? 'Tan Son Nhat Airport'
+        ? 'Sân bay Tân Sơn Nhất'
         : orderId.includes('place-ben-thanh')
-          ? 'Ben Thanh Market'
+          ? 'Chợ Bến Thành'
           : orderId.includes('place-bitexco')
             ? 'Bitexco Financial Tower'
             : orderId.includes('place-ben-xe-md')
-              ? 'Mien Dong Bus Station'
+              ? 'Bến xe Miền Đông'
               : orderId.includes('place-quan-1')
-                ? 'District 1'
-                : 'Your destination';
+                ? 'Quận 1'
+                : 'Điểm đến của bạn';
       return {
         orderId,
         partner: PartnerCode.GRAB,
         restaurantName: destination,
         restaurantRating: 4.9,
-        items: [{ name: `GrabCar to ${destination}`, qty: 1, price: 120000 }],
+        items: [{ name: `GrabCar đến ${destination}`, qty: 1, price: 120000 }],
         deliveryFee: 0,
         total: 120000,
-        address: '123 Le Loi, District 1, Ho Chi Minh City',
+        address: '123 Lê Lợi, Quận 1, TP.HCM',
         paymentMethod: 'GrabPay',
         etaMin: 6,
         etaMax: 10,
@@ -58,7 +58,7 @@ export const orderConfirmationService = {
       items: [{ name: 'Phở Bò Tái', qty: 1, price: 65000 }],
       deliveryFee: 15000,
       total: 80000,
-      address: '123 Le Loi, District 1, Ho Chi Minh City',
+      address: '123 Lê Lợi, Quận 1, TP.HCM',
       paymentMethod: 'GrabPay',
       etaMin: 25,
       etaMax: 35,
