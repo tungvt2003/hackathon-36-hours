@@ -9,22 +9,22 @@ export interface AccessibilityOption {
 export const ACCESSIBILITY_OPTIONS: AccessibilityOption[] = [
   { 
     id: 'visual', 
-    label: 'Visual impairment', 
-    description: 'Screen reader & high-contrast', 
+    label: 'Khiếm thị', 
+    description: 'Đọc màn hình và tương phản cao', 
     icon: 'eye-off', 
     color: '#8B5CF6' 
   },
   { 
     id: 'motor', 
-    label: 'Mobility impairment', 
-    description: 'Large targets & one-tap confirm', 
+    label: 'Khó khăn vận động', 
+    description: 'Vùng chạm lớn và xác nhận một chạm', 
     icon: 'hand-back-right-off', 
     color: '#F59E0B' 
   },
   { 
     id: 'handsFree', 
-    label: 'Hands-free', 
-    description: 'Voice-only, no touch needed', 
+    label: 'Rảnh tay', 
+    description: 'Chỉ dùng giọng nói, không cần chạm', 
     icon: 'gesture-tap-hold', 
     color: '#3B82F6' 
   },

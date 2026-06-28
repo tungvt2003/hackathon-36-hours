@@ -35,11 +35,11 @@ export class VoiceService {
     const session = this.sessions.create(userId);
     const request: VoiceNlgRequest = {
       template: 'GREETING',
-      status_line: 'Xin chao',
-      body: 'Minh la tro ly giong noi. Minh co the giup ban dat xe hoac dat do an. Ban muon lam gi?',
+      status_line: 'Xin chào',
+      body: 'Mình là trợ lý giọng nói. Mình có thể giúp bạn đặt xe hoặc đặt đồ ăn. Bạn muốn làm gì?',
       options: [
-        { index: 1, label: 'dat xe', detail: 'goi xe toi noi ban muon' },
-        { index: 2, label: 'dat do an', detail: 'tim quan va goi mon' },
+        { index: 1, label: 'đặt xe', detail: 'gọi xe tới nơi bạn muốn' },
+        { index: 2, label: 'đặt đồ ăn', detail: 'tìm quán và gọi món' },
       ],
       earcon_post: 'turn_cue',
     };
@@ -79,7 +79,7 @@ export class VoiceService {
       const nlu = this.emptyNlu(session);
       return this.finishTurn(session, nlu, {
         template: 'NUDGE',
-        body: 'Minh chua nghe ro. Ban noi lai giup minh nhe.',
+        body: 'Mình chưa nghe rõ. Bạn nói lại giúp mình nhé.',
         earcon_post: 'turn_cue',
       }, asr);
     }
@@ -100,7 +100,7 @@ export class VoiceService {
         session.current_state = 'CAPTURE_DESTINATION';
         return this.finishTurn(session, nlu, {
           template: 'NUDGE',
-          body: 'Ban muon di dau? Noi ten noi, vi du nha sach hoac san bay.',
+          body: 'Bạn muốn đi đâu? Hãy nói tên nơi, ví dụ nhà sách hoặc sân bay.',
           earcon_post: 'turn_cue',
         }, asr);
       }
@@ -109,7 +109,7 @@ export class VoiceService {
         session,
         nlu,
         asr,
-        `dat xe den ${destination}`,
+        `đặt xe đến ${destination}`,
         input,
       );
     }
@@ -128,7 +128,7 @@ export class VoiceService {
         session.current_state = 'CHOOSE_ENTRY';
         return this.finishTurn(session, nlu, {
           template: 'NUDGE',
-          body: 'Ban muon an gi? Noi ten mon, ten quan, hoac noi goi y.',
+          body: 'Bạn muốn ăn gì? Hãy nói tên món, tên quán, hoặc nói gợi ý.',
           earcon_post: 'turn_cue',
         }, asr);
       }
@@ -147,10 +147,10 @@ export class VoiceService {
       session.current_flow = null;
       return this.finishTurn(session, nlu, {
         template: 'OFFER_OPTIONS',
-        status_line: 'Ban muon lam gi',
+        status_line: 'Bạn muốn làm gì',
         options: [
-          { index: 1, label: 'dat do an', detail: 'tim quan va goi mon' },
-          { index: 2, label: 'dat xe', detail: 'di toi mot noi' },
+          { index: 1, label: 'đặt đồ ăn', detail: 'tìm quán và gọi món' },
+          { index: 2, label: 'đặt xe', detail: 'đi tới một nơi' },
         ],
         earcon_post: 'turn_cue',
       }, asr, [
@@ -164,7 +164,7 @@ export class VoiceService {
         session,
         nlu,
         asr,
-        `dat xe den ${transcript}`,
+        `đặt xe đến ${transcript}`,
         input,
       );
     }
@@ -172,7 +172,7 @@ export class VoiceService {
     session.retry_count += 1;
     return this.finishTurn(session, nlu, {
       template: 'ERROR',
-      body: 'Minh chua hieu. Ban co the noi dat xe den dau, hoac dat mon gi.',
+      body: 'Mình chưa hiểu. Bạn có thể nói đặt xe đến đâu, hoặc đặt món gì.',
       earcon_post: 'turn_cue',
     }, asr);
   }
@@ -253,7 +253,7 @@ export class VoiceService {
         session.current_state = 'CAPTURE_DESTINATION';
         return this.finishTurn(session, nlu, {
           template: 'NUDGE',
-          body: 'Ban muon di dau? Noi ten noi, vi du nha sach hoac san bay.',
+          body: 'Bạn muốn đi đâu? Hãy nói tên nơi, ví dụ nhà sách hoặc sân bay.',
           earcon_post: 'turn_cue',
         }, asr);
       }
@@ -262,7 +262,7 @@ export class VoiceService {
         session.current_state = 'CHOOSE_ENTRY';
         return this.finishTurn(session, nlu, {
           template: 'NUDGE',
-          body: 'Ban muon an gi? Noi ten mon hoac ten quan.',
+          body: 'Bạn muốn ăn gì? Hãy nói tên món hoặc tên quán.',
           earcon_post: 'turn_cue',
         }, asr);
       }
@@ -285,7 +285,7 @@ export class VoiceService {
 
     return this.finishTurn(session, nlu, {
       template: 'INFORM',
-      status_line: 'Da xac nhan',
+      status_line: 'Đã xác nhận',
       body: confirmation.responseText,
       earcon_post: 'success',
     }, asr);
@@ -304,7 +304,7 @@ export class VoiceService {
           nlu,
           session.last_nlg_request ?? {
             template: 'INFORM',
-            body: 'Minh khong co gi de lap lai.',
+            body: 'Mình không có nội dung để lặp lại.',
             earcon_post: 'turn_cue',
           },
           asr,
@@ -319,8 +319,8 @@ export class VoiceService {
         return this.finishTurn(session, nlu, {
           template: 'INFORM',
           body: session.last_order_id
-            ? `Don gan nhat la ${session.last_order_id}.`
-            : 'Chua co don nao trong phien nay.',
+            ? `Đơn gần nhất là ${session.last_order_id}.`
+            : 'Chưa có đơn nào trong phiên này.',
           earcon_post: 'turn_cue',
         }, asr);
       case 'GLOBAL_CANCEL':
@@ -328,7 +328,7 @@ export class VoiceService {
         this.resetSession(session);
         return this.finishTurn(session, nlu, {
           template: 'INFORM',
-          body: 'Da huy. Ban can gi nua khong?',
+          body: 'Đã hủy. Bạn cần gì nữa không?',
           earcon_post: 'turn_cue',
         }, asr);
       case 'CONFIRM_NO':
@@ -336,7 +336,7 @@ export class VoiceService {
           this.resetSession(session);
           return this.finishTurn(session, nlu, {
             template: 'INFORM',
-            body: 'Da bo qua lua chon nay. Ban can gi nua khong?',
+            body: 'Đã bỏ qua lựa chọn này. Bạn cần gì nữa không?',
             earcon_post: 'turn_cue',
           }, asr);
         }
@@ -412,14 +412,14 @@ export class VoiceService {
       result.quotes?.map((quote, index) => ({
         index: index + 1,
         label: this.partnerLabel(quote.partner),
-        detail: `${this.formatVnd(quote.price)}, khoang ${quote.etaMinutes} phut`,
+        detail: `${this.formatVnd(quote.price)}, khoảng ${quote.etaMinutes} phút`,
       })) ?? [];
 
     const foodOptions =
       result.foodQuotes?.map((quote, index) => ({
         index: index + 1,
         label: this.partnerLabel(quote.partner),
-        detail: `${this.formatVnd(quote.totalVnd)}, khoang ${quote.etaMinutes} phut`,
+        detail: `${this.formatVnd(quote.totalVnd)}, khoảng ${quote.etaMinutes} phút`,
       })) ?? [];
 
     return foodOptions.length ? foodOptions : rideOptions;
@@ -475,7 +475,7 @@ export class VoiceService {
   }
 
   private formatVnd(value: number): string {
-    return `${value.toLocaleString('vi-VN')}d`;
+    return `${value.toLocaleString('vi-VN')}đ`;
   }
 
   private getOrCreateSession(input: VoiceTurnInput): VoiceSessionContext {
@@ -489,7 +489,7 @@ export class VoiceService {
     return {
       request_id: crypto.randomUUID(),
       session_id: session.session_id,
-      transcript: '(khong nghe ro)',
+      transcript: '(không nghe rõ)',
       intent: 'UNKNOWN',
       intent_confidence: 0,
       is_global_command: false,
@@ -510,11 +510,11 @@ export class VoiceService {
 
   private helpText(session: VoiceSessionContext): string {
     if (session.current_flow === 'NAV') {
-      return 'Ban dang dat xe. Noi diem den, nghe cac lua chon, roi noi so mot, so hai de chon doi tac.';
+      return 'Bạn đang đặt xe. Hãy nói điểm đến, nghe các lựa chọn, rồi nói số một hoặc số hai để chọn đối tác.';
     }
     if (session.current_flow === 'FOOD') {
-      return 'Ban dang dat do an. Noi mon hoac ten quan, nghe bao gia, roi noi so doi tac muon chon.';
+      return 'Bạn đang đặt đồ ăn. Hãy nói món hoặc tên quán, nghe báo giá, rồi nói số đối tác muốn chọn.';
     }
-    return 'Minh giup ban dat xe hoac dat do an bang giong noi. Noi dat xe den san bay, hoac dat pho bo.';
+    return 'Mình giúp bạn đặt xe hoặc đặt đồ ăn bằng giọng nói. Hãy nói đặt xe đến sân bay, hoặc đặt phở bò.';
   }
 }

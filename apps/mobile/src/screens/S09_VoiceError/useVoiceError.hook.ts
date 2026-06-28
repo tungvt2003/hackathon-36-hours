@@ -22,7 +22,7 @@ export const useVoiceError = (): VoiceErrorViewModel => {
 
   useEffect(() => {
     AccessibilityInfo.announceForAccessibility(
-      'Sorry, something went wrong. Would you like to try again, or go back to the home screen?',
+      'Xin lỗi, có lỗi xảy ra. Bạn muốn thử lại hay quay về trang chủ?',
     );
   }, []);
 

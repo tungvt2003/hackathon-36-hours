@@ -44,7 +44,7 @@ export default function VoiceSpeakingScreen() {
         style={[styles.closeButton, { top: insets.top + 12 }]} 
         onPress={onDismiss}
         accessibilityRole="button"
-        accessibilityLabel="Dismiss"
+        accessibilityLabel="Đóng"
       >
         <MaterialCommunityIcons name="close" size={22} color="white" />
       </TouchableOpacity>
@@ -74,9 +74,9 @@ export default function VoiceSpeakingScreen() {
             style={styles.cancelBtn} 
             onPress={onCancel}
             accessibilityRole="button"
-            accessibilityLabel="Cancel"
+            accessibilityLabel="Hủy"
           >
-            <Text style={styles.cancelBtnText}>Cancel</Text>
+            <Text style={styles.cancelBtnText}>Hủy</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -84,12 +84,12 @@ export default function VoiceSpeakingScreen() {
             onPress={onConfirm}
             disabled={loading}
             accessibilityRole="button"
-            accessibilityLabel="Confirm"
+            accessibilityLabel="Xác nhận"
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.confirmBtnText}>Confirm</Text>
+              <Text style={styles.confirmBtnText}>Xác nhận</Text>
             )}
           </TouchableOpacity>
         </View>

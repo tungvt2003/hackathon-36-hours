@@ -261,11 +261,11 @@ export const useDashboard = (): DashboardViewModel => {
       }
       const perm = await speechModule.requestPermissionsAsync();
       if (!perm.granted) {
-        Alert.alert('Microphone permission required');
+        Alert.alert('Cần quyền microphone');
         setStage('idle');
         return;
       }
-      speechModule.start({ lang: 'en-US', continuous: false, interimResults: true });
+      speechModule.start({ lang: 'vi-VN', continuous: false, interimResults: true });
     } catch (e) {
       console.warn('STT start failed', e);
       setStage('idle');

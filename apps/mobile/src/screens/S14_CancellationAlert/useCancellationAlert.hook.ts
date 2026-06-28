@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { AccessibilityInfo } from 'react-native';
+import { tts } from '../../services/voice/tts';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
@@ -21,8 +21,8 @@ export const useCancellationAlert = (): ViewModel => {
   const info = getCancellationInfo(isFood);
 
   useEffect(() => {
-    soundService.playError(); // fire-and-forget, no await
-    AccessibilityInfo.announceForAccessibility(info.announcement);
+    soundService.playError();
+    tts(info.announcement);
   }, []);
 
   const onFindAnother = useCallback(() => {

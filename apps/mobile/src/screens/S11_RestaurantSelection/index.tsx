@@ -125,7 +125,7 @@ export default function RestaurantSelectionScreen() {
           style={styles.voiceFab}
           onPress={() => openVoice('home', 'Bạn cần trợ giúp gì? Tôi có thể đặt lại hoặc thay đổi đơn hàng cho bạn.')}
           accessibilityRole="button"
-          accessibilityLabel="Tap to speak with AI"
+          accessibilityLabel="Nhấn để nói với AI"
         >
           <MaterialCommunityIcons name="microphone" size={32} color="white" />
         </TouchableOpacity>

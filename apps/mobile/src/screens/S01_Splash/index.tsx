@@ -22,7 +22,7 @@ export default function SplashScreen() {
           </Animated.View>
           
           <Animated.Text style={[styles.tagline, taglineOpacity]}>
-            Your voice, your independence.
+            Giọng nói của bạn, sự độc lập của bạn.
           </Animated.Text>
         </View>
       </SafeAreaView>

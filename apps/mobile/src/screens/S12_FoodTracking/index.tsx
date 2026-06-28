@@ -213,9 +213,9 @@ export default function FoodTrackingScreen() {
         {/* Floating Mic FAB */}
         <TouchableOpacity
           style={[styles.micFab, { bottom: Math.max(insets.bottom, 16) + 80 }]}
-          onPress={() => openVoice('home', 'Bạn cần trợ giúp gì? Tôi có thể đặt lại hoặc thay đổi đơn hàng cho bạn.')}
+          onPress={() => openVoice('home', 'Đơn hàng đang được giao. Bạn cần trợ giúp gì?')}
           accessibilityRole="button"
-          accessibilityLabel="Voice Assistant"
+          accessibilityLabel="Trợ lý giọng nói"
         >
           <MaterialCommunityIcons name="microphone" size={32} color="white" />
         </TouchableOpacity>

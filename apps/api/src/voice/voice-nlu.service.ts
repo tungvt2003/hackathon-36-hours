@@ -8,25 +8,25 @@ import {
 import { VoiceEnvService } from './voice-env.service';
 
 const GLOBAL_PATTERNS: [RegExp, VoiceIntent][] = [
-  [/(cancel|stop|quit|abort)/i, 'GLOBAL_CANCEL'],
-  [/(go back|back|return|previous)/i, 'GLOBAL_BACK'],
-  [/(repeat|say again|again|what did you say|come again|read again)/i, 'GLOBAL_REPEAT'],
+  [/(hủy|huy|dừng|dung|thoát|thoat|bỏ qua|bo qua)/i, 'GLOBAL_CANCEL'],
+  [/(quay lại|quay lai|trở lại|tro lai|về trước|ve truoc)/i, 'GLOBAL_BACK'],
+  [/(nhắc lại|nhac lai|nói lại|noi lai|đọc lại|doc lai|lặp lại|lap lai)/i, 'GLOBAL_REPEAT'],
   [
-    /(read options|list options|what are my options|choices)/i,
+    /(đọc lựa chọn|doc lua chon|danh sách lựa chọn|danh sach lua chon|có lựa chọn nào|co lua chon nao)/i,
     'GLOBAL_REPEAT_OPTIONS',
   ],
-  [/(more|more options|show more)/i, 'GLOBAL_MORE_OPTIONS'],
-  [/(help|what can i say|how does this work|instructions)/i, 'GLOBAL_HELP'],
-  [/(my order|what's in my order|cart|what did i order)/i, 'GLOBAL_READ_ORDER'],
-  [/(pause|hold on|wait)/i, 'GLOBAL_PAUSE'],
-  [/(resume|continue|go on|keep going)/i, 'GLOBAL_RESUME'],
-  [/(stop listening|mute|be quiet)/i, 'GLOBAL_STOP'],
+  [/(thêm lựa chọn|them lua chon|xem thêm|xem them)/i, 'GLOBAL_MORE_OPTIONS'],
+  [/(trợ giúp|tro giup|hướng dẫn|huong dan|tôi nói gì|toi noi gi)/i, 'GLOBAL_HELP'],
+  [/(đơn của tôi|don cua toi|giỏ hàng|gio hang|tôi đã đặt gì|toi da dat gi)/i, 'GLOBAL_READ_ORDER'],
+  [/(tạm dừng|tam dung|chờ chút|cho chut|đợi đã|doi da)/i, 'GLOBAL_PAUSE'],
+  [/(tiếp tục|tiep tuc|nói tiếp|noi tiep)/i, 'GLOBAL_RESUME'],
+  [/(ngừng nghe|ngung nghe|tắt mic|tat mic|im lặng|im lang)/i, 'GLOBAL_STOP'],
 ];
 
 const YES_PATTERN =
-  /^(yes|yeah|yep|yup|ok|okay|sure|confirm|correct|right|go ahead|do it|book it|order|absolutely|definitely|please|of course|grab|alright)$/i;
+  /^(có|co|vâng|vang|ừ|uh|ừm|um|ok|okay|được|duoc|đồng ý|dong y|xác nhận|xac nhan|đặt|dat|tiếp tục|tiep tuc|đúng rồi|dung roi|grab)$/i;
 const NO_PATTERN =
-  /^(no|nope|nah|cancel|stop|don't|back|return|never mind|not now|skip|go back|negative)$/i;
+  /^(không|khong|hủy|huy|dừng|dung|thôi|thoi|bỏ qua|bo qua|quay lại|quay lai|về lại|ve lai|chưa|chua)$/i;
 
 const PLATFORM_KEYWORDS: { code: string; words: string[] }[] = [
   { code: 'GRAB', words: ['grab'] },
@@ -38,9 +38,9 @@ const PLATFORM_KEYWORDS: { code: string; words: string[] }[] = [
 const SUPPORTED_PLATFORMS = new Set(['GRAB']);
 
 const FOOD_SERVICE_PATTERN =
-  /food|eat|hungry|order food|order|pho|rice|noodle|chicken|burger|meal|lunch|dinner|breakfast|snack/i;
+  /đồ\s*ăn|do\s*an|ăn|an|đói|doi|đặt\s*món|dat\s*mon|gọi\s*món|goi\s*mon|đặt|dat|phở|pho|cơm|com|bún|bun|mì|mi|gà|ga|bánh|banh|burger|kfc/i;
 const RIDE_SERVICE_PATTERN =
-  /ride|car|taxi|drive|take me|book a ride|go to|transport|airport|destination/i;
+  /đặt\s*xe|dat\s*xe|gọi\s*xe|goi\s*xe|đi\s*xe|di\s*xe|taxi|xe\s*ôm|xe\s*om|đến|den|tới|toi|sân\s*bay|san\s*bay|đi\s*đâu|di\s*dau/i;
 
 const NUMBER_MAP: Record<string, number> = {
   mot: 1,
@@ -338,7 +338,7 @@ export class VoiceNluService {
 
   private looksLikeFood(text: string): boolean {
     return (
-      /(dat do an|đặt đồ ăn|dat mon|đặt món|goi do an|gọi đồ ăn|order food|dat com|đặt cơm|dat pho|đặt phở|dat bun|đặt bún|muon an|muốn ăn|thich an|thích ăn)/i.test(
+      /(dat do an|đặt đồ ăn|dat mon|đặt món|goi do an|gọi đồ ăn|dat com|đặt cơm|dat pho|đặt phở|dat bun|đặt bún|muon an|muốn ăn|thich an|thích ăn)/i.test(
         text,
       ) ||
       /\b(pho|phở|bun|bún|com|cơm|banh|bánh|pizza|burger|ga ran|gà rán|kfc)\b/i.test(

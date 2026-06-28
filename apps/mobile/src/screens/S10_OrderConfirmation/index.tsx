@@ -1,9 +1,11 @@
 // apps/mobile/src/screens/S10_OrderConfirmation/index.tsx
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
+  Animated,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
   Image,
@@ -22,14 +24,36 @@ import { useVoice } from '../../contexts/VoiceContext';
 
 export default function OrderConfirmationScreen() {
   const insets = useSafeAreaInsets();
-  const { order, isViewMode, onConfirm, onBack } = useOrderConfirmation();
+  const {
+    order, isViewMode, isListening,
+    useTextInput, textInput, setTextInput, submitTextInput,
+    onConfirm, onBack,
+  } = useOrderConfirmation();
   const { openVoice } = useVoice();
+
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const pulseLoop = useRef<Animated.CompositeAnimation | null>(null);
+
+  useEffect(() => {
+    if (isListening) {
+      pulseLoop.current = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 1.18, duration: 600, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+        ])
+      );
+      pulseLoop.current.start();
+    } else {
+      pulseLoop.current?.stop();
+      pulseAnim.setValue(1);
+    }
+  }, [isListening]);
 
   return (
     <BrandedBackground variant="default">
       <SafeAreaView edges={['top', 'bottom']} style={styles.root}>
         <ScreenHeader
-          title={isViewMode ? 'Order details' : 'Confirm order'}
+          title={isViewMode ? 'Chi tiết đơn' : 'Xác nhận đơn'}
           showLogo={false}
           onBack={onBack}
           rightElement={
@@ -51,11 +75,25 @@ export default function OrderConfirmationScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* AI confirmation strip */}
-          <View style={styles.aiStrip}>
-            <MaterialCommunityIcons name="robot" size={20} color={theme.colors.primary} />
-            <Text style={styles.aiStripText}>Vui lòng kiểm tra lại đơn hàng</Text>
-          </View>
+          {/* Voice listening banner / AI strip */}
+          {isListening ? (
+            <View style={styles.listeningBanner}>
+              <Animated.View style={[styles.micPulseRing, { transform: [{ scale: pulseAnim }] }]}>
+                <View style={styles.micPulseCore}>
+                  <MaterialCommunityIcons name="microphone" size={28} color="white" />
+                </View>
+              </Animated.View>
+              <View style={styles.listeningTextBlock}>
+                <Text style={styles.listeningTitle}>Đang lắng nghe…</Text>
+                <Text style={styles.listeningHint}>Nói "Có" để đặt đơn · "Không" để huỷ</Text>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.aiStrip}>
+              <MaterialCommunityIcons name="robot" size={20} color={theme.colors.primary} />
+              <Text style={styles.aiStripText}>Vui lòng kiểm tra lại đơn hàng</Text>
+            </View>
+          )}
 
           {/* Card 1: Restaurant */}
           <View style={[styles.card, styles.shadow]}>
@@ -153,34 +191,59 @@ export default function OrderConfirmationScreen() {
 
         {/* Footer */}
         <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
-          {!isViewMode ? (
-            <PrimaryButton
-              label={`Place order - ${order.total.toLocaleString()} dong`}
-              onPress={onConfirm}
-            />
-          ) : (
+          {isViewMode ? (
             <View style={styles.actionRow}>
               <View style={styles.flex1}>
                 <SecondaryButton label="Đóng" onPress={onBack} />
               </View>
               <View style={[styles.flex1, styles.ml12]}>
-                <PrimaryButton
-                  label="Order again"
-                  onPress={() => onConfirm()}
-                />
+                <PrimaryButton label="Đặt lại" onPress={() => onConfirm()} />
               </View>
+            </View>
+          ) : useTextInput ? (
+            /* Dev mode: text input like dashboard */
+            <View style={styles.devInputRow}>
+              <TextInput
+                style={styles.devInput}
+                value={textInput}
+                onChangeText={setTextInput}
+                placeholder="Nhập Có / Không..."
+                placeholderTextColor={theme.colors.textMuted}
+                autoFocus
+                returnKeyType="send"
+                onSubmitEditing={submitTextInput}
+                accessibilityLabel="Nhập xác nhận đơn hàng"
+              />
+              <TouchableOpacity
+                style={styles.devSendBtn}
+                onPress={submitTextInput}
+                accessibilityRole="button"
+                accessibilityLabel="Gửi"
+              >
+                <MaterialCommunityIcons name="send" size={20} color="white" />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            /* Voice mode: centered mic indicator */
+            <View style={styles.voicePanel}>
+              <Animated.View style={[styles.micRing, { transform: [{ scale: pulseAnim }] }]}>
+                <View style={[styles.micCore, isListening && styles.micCoreActive]}>
+                  <MaterialCommunityIcons
+                    name="microphone"
+                    size={34}
+                    color="white"
+                  />
+                </View>
+              </Animated.View>
+              <Text style={[styles.voiceLabel, isListening && styles.voiceLabelActive]}>
+                {isListening ? 'Đang lắng nghe…' : 'Đang chuẩn bị…'}
+              </Text>
+              {isListening && (
+                <Text style={styles.voiceHint}>Nói "Có" để đặt · "Không" để huỷ</Text>
+              )}
             </View>
           )}
         </View>
-
-        <TouchableOpacity
-          style={[styles.voiceFab, { bottom: 100 + insets.bottom }]}
-          onPress={() => openVoice('home', 'Bạn cần trợ giúp gì? Tôi có thể đặt lại hoặc thay đổi đơn hàng cho bạn.')}
-          accessibilityRole="button"
-          accessibilityLabel="Tap to speak with AI"
-        >
-          <MaterialCommunityIcons name="microphone" size={32} color="white" />
-        </TouchableOpacity>
       </SafeAreaView>
     </BrandedBackground>
   );
@@ -193,7 +256,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 140,
+    paddingBottom: 170,
     paddingTop: 16,
   },
   aiStrip: {
@@ -211,6 +274,47 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: theme.colors.textPrimary,
+  },
+  listeningBanner: {
+    backgroundColor: '#fff0f0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 16,
+    marginBottom: 20,
+    gap: 14,
+    borderWidth: 1.5,
+    borderColor: '#E53935',
+  },
+  micPulseRing: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(229,57,53,0.18)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  micPulseCore: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#E53935',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  listeningTextBlock: {
+    flex: 1,
+  },
+  listeningTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#B71C1C',
+  },
+  listeningHint: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#E53935',
+    marginTop: 3,
   },
   card: {
     backgroundColor: theme.colors.surface,
@@ -394,9 +498,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
   },
-  confirmBtn: {
-    height: 60,
-  },
   actionRow: {
     flexDirection: 'row',
   },
@@ -407,21 +508,66 @@ const styles = StyleSheet.create({
     width: 64,
     height: 24,
   },
-  voiceFab: {
-    position: 'absolute',
-    right: 20,
+  /* Centered voice panel */
+  voicePanel: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    gap: 8,
+  },
+  micRing: {
     width: 72,
     height: 72,
     borderRadius: 36,
+    backgroundColor: 'rgba(229,57,53,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  micCore: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.32,
-    shadowRadius: 20,
-    elevation: 10,
+  },
+  micCoreActive: {
+    backgroundColor: '#E53935',
+  },
+  voiceLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: theme.colors.textSecondary,
+  },
+  voiceLabelActive: {
+    color: '#B71C1C',
+  },
+  voiceHint: {
+    fontSize: 13,
+    color: '#E53935',
+    fontWeight: '500',
+  },
+  /* Dev text input */
+  devInputRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  devInput: {
+    flex: 1,
+    height: 48,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: theme.colors.border,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: theme.colors.textPrimary,
+  },
+  devSendBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

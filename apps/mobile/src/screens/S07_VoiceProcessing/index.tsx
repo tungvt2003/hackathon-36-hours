@@ -68,7 +68,7 @@ export default function VoiceProcessingScreen() {
         style={[styles.closeButton, { top: insets.top + 12 }]} 
         onPress={onDismiss}
         accessibilityRole="button"
-        accessibilityLabel="Cancel processing"
+        accessibilityLabel="Hủy xử lý"
       >
         <MaterialCommunityIcons name="close" size={22} color="white" />
       </TouchableOpacity>

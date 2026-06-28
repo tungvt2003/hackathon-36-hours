@@ -45,7 +45,7 @@ export default function VoiceErrorScreen() {
         style={[styles.closeButton, { top: insets.top + 12 }]} 
         onPress={onCancel}
         accessibilityRole="button"
-        accessibilityLabel="Dismiss"
+        accessibilityLabel="Đóng"
       >
         <MaterialCommunityIcons name="close" size={22} color="white" />
       </TouchableOpacity>
@@ -59,26 +59,26 @@ export default function VoiceErrorScreen() {
         </View>
       </View>
 
-      <Text style={styles.title}>Could not hear you</Text>
-      <Text style={styles.subtitle}>Please speak more clearly or try again</Text>
+      <Text style={styles.title}>Không nghe rõ</Text>
+      <Text style={styles.subtitle}>Vui lòng nói rõ hơn hoặc thử lại</Text>
 
       <View style={styles.buttonGroup}>
         <TouchableOpacity 
           style={styles.retryBtn} 
           onPress={onRetry}
           accessibilityRole="button"
-          accessibilityLabel="Retry listening"
+          accessibilityLabel="Nghe lại"
         >
-          <Text style={styles.retryBtnText}>Try again</Text>
+          <Text style={styles.retryBtnText}>Thử lại</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
           style={styles.cancelBtn} 
           onPress={onCancel}
           accessibilityRole="button"
-          accessibilityLabel="Cancel"
+          accessibilityLabel="Hủy"
         >
-          <Text style={styles.cancelBtnText}>Cancel</Text>
+          <Text style={styles.cancelBtnText}>Hủy</Text>
         </TouchableOpacity>
       </View>
     </View>

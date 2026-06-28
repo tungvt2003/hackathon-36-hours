@@ -9,7 +9,7 @@ export type RootStackParamList = {
   Dashboard: undefined;
   VoiceAssistant: { initialPromptHint?: string; context?: string };
   VoiceAssistantIntent: { context: VoiceIntentContext; aiGreeting: string };
-  VoiceProcessing: { audioBase64: string; context?: string };
+  VoiceProcessing: { audioBase64?: string; userText?: string; context?: string };
   VoiceSpeaking: {
     userText: string;
     aiText: string;

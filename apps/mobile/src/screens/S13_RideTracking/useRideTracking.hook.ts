@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { AccessibilityInfo } from 'react-native';
+import { tts } from '../../services/voice/tts';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
@@ -70,7 +70,7 @@ export const useRideTracking = (): RideTrackingViewModel => {
   useEffect(() => {
     const text = RIDE_STATUS_ANNOUNCEMENTS[currentStatus];
     setAnnouncement(text);
-    AccessibilityInfo.announceForAccessibility(text);
+    tts(text);
 
     if (currentStatus === 'arrived' || currentStatus === 'completed') {
       soundService.playSuccess();

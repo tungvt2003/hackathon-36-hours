@@ -37,6 +37,7 @@ export function useVoiceAssistantIntent() {
   const retryCountRef = useRef(0);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const finalTranscriptRef = useRef('');
+  const isCancelledRef = useRef(false);
   const activeContextRef = useRef(activeContext);
   const awaitingGrabRef = useRef(false);
   const awaitingFoodRef = useRef(false);
@@ -87,7 +88,7 @@ export function useVoiceAssistantIntent() {
               return;
             }
             finalTranscriptRef.current = '';
-            speechModule.start({ lang: 'en-US', continuous: false, interimResults: false });
+            speechModule.start({ lang: 'vi-VN', continuous: false, interimResults: false });
             const timeout = setTimeout(() => {
               stopStt();
               navigation.navigate('VoiceError');

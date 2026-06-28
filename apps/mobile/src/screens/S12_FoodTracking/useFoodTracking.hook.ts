@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { AccessibilityInfo } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { tts } from '../../services/voice/tts';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
 import { 
@@ -52,7 +52,7 @@ export const useFoodTracking = (): FoodTrackingViewModel => {
   useEffect(() => {
     const text = STATUS_ANNOUNCEMENTS[currentStatus];
     setAnnouncement(text);
-    AccessibilityInfo.announceForAccessibility(text);
+    tts(text);
 
     if (currentStatus === 'delivered') {
       const timeout = setTimeout(() => {
