@@ -8,15 +8,15 @@ function formatVnd(amount: number): string {
 
 export const voiceNlg = {
   platformGreeting(): string {
-    return 'Xin chào, mình là Suara, trợ lý giọng nói của bạn. Bạn muốn dùng nền tảng nào? Bạn có thể nói Grab, Be, Xanh SM hoặc Shopee Food.';
+    return 'Xin chào! Tôi là Suara, trợ lý giọng nói của bạn. Bạn muốn dùng nền tảng nào? Bạn có thể nói Grab, Be, Xanh SM, hoặc Shopee Food.';
   },
 
   platformGrabSelected(): string {
-    return 'Bạn đã chọn Grab. Hôm nay bạn muốn làm gì? Bạn có thể nói: đặt món ăn, hoặc đặt xe.';
+    return 'Bạn đã chọn Grab. Tuyệt! Hôm nay bạn muốn làm gì? Bạn có thể nói: đặt đồ ăn, hoặc đặt xe.';
   },
 
   platformGrabConfirmedAfterFallback(): string {
-    return 'Được, mình sẽ dùng Grab. Hôm nay bạn muốn đặt món ăn hay đặt xe?';
+    return 'Bạn đã chọn Grab. Tuyệt! Hôm nay bạn muốn làm gì? Bạn có thể nói: đặt đồ ăn, hoặc đặt xe.';
   },
 
   platformUnsupported(platform: PartnerCode): string {
@@ -36,11 +36,11 @@ export const voiceNlg = {
   },
 
   servicePrompt(): string {
-    return 'Hôm nay bạn muốn làm gì? Bạn có thể nói: đặt món ăn, hoặc đặt xe.';
+    return 'Hôm nay bạn muốn làm gì? Bạn có thể nói: đặt đồ ăn, hoặc đặt xe.';
   },
 
   serviceFoodSelected(): string {
-    return 'Được. Bạn muốn ăn món gì? Ví dụ: phở, cơm tấm, gà rán hoặc burger.';
+    return 'Được rồi! Bạn muốn ăn gì? Ví dụ, bạn có thể nói: phở, cơm tấm, gà rán, hoặc burger.';
   },
 
   serviceRideSelected(): string {

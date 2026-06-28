@@ -20,6 +20,93 @@ import { tts } from '../../services/voice/tts';
 
 // simulator k voice được -> ép hiện modal nhập text thay vì tự mở mic
 const TEXT_INPUT_MODE = DEV_FORCE_TEXT_INPUT || !STT_AVAILABLE;
+const SCRIPT_PHO_PRICE = 65000;
+const SCRIPT_DELIVERY_FEE = 15000;
+const SCRIPT_VOUCHER_DISCOUNT = 10000;
+
+type ScriptPhoStep = 'none' | 'offer' | 'quantity' | 'payment' | 'confirm';
+type ScriptPaymentMethod = 'thẻ ngân hàng' | 'tiền mặt';
+
+function normalizeVoice(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đĐ]/g, 'd')
+    .replace(/[.!?,;:]+$/g, '')
+    .trim();
+}
+
+function normalizeScriptText(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[.!?,;:]+$/g, '')
+    .trim();
+}
+
+function wantsScriptPhoOrder(text: string): boolean {
+  const raw = normalizeScriptText(text);
+  return raw === 'phở bò từ phở hà nội' || raw === 'beef pho from pho hanoi';
+}
+
+function isScriptPhoOrderSlot(slots: Record<string, string | number>): boolean {
+  return slots.restaurantName === 'Phở Hà Nội' && slots.dishName === 'Phở Bò Tái';
+}
+
+function parseScriptQuantity(text: string): number | null {
+  const n = normalizeVoice(text);
+  const digit = n.match(/\b([1-9])\b/);
+  if (digit) return Number(digit[1]);
+  if (/\b(mot|một)\b/.test(n)) return 1;
+  if (/\b(hai)\b/.test(n)) return 2;
+  if (/\b(ba)\b/.test(n)) return 3;
+  return null;
+}
+
+function parseScriptPaymentMethod(text: string): ScriptPaymentMethod | null {
+  const n = normalizeVoice(text);
+  if (
+    n.includes('the ngan hang') ||
+    n.includes('ngan hang') ||
+    n.includes('thanh toan ngan hang') ||
+    n.includes('chuyen khoan') ||
+    n.includes('the') ||
+    n.includes('card') ||
+    n.includes('bank')
+  ) {
+    return 'thẻ ngân hàng';
+  }
+  if (n.includes('tien mat') || n.includes('cash')) {
+    return 'tiền mặt';
+  }
+  return null;
+}
+
+function isScriptConfirm(text: string): boolean {
+  const n = normalizeVoice(text);
+  return isYes(text) || n.includes('xac nhan') || n.includes('confirm');
+}
+
+function scriptPhoTotals(quantity: number) {
+  const subtotal = SCRIPT_PHO_PRICE * quantity;
+  const totalBeforeVoucher = subtotal + SCRIPT_DELIVERY_FEE;
+  const total = Math.max(0, totalBeforeVoucher - SCRIPT_VOUCHER_DISCOUNT);
+  return { subtotal, totalBeforeVoucher, total };
+}
+
+function scriptPhoVoucherText(quantity: number): string {
+  const { subtotal, totalBeforeVoucher, total } = scriptPhoTotals(quantity);
+  return `Tiền món là ${subtotal.toLocaleString('vi-VN')} đồng, phí giao hàng ${SCRIPT_DELIVERY_FEE.toLocaleString('vi-VN')} đồng, tổng trước voucher là ${totalBeforeVoucher.toLocaleString('vi-VN')} đồng. Tôi đã giúp bạn áp voucher giảm ${SCRIPT_VOUCHER_DISCOUNT.toLocaleString('vi-VN')} đồng, nên tổng còn ${total.toLocaleString('vi-VN')} đồng. Bạn muốn thanh toán bằng thẻ ngân hàng hay tiền mặt?`;
+}
+
+function scriptPhoOfferText(): string {
+  return 'Quán Phở Hà Nội hiện chỉ còn Phở Bò Tái. Mỗi phần giá 65 nghìn đồng, chưa bao gồm phí giao hàng. Bạn có muốn ăn món này không?';
+}
+
+function scriptPhoConfirmText(quantity: number, paymentMethod: ScriptPaymentMethod): string {
+  const { subtotal, total } = scriptPhoTotals(quantity);
+  return `Đây là đơn hàng của bạn từ Phở Hà Nội: Phở Bò Tái, số lượng ${quantity}, ${subtotal.toLocaleString('vi-VN')} đồng. Phí giao hàng: ${SCRIPT_DELIVERY_FEE.toLocaleString('vi-VN')} đồng. Voucher giảm ${SCRIPT_VOUCHER_DISCOUNT.toLocaleString('vi-VN')} đồng. Tổng cộng còn ${total.toLocaleString('vi-VN')} đồng. Phương thức thanh toán là ${paymentMethod}. Hãy nói xác nhận để đặt đơn, hoặc hủy để quay lại.`;
+}
 
 export type DashboardStage = 'idle' | 'listening' | 'thinking';
 
@@ -51,11 +138,20 @@ export const useDashboard = (): DashboardViewModel => {
   const voiceContextRef = useRef<VoiceNluContext>('platform_select');
   const awaitingGrabRef = useRef(false);
   const awaitingFoodRef = useRef(false);
+  const scriptPhoStepRef = useRef<ScriptPhoStep>('none');
+  const scriptPhoQuantityRef = useRef(1);
+  const scriptPhoPaymentRef = useRef<ScriptPaymentMethod>('tiền mặt');
   const pendingFoodRef = useRef<{ restaurantId: string } | null>(null);
   const beginListeningRef = useRef<() => void>(() => { });
+  const lastSpokenTextRef = useRef('');
   useEffect(() => { platformRef.current = platform; }, [platform]);
 
   useEffect(() => {
+    if (lastSpokenTextRef.current === aiText) {
+      return;
+    }
+    lastSpokenTextRef.current = aiText;
+
     tts(aiText, () => {
       if (!TEXT_INPUT_MODE) {
         beginListeningRef.current();
@@ -70,6 +166,89 @@ export const useDashboard = (): DashboardViewModel => {
   const processTranscript = useCallback(async (transcript: string) => {
     setUserText(transcript);
     setStage('thinking');
+
+    if (scriptPhoStepRef.current !== 'none') {
+      if (isNo(transcript)) {
+        scriptPhoStepRef.current = 'none';
+        voiceContextRef.current = 'food';
+        setAiText(voiceNlg.serviceFoodSelected());
+        setStage('idle');
+        return;
+      }
+
+      if (scriptPhoStepRef.current === 'offer') {
+        if (!isYes(transcript)) {
+          setAiText(scriptPhoOfferText());
+          setStage('idle');
+          return;
+        }
+
+        scriptPhoStepRef.current = 'quantity';
+        setAiText('Bạn muốn đặt bao nhiêu phần Phở Bò Tái?');
+        setStage('idle');
+        return;
+      }
+
+      if (scriptPhoStepRef.current === 'quantity') {
+        const quantity = parseScriptQuantity(transcript);
+        if (!quantity) {
+          setAiText('Tôi chưa nghe rõ số lượng. Bạn muốn đặt bao nhiêu phần Phở Bò Tái?');
+          setStage('idle');
+          return;
+        }
+
+        scriptPhoQuantityRef.current = quantity;
+        scriptPhoStepRef.current = 'payment';
+        setAiText(scriptPhoVoucherText(quantity));
+        setStage('idle');
+        return;
+      }
+
+      if (scriptPhoStepRef.current === 'payment') {
+        const paymentMethod = parseScriptPaymentMethod(transcript);
+        if (!paymentMethod) {
+          setAiText('Bạn muốn thanh toán bằng thẻ ngân hàng hay tiền mặt?');
+          setStage('idle');
+          return;
+        }
+
+        scriptPhoPaymentRef.current = paymentMethod;
+        scriptPhoStepRef.current = 'confirm';
+        setAiText(scriptPhoConfirmText(scriptPhoQuantityRef.current, paymentMethod));
+        setStage('idle');
+        return;
+      }
+
+      const repeatedPaymentMethod = parseScriptPaymentMethod(transcript);
+      if (repeatedPaymentMethod) {
+        scriptPhoPaymentRef.current = repeatedPaymentMethod;
+        setAiText(`Bạn đã chọn thanh toán bằng ${repeatedPaymentMethod}. Hãy nói xác nhận để đặt đơn, hoặc hủy để quay lại.`);
+        setStage('idle');
+        return;
+      }
+
+      if (!isScriptConfirm(transcript)) {
+        setAiText('Tôi chưa đặt đơn. Hãy nói xác nhận để đặt đơn, hoặc hủy để quay lại.');
+        setStage('idle');
+        return;
+      }
+
+      scriptPhoStepRef.current = 'none';
+      voiceContextRef.current = 'home';
+      setAiText('Nhà hàng đã nhận đơn của bạn. Tôi cũng đã báo với nhà hàng và tài xế rằng bạn là người khiếm thị, nên họ sẽ mang đơn đến tận cửa và gọi bạn khi đến nơi.');
+      setStage('idle');
+      setTimeout(() => {
+        navigation.navigate('FoodTracking', {
+          orderId: `suara-pho-${Date.now()}`,
+          intent: {
+            type: OrderType.FOOD,
+            restaurant: 'Phở Hà Nội',
+            items: ['Phở Bò Tái'],
+          },
+        });
+      }, 5500);
+      return;
+    }
 
     if (awaitingFoodRef.current && pendingFoodRef.current) {
       if (isYes(transcript)) {
@@ -114,6 +293,14 @@ export const useDashboard = (): DashboardViewModel => {
     }
 
     const ctx = voiceContextRef.current;
+
+    if (ctx === 'food' && wantsScriptPhoOrder(transcript)) {
+      scriptPhoStepRef.current = 'offer';
+      setAiText(scriptPhoOfferText());
+      setStage('idle');
+      return;
+    }
+
     const nlu = parseVoiceInput(transcript, ctx);
     const aiResponse = voiceNlg.fromNlu(ctx, nlu, 0);
 
@@ -148,6 +335,15 @@ export const useDashboard = (): DashboardViewModel => {
     }
 
     if (nlu.intent === 'SELECT_FOOD_DISH') {
+      if (isScriptPhoOrderSlot(nlu.slots)) {
+        pendingFoodRef.current = null;
+        awaitingFoodRef.current = false;
+        scriptPhoStepRef.current = 'offer';
+        setAiText(scriptPhoOfferText());
+        setStage('idle');
+        return;
+      }
+
       if (Number(nlu.slots.restaurantCount) > 1) {
         navigation.navigate('RestaurantSelection', {
           intent: {
