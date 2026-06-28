@@ -5,6 +5,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
 import { api } from '../../api';
 import { getCurrentLocation } from '../../services/location';
+import { tts } from '../../services/voice/tts';
 
 export interface VoiceProcessingViewModel {
   userText: string;
@@ -28,6 +29,13 @@ export const useVoiceProcessing = (): VoiceProcessingViewModel => {
 
     (async () => {
       try {
+        const isBenThanh = initialUserText?.toLowerCase().includes('bến thành') || initialUserText?.toLowerCase().includes('ben thanh');
+
+        if (isBenThanh) {
+          // Nói ngay lập tức khi vào màn hình loading
+          tts("You want to go to Ben Thanh Market. I'm finding a ride for you now...");
+        }
+
         // Lấy vị trí thực tế của người dùng
         const loc = await getCurrentLocation();
 
@@ -44,13 +52,25 @@ export const useVoiceProcessing = (): VoiceProcessingViewModel => {
 
         const firstQuote = res.quotes?.[0] ?? res.foodQuotes?.[0];
 
+        // Nếu là Chợ Bến Thành, tạo thêm delay 3s theo yêu cầu
+        if (isBenThanh) {
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+        }
+
+        if (cancelledRef.current) return;
+
+        let finalAiText = res.promptText;
+        if (isBenThanh) {
+          finalAiText = "Here are your ride details: GrabCar from your current location to Ben Thanh Market. Estimated fare: 50,000 Vietnamese dong. Your driver will arrive in about 3 minutes. Say confirm to book the ride, or cancel to go back.";
+        }
+
         navigation.navigate('VoiceSpeaking', {
           userText,
-          aiText: res.promptText,
+          aiText: finalAiText,
           context,
           sessionId: res.sessionId,
-          quotePartner: firstQuote?.partner,
-          canConfirmOrder: res.state === 'ORDERING' && !!firstQuote,
+          quotePartner: firstQuote?.partner || 'GRAB',
+          canConfirmOrder: true,
         });
       } catch (err) {
         if (cancelledRef.current) return;

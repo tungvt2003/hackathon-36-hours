@@ -173,11 +173,20 @@ export const useDashboard = (): DashboardViewModel => {
     }
 
     if (nlu.intent === 'SELECT_DESTINATION') {
-      navigation.navigate('OrderConfirmation', {
-        orderId: `mock-ride-${nlu.slots.placeId}`,
-        partner: PartnerCode.GRAB,
-        mode: 'confirm',
-      });
+      const isBenThanh = String(nlu.slots.placeId).includes('ben-thanh');
+      if (isBenThanh) {
+        navigation.navigate('VoiceProcessing', {
+          audioBase64: '',
+          transcript: 'đi chợ bến thành',
+          context: 'ride',
+        });
+      } else {
+        navigation.navigate('OrderConfirmation', {
+          orderId: `mock-ride-${nlu.slots.placeId}`,
+          partner: PartnerCode.GRAB,
+          mode: 'confirm',
+        });
+      }
       setStage('idle');
       return;
     }
