@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -18,6 +19,7 @@ import { theme } from '../../theme/theme';
 import { SuaraLogo } from '../../components/SuaraLogo';
 import { BrandedBackground } from '../../components/BrandedBackground';
 import { useVoice } from '../../contexts/VoiceContext';
+import { FloatingMicButton } from '../../components/FloatingMicButton';
 
 const RideTrackingScreen = () => {
   const insets = useSafeAreaInsets();
@@ -35,6 +37,11 @@ const RideTrackingScreen = () => {
     showOtp,
     etaLabel,
     announcement,
+    ratingStep,
+    ratingInput,
+    setRatingInput,
+    submitRatingInput,
+    onRatingMicPress,
   } = useRideTracking();
   const { openVoice } = useVoice();
 
@@ -316,7 +323,41 @@ const RideTrackingScreen = () => {
 
         {/* FOOTER */}
         <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-          {canCancel ? (
+          {ratingStep !== 'none' && ratingStep !== 'done' ? (
+            <View style={styles.ratingVoicePanel}>
+              <Text style={styles.ratingVoiceTitle}>
+                {ratingStep === 'ask_rate'
+                  ? 'Would you like to rate your driver?'
+                  : ratingStep === 'stars'
+                    ? 'How many stars?'
+                    : 'Add a comment?'}
+              </Text>
+              <View style={styles.ratingInputRow}>
+                <TextInput
+                  style={styles.ratingInput}
+                  value={ratingInput}
+                  onChangeText={setRatingInput}
+                  placeholder={ratingStep === 'stars' ? 'Type five stars...' : 'Type Yes or No...'}
+                  placeholderTextColor={theme.colors.textMuted}
+                  returnKeyType="send"
+                  onSubmitEditing={submitRatingInput}
+                  accessibilityLabel="Ride rating voice input"
+                />
+                <TouchableOpacity
+                  style={styles.ratingSendBtn}
+                  onPress={submitRatingInput}
+                  accessibilityRole="button"
+                  accessibilityLabel="Send rating response"
+                >
+                  <MaterialCommunityIcons name="send" size={20} color="white" />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.ratingMicZone}>
+                <FloatingMicButton onPress={onRatingMicPress} size={72} />
+                <Text style={styles.ratingMicText}>Nhấn để nói</Text>
+              </View>
+            </View>
+          ) : canCancel ? (
             <TouchableOpacity
               style={styles.cancelBtn}
               onPress={onCancel}
@@ -671,6 +712,51 @@ const styles = StyleSheet.create({
     borderTopColor: theme.colors.border,
     paddingHorizontal: 20,
     paddingTop: 16,
+  },
+  ratingVoicePanel: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  ratingVoiceTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: theme.colors.textPrimary,
+    textAlign: 'center',
+  },
+  ratingInputRow: {
+    flexDirection: 'row',
+    gap: 10,
+    width: '100%',
+  },
+  ratingInput: {
+    flex: 1,
+    height: 48,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
+    borderWidth: 1.5,
+    borderColor: theme.colors.border,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: theme.colors.textPrimary,
+  },
+  ratingSendBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  ratingMicZone: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 112,
+  },
+  ratingMicText: {
+    marginTop: -10,
+    fontSize: 13,
+    fontWeight: '700',
+    color: theme.colors.textSecondary,
   },
   cancelBtn: {
     height: 60,

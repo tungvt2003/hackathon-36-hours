@@ -1,8 +1,11 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { tts } from '../../services/voice/tts';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
+import { getSpeechRecognitionModule, STT_AVAILABLE } from '../../services/speechRecognition';
+import { DEV_FORCE_TEXT_INPUT } from '../../constants/devFlags';
+import { isNo, isYes } from '../../services/voice/voice-nlu.service';
 import { 
   RIDE_STEPS, 
   RIDE_STATUS_ANNOUNCEMENTS, 
@@ -11,6 +14,9 @@ import {
   RideStep 
 } from './rideTracking.service';
 import { soundService } from '../../services/sound.service';
+
+type RatingVoiceStep = 'none' | 'ask_rate' | 'stars' | 'comment' | 'done';
+const USE_VOICE_INPUT = STT_AVAILABLE && !DEV_FORCE_TEXT_INPUT;
 
 export interface RideTrackingViewModel {
   currentStatus: RideStatus;
@@ -26,6 +32,11 @@ export interface RideTrackingViewModel {
   otpDigits: string[];
   showOtp: boolean;
   etaLabel: string;
+  ratingStep: RatingVoiceStep;
+  ratingInput: string;
+  setRatingInput: (value: string) => void;
+  submitRatingInput: () => void;
+  onRatingMicPress: () => void;
 }
 
 export const useRideTracking = (): RideTrackingViewModel => {
@@ -35,6 +46,10 @@ export const useRideTracking = (): RideTrackingViewModel => {
 
   const [currentStatus, setCurrentStatus] = useState<RideStatus>('finding');
   const [announcement, setAnnouncement] = useState<string | null>(null);
+  const [ratingStep, setRatingStep] = useState<RatingVoiceStep>('none');
+  const [ratingInput, setRatingInput] = useState('');
+  const ratingStepRef = useRef<RatingVoiceStep>('none');
+  const ratingHandledRef = useRef(false);
   
   const stepIndex = RIDE_STEPS.findIndex(s => s.id === currentStatus);
   const canCancel = currentStatus === 'finding' || currentStatus === 'en_route';
@@ -53,6 +68,109 @@ export const useRideTracking = (): RideTrackingViewModel => {
   }, [currentStatus]);
 
   useEffect(() => {
+    ratingStepRef.current = ratingStep;
+  }, [ratingStep]);
+
+  const parseStars = useCallback((text: string): number | null => {
+    const n = text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+    if (n.includes('five') || n.includes('5') || n.includes('nam sao')) return 5;
+    if (n.includes('four') || n.includes('4') || n.includes('bon sao')) return 4;
+    if (n.includes('three') || n.includes('3') || n.includes('ba sao')) return 3;
+    if (n.includes('two') || n.includes('2') || n.includes('hai sao')) return 2;
+    if (n.includes('one') || n.includes('1') || n.includes('mot sao')) return 1;
+    return null;
+  }, []);
+
+  const handleRatingTranscript = useCallback((text: string) => {
+    const step = ratingStepRef.current;
+
+    if (step === 'ask_rate') {
+      if (isYes(text) || text.toLowerCase().includes('yes')) {
+        setRatingStep('stars');
+        tts('How many stars would you give your driver? Say one star, two stars, three stars, four stars, or five stars.');
+        return;
+      }
+      if (isNo(text) || text.toLowerCase().includes('no')) {
+        setRatingStep('done');
+        tts('Thank you for your feedback. Taking you back to the home screen.');
+        setTimeout(() => navigation.navigate('Dashboard'), 2200);
+        return;
+      }
+      tts('Would you like to rate your driver? Say yes or no.');
+      return;
+    }
+
+    if (step === 'stars') {
+      const stars = parseStars(text);
+      if (!stars) {
+        tts('I did not catch the rating. Say one star, two stars, three stars, four stars, or five stars.');
+        return;
+      }
+      setRatingStep('comment');
+      tts(`You gave ${stars} stars. Would you like to add a comment? Say yes to add one, or no to submit.`);
+      return;
+    }
+
+    if (step === 'comment') {
+      if (isNo(text) || text.toLowerCase().includes('no')) {
+        setRatingStep('done');
+        tts('Thank you for your feedback. Taking you back to the home screen.');
+        setTimeout(() => navigation.navigate('Dashboard'), 2200);
+        return;
+      }
+      if (isYes(text) || text.toLowerCase().includes('yes')) {
+        tts('Please say your comment.');
+        return;
+      }
+      setRatingStep('done');
+      tts('Thank you for your feedback. Taking you back to the home screen.');
+      setTimeout(() => navigation.navigate('Dashboard'), 2200);
+    }
+  }, [navigation, parseStars]);
+
+  const submitRatingInput = useCallback(() => {
+    const text = ratingInput.trim();
+    if (!text) return;
+    setRatingInput('');
+    handleRatingTranscript(text);
+  }, [ratingInput, handleRatingTranscript]);
+
+  const onRatingMicPress = useCallback(async () => {
+    if (!USE_VOICE_INPUT) {
+      submitRatingInput();
+      return;
+    }
+    const speechModule = getSpeechRecognitionModule();
+    if (!speechModule) return;
+    try {
+      const perm = await speechModule.requestPermissionsAsync();
+      if (!perm.granted) return;
+      ratingHandledRef.current = false;
+      speechModule.start({ lang: 'en-US', continuous: false, interimResults: false });
+    } catch { /* ignore */ }
+  }, [submitRatingInput]);
+
+  useEffect(() => {
+    if (!USE_VOICE_INPUT) return;
+    const speechModule = getSpeechRecognitionModule();
+    if (!speechModule) return;
+    const subs = [
+      speechModule.addListener('result', (event: { results?: { transcript?: string }[] }) => {
+        const transcript = event.results?.[0]?.transcript ?? '';
+        if (!transcript || ratingHandledRef.current || ratingStepRef.current === 'none') return;
+        ratingHandledRef.current = true;
+        try { speechModule.stop(); } catch { /* ignore */ }
+        handleRatingTranscript(transcript);
+      }),
+    ];
+    return () => subs.forEach((sub) => sub.remove());
+  }, [handleRatingTranscript]);
+
+  useEffect(() => {
     const timer = setInterval(() => {
       setCurrentStatus(prev => {
         const idx = RIDE_STEPS.findIndex(s => s.id === prev);
@@ -68,20 +186,23 @@ export const useRideTracking = (): RideTrackingViewModel => {
   }, []);
 
   useEffect(() => {
+    if (currentStatus === 'completed') {
+      const completePrompt = 'Your ride is complete! Would you like to rate your driver?';
+      setAnnouncement(completePrompt);
+      soundService.playSuccess();
+      setRatingStep('ask_rate');
+      tts(completePrompt);
+      return;
+    }
+
     const text = RIDE_STATUS_ANNOUNCEMENTS[currentStatus];
     setAnnouncement(text);
     tts(text);
 
-    if (currentStatus === 'arrived' || currentStatus === 'completed') {
+    if (currentStatus === 'arrived') {
       soundService.playSuccess();
     }
 
-    if (currentStatus === 'completed') {
-      const timeout = setTimeout(() => {
-        navigation.navigate('DeliverySuccess', { orderId });
-      }, 2000);
-      return () => clearTimeout(timeout);
-    }
   }, [currentStatus, navigation, orderId]);
 
   const onCancel = useCallback(() => {
@@ -109,5 +230,10 @@ export const useRideTracking = (): RideTrackingViewModel => {
     otpDigits,
     showOtp,
     etaLabel,
+    ratingStep,
+    ratingInput,
+    setRatingInput,
+    submitRatingInput,
+    onRatingMicPress,
   };
 };

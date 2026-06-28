@@ -20,6 +20,11 @@ import { tts } from '../../services/voice/tts';
 
 // simulator k voice được -> ép hiện modal nhập text thay vì tự mở mic
 const TEXT_INPUT_MODE = DEV_FORCE_TEXT_INPUT || !STT_AVAILABLE;
+const RIDE_LOADING_MESSAGE = "You want to go to Ben Thanh Market, I'm finding a ride for you now...";
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export type DashboardStage = 'idle' | 'listening' | 'thinking';
 
@@ -70,6 +75,18 @@ export const useDashboard = (): DashboardViewModel => {
   const processTranscript = useCallback(async (transcript: string) => {
     setUserText(transcript);
     setStage('thinking');
+
+    if (voiceContextRef.current === 'ride' && transcript.trim()) {
+      tts(RIDE_LOADING_MESSAGE);
+      await wait(2000);
+      navigation.navigate('OrderConfirmation', {
+        orderId: 'mock-ride-place-ben-thanh',
+        partner: PartnerCode.GRAB,
+        mode: 'confirm',
+      });
+      setStage('idle');
+      return;
+    }
 
     if (awaitingFoodRef.current && pendingFoodRef.current) {
       if (isYes(transcript)) {
@@ -173,20 +190,12 @@ export const useDashboard = (): DashboardViewModel => {
     }
 
     if (nlu.intent === 'SELECT_DESTINATION') {
-      const isBenThanh = String(nlu.slots.placeId).includes('ben-thanh');
-      if (isBenThanh) {
-        navigation.navigate('VoiceProcessing', {
-          audioBase64: '',
-          transcript: 'đi chợ bến thành',
-          context: 'ride',
-        });
-      } else {
-        navigation.navigate('OrderConfirmation', {
-          orderId: `mock-ride-${nlu.slots.placeId}`,
-          partner: PartnerCode.GRAB,
-          mode: 'confirm',
-        });
-      }
+      await wait(2000);
+      navigation.navigate('OrderConfirmation', {
+        orderId: `mock-ride-${nlu.slots.placeId}`,
+        partner: PartnerCode.GRAB,
+        mode: 'confirm',
+      });
       setStage('idle');
       return;
     }

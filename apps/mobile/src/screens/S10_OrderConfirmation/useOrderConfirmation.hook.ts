@@ -20,6 +20,7 @@ export interface OrderConfirmationViewModel {
   textInput: string;
   setTextInput: (v: string) => void;
   submitTextInput: () => void;
+  onMicPress: () => void;
   onConfirm: () => void;
   onBack: () => void;
 }
@@ -88,18 +89,31 @@ export const useOrderConfirmation = (): OrderConfirmationViewModel => {
     } catch { /* ignore */ }
   }, [stopListening]);
 
+  const isConfirmText = useCallback((transcript: string) => {
+    const text = transcript
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[đĐ]/g, 'd')
+      .replace(/[.!?,;:]+$/g, '')
+      .trim();
+    return isYes(transcript) || text.includes('xac nhan') || text === 'co' || text.startsWith('co ');
+  }, []);
+
   const handleAnswer = useCallback((transcript: string) => {
-    if (isYes(transcript)) {
-      tts('Đang đặt đơn cho bạn.', () => onConfirm());
+    if (isConfirmText(transcript)) {
+      tts('Đang đặt đơn cho bạn.');
+      setTimeout(() => onConfirm(), 350);
     } else if (isNo(transcript)) {
-      tts('Đã huỷ. Quay lại trang trước.', () => onBack());
+      tts('Đã huỷ. Quay lại trang trước.');
+      setTimeout(() => onBack(), 350);
     } else {
       handledRef.current = false;
       tts('Xin lỗi, bạn nói gì vậy? Nói Có để xác nhận hoặc Không để huỷ.', () => {
         if (USE_VOICE_INPUT) startRecognition();
       });
     }
-  }, [onConfirm, onBack, startRecognition]);
+  }, [isConfirmText, onConfirm, onBack, startRecognition]);
 
   const submitTextInput = useCallback(() => {
     const text = textInput.trim();
@@ -108,15 +122,28 @@ export const useOrderConfirmation = (): OrderConfirmationViewModel => {
     handleAnswer(text);
   }, [textInput, handleAnswer]);
 
+  const onMicPress = useCallback(() => {
+    if (isViewMode) return;
+    if (!USE_VOICE_INPUT) {
+      submitTextInput();
+      return;
+    }
+    if (isListening) {
+      stopListening();
+      return;
+    }
+    startRecognition();
+  }, [isViewMode, isListening, stopListening, startRecognition, submitTextInput]);
+
   // Mount: speak order summary then start listening
   useEffect(() => {
     if (isViewMode) return;
 
     const itemList = order.items.map((i) => `${i.qty} ${i.name}`).join(', ');
     const summary = isRide
-      ? `Chuyến xe đến ${order.restaurantName}, giá ${order.total.toLocaleString('vi-VN')} đồng.`
+      ? `Here are your ride details. Grab Car from your current location to Ben Thanh Market. Estimated fare: ${order.total.toLocaleString('vi-VN')} Vietnamese Dong. Your driver will arrive in about 3 minutes. Say confirm to book the ride or cancel to go back.`
       : `Đơn từ ${order.restaurantName} gồm ${itemList}. Tổng cộng ${order.total.toLocaleString('vi-VN')} đồng.`;
-    const question = ' Bạn có muốn đặt không? Nói Có để xác nhận, Không để huỷ.';
+    const question = isRide ? '' : ' Bạn có muốn đặt không? Nói Có để xác nhận, Không để huỷ.';
 
     tts(summary + question, () => {
       if (USE_VOICE_INPUT) startRecognition();
@@ -155,6 +182,7 @@ export const useOrderConfirmation = (): OrderConfirmationViewModel => {
     textInput,
     setTextInput,
     submitTextInput,
+    onMicPress,
     onConfirm,
     onBack,
   };

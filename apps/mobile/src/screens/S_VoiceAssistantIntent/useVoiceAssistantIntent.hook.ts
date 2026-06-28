@@ -19,6 +19,7 @@ import { tts } from '../../services/voice/tts';
 
 const USE_TEXT_INPUT = DEV_FORCE_TEXT_INPUT || !STT_AVAILABLE;
 const LISTEN_TIMEOUT_MS = 8000;
+const RIDE_LOADING_MESSAGE = "You want to go to Ben Thanh Market, I'm finding a ride for you now...";
 
 type Phase = 'ai_speaking' | 'listening' | 'processing';
 
@@ -111,6 +112,20 @@ export function useVoiceAssistantIntent() {
     stopStt();
 
     const ctx = activeContextRef.current;
+
+    if (ctx === 'ride' && transcript.trim()) {
+      setPhase('processing');
+      tts(RIDE_LOADING_MESSAGE);
+      const t = setTimeout(() => {
+        navigation.navigate('OrderConfirmation', {
+          orderId: 'mock-ride-place-ben-thanh',
+          partner: PartnerCode.GRAB,
+          mode: 'confirm',
+        });
+      }, 2000);
+      timersRef.current.push(t);
+      return;
+    }
 
     if (awaitingFoodRef.current && pendingFoodRef.current) {
       if (isYes(transcript)) {

@@ -6,6 +6,9 @@ import { RootStackParamList } from '../../navigation/types';
 import { api } from '../../api';
 import { getCurrentLocation } from '../../services/location';
 import { tts } from '../../services/voice/tts';
+import { PartnerCode } from '../../types';
+
+const RIDE_LOADING_MESSAGE = "You want to go to Ben Thanh Market, I'm finding a ride for you now...";
 
 export interface VoiceProcessingViewModel {
   userText: string;
@@ -29,11 +32,16 @@ export const useVoiceProcessing = (): VoiceProcessingViewModel => {
 
     (async () => {
       try {
-        const isBenThanh = initialUserText?.toLowerCase().includes('bến thành') || initialUserText?.toLowerCase().includes('ben thanh');
-
-        if (isBenThanh) {
-          // Nói ngay lập tức khi vào màn hình loading
-          tts("You want to go to Ben Thanh Market. I'm finding a ride for you now...");
+        if (context === 'ride' && initialUserText?.trim()) {
+          tts(RIDE_LOADING_MESSAGE);
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          if (cancelledRef.current) return;
+          navigation.navigate('OrderConfirmation', {
+            orderId: 'mock-ride-place-ben-thanh',
+            partner: PartnerCode.GRAB,
+            mode: 'confirm',
+          });
+          return;
         }
 
         // Lấy vị trí thực tế của người dùng
@@ -52,17 +60,9 @@ export const useVoiceProcessing = (): VoiceProcessingViewModel => {
 
         const firstQuote = res.quotes?.[0] ?? res.foodQuotes?.[0];
 
-        // Nếu là Chợ Bến Thành, tạo thêm delay 3s theo yêu cầu
-        if (isBenThanh) {
-          await new Promise((resolve) => setTimeout(resolve, 3000));
-        }
-
         if (cancelledRef.current) return;
 
         let finalAiText = res.promptText;
-        if (isBenThanh) {
-          finalAiText = "Here are your ride details: GrabCar from your current location to Ben Thanh Market. Estimated fare: 50,000 Vietnamese dong. Your driver will arrive in about 3 minutes. Say confirm to book the ride, or cancel to go back.";
-        }
 
         navigation.navigate('VoiceSpeaking', {
           userText,
