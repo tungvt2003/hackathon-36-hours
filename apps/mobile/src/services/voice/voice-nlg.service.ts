@@ -21,7 +21,7 @@ export const voiceNlg = {
 
   platformUnsupported(platform: PartnerCode): string {
     const name = PARTNER_LABEL[platform];
-    return `Hiện tại ${name} chưa được hỗ trợ. Suara chỉ hỗ trợ Grab trong bản demo này. Bạn có muốn dùng Grab không?`;
+    return `Hiện tại ${name} chưa được hỗ trợ. Suara đang hỗ trợ Grab. Bạn có muốn dùng Grab không?`;
   },
 
   platformRetryPrompt(): string {

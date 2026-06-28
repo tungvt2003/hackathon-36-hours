@@ -314,13 +314,13 @@ export const useDashboard = (): DashboardViewModel => {
 
       if (foodStepRef.current === 'asking_dish') {
         if (wantsSuggestion(transcript)) {
-          setAiText('Mình gợi ý vài món dễ ăn như cơm tấm sườn, gà rán, phở bò hoặc trà sữa. Trong demo này mình có thể đi tiếp tốt nhất với gà rán. Bạn muốn ăn món nào?');
+          setAiText('Mình gợi ý vài món dễ ăn như cơm tấm sườn, gà rán, phở bò hoặc trà sữa. Mình có thể hỗ trợ gà rán rất nhanh. Bạn muốn ăn món nào?');
           setStage('idle');
           return;
         }
 
         if (!wantsFriedChicken(transcript)) {
-          setAiText('Hiện demo này đang có luồng gà rán rõ nhất. Bạn có muốn ăn gà rán không?');
+          setAiText('Mình chưa tìm thấy món đó phù hợp lúc này. Bạn có muốn thử gà rán không?');
           setStage('idle');
           return;
         }
