@@ -1,197 +1,217 @@
-# voice-mobility
+# Suara — Voice-First Accessibility Layer for Ride & Food Ordering
 
-App đặt xe / đồ ăn bằng giọng nói cho người khiếm thị.
-
-## Kiến trúc
-
-```text
-voice-mobility/
-  apps/api/           - NestJS 11 + Prisma 7 (node_modules riêng)
-  apps/mobile/        - Expo SDK 56 (node_modules riêng)
-```
-
-**Pipeline:** Người dùng nói → STT → NLU → Enrichment (places + weather) → Partner quotes (Grab/Be/Xanh SM) → responseText → TTS đọc lại.
-
-Giai đoạn này: tất cả provider dùng Mock/DB seed. Phần Voice (STT/TTS) để sẵn interface, team implement sau.
+![Platform](https://img.shields.io/badge/platform-Android%20%7C%20iOS-blue)
+![React Native](https://img.shields.io/badge/mobile-React%20Native%20%2F%20Expo-61dafb?logo=react)
+![NestJS](https://img.shields.io/badge/api-NestJS-e0234e?logo=nestjs)
+![PostgreSQL](https://img.shields.io/badge/database-PostgreSQL%2016-4169e1?logo=postgresql)
+![Docker](https://img.shields.io/badge/infra-Docker-2496ed?logo=docker)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
-## Chạy local
+## Table of Contents
 
-### 1. Khởi động Postgres
+- [Problem Statement](#problem-statement)
+- [Solution Overview](#solution-overview)
+- [Features](#features)
+- [Tech Stack and Architecture](#tech-stack-and-architecture)
+- [Setup and Installation](#setup-and-installation)
+- [Run Instructions](#run-instructions)
+- [User Guide](#user-guide)
+- [AI Disclosure](#ai-disclosure)
+- [Attribution and License](#attribution-and-license)
+
+---
+
+## Problem Statement
+
+Ride-hailing and food-delivery apps in Vietnam — Grab, Be, Xanh SM, Shopee Food — were built for sighted users navigating dense, tap-heavy interfaces. For Vietnam's estimated **6.2 million people with disabilities**, particularly those with visual or motor impairments, completing even a basic task requires reading small-print pricing, precise touch gestures, and navigating multiple confirmation dialogs that screen readers handle inconsistently.
+
+The root cause is structural: these platforms surface their complexity at the interaction layer rather than abstracting it. The result is practical exclusion from services that have become essential urban infrastructure.
+
+---
+
+## Solution Overview
+
+Suara is a voice-first accessibility layer that sits between the user and multiple ordering platforms. Through a single conversational interface, users can book rides or order food across Grab, Be, Xanh SM, and Shopee Food — entirely by voice.
+
+A spoken request flows through the backend pipeline: Speech-to-Text transcription, NLU intent and slot extraction, partner API validation, and Natural Language Generation that speaks a confirmation back. The AI speaks first on every turn. No forms, no tap sequences.
+
+---
+
+## Features
+
+**Voice-First Ordering** — Users complete a full ride or food order through spoken Vietnamese. A floating microphone button is globally accessible from every screen.
+
+**Multi-Platform Support** — A single session routes to Grab, Be, Xanh SM, or Shopee Food. Each partner is abstracted behind a common adapter; the user states their preference once.
+
+**AI Validation Layer** — Before confirming any order, the NLU layer checks for missing slots (destination, item, quantity, address) and asks targeted clarifying questions rather than failing silently.
+
+**Conversational Session State** — Server-side sessions track intent, collected slots, and conversation history across turns. Users can change their destination, swap a menu item, or cancel mid-flow without starting over.
+
+**Accessibility Flag** — Orders originating from an accessibility flow are flagged on the order record, enabling future partner-side accommodations such as extended boarding time notifications.
+
+**Pluggable Providers** — Every external dependency (STT, NLU, Places, Weather, Partner APIs) is injected via a named provider token. Switching from mock to live requires only an environment variable change.
+
+---
+
+## Tech Stack and Architecture
+
+| Layer | Technology |
+|---|---|
+| Mobile client | React Native (Expo SDK 52), TypeScript |
+| Navigation | React Navigation v7 |
+| Voice input | `expo-speech-recognition` |
+| Voice output | `expo-speech` |
+| API framework | NestJS 11, TypeScript |
+| ORM | Prisma 7 |
+| Database | PostgreSQL 16 |
+| Containerisation | Docker, Docker Compose |
+| Reverse proxy | nginx |
+
+**Monorepo structure:**
+
+```
+voice-mobility/
+├── apps/
+│   ├── api/src/
+│   │   ├── voice/          # STT → NLU → NLG → TTS pipeline
+│   │   ├── voice-flow/     # Multi-turn session orchestration
+│   │   ├── orders/         # Order lifecycle
+│   │   ├── partners/       # Grab / Be / Xanh SM / Shopee adapters
+│   │   └── restaurants/    # Menu + search
+│   └── mobile/src/
+│       ├── screens/        # S01_Splash … S17_OrderHistory
+│       ├── components/     # FloatingMicButton, VoiceOverlay, …
+│       └── contexts/       # VoiceContext (global mic state)
+└── docker-compose.yml
+```
+
+The mobile app posts audio or transcript to `POST /voice/turn`. The NestJS backend resolves intent, queries the relevant partner adapter, and returns an NLG text response. Session state is persisted in PostgreSQL via Prisma.
+
+---
+
+## Setup and Installation
+
+**Prerequisites:** Node.js 20+, Docker and Docker Compose, Expo CLI (`npm install -g expo-cli`), Android or iOS device or emulator.
+
+**1. Clone the repository**
+
+```bash
+git clone <repository-url>
+cd voice-mobility
+```
+
+**2. Configure the API**
 
 ```bash
 cd apps/api
-cp .env.example .env       # lần đầu - chỉnh credentials nếu cần
-docker compose up -d
-cd ../..
+cp .env.example .env
 ```
 
-Postgres chạy tại `localhost:5432`. Credentials lấy từ `apps/api/.env`.
+Key variables in `.env`:
 
-### 2. Cài và setup database
+```env
+DATABASE_URL=postgresql://vmuser:vmpass@localhost:5432/voice_mobility
+
+# Set to "mock" to run fully offline
+PROVIDER_STT=mock        # mock | deepgram | azure
+PROVIDER_NLU=mock        # mock | openrouter
+PROVIDER_PLACES=db       # db | mock | google | serpapi
+PROVIDER_WEATHER=mock    # mock | open-meteo
+PROVIDER_PARTNER=db      # db | live
+
+# Only required when using live providers
+OPENROUTER_API_KEY=
+GOOGLE_PLACES_API_KEY=
+DEEPGRAM_API_KEY=
+```
+
+**3. Install dependencies**
+
+```bash
+# API
+cd apps/api && npm install
+
+# Mobile
+cd apps/mobile && npm install
+```
+
+**4. Point the mobile app at your API**
+
+In `apps/mobile/app.json`, set `extra.apiUrl` to your machine's LAN IP (not `localhost`) when testing on a physical device:
+
+```json
+"extra": { "apiUrl": "http://YOUR_LAN_IP:3000" }
+```
+
+---
+
+## Run Instructions
+
+**API via Docker (recommended)**
+
+```bash
+# From apps/api/
+docker compose up --build
+```
+
+The entrypoint script runs `prisma db push` and seeds the database automatically on first start. API is available at `http://localhost:3000`.
+
+**API without Docker**
 
 ```bash
 cd apps/api
-npm install
-# (Sửa DATABASE_URL trong .env nếu cần - đã tạo ở bước 1)
-npm run prisma:setup
-```
-
-> `prisma:setup` = `prisma migrate deploy` (áp migration có sẵn) + seed Places/PartnerRates vào DB.
-> Migration files đã commit sẵn trong `prisma/migrations/` - **không cần** `migrate dev`.
-
-### 3. Chạy API
-
-```bash
-# Từ thư mục gốc:
-npm run dev:api
-
-# hoặc từ apps/api:
+npm run prisma:setup   # migrate + seed
 npm run start:dev
 ```
 
-API chạy tại `http://localhost:3000`
-
-- Verify: `curl http://localhost:3000/health` → `{"ok":true}`
-- Swagger UI: `http://localhost:3000/api`
-- OpenAPI JSON: `http://localhost:3000/api-json`
-
-### 4. Chạy Mobile
+**Mobile app**
 
 ```bash
 cd apps/mobile
-npm install
-npm start
+npx expo start         # scan QR with Expo Go
 ```
 
-### 5. Codegen types cho Mobile
-
-**Cách 1 - từ API đang chạy:**
+**Tests**
 
 ```bash
-cd apps/mobile
-npm run gen:types        # gọi http://localhost:3000/api-json
-```
-
-**Cách 2 - từ file (khi không có API):** Chạy `gen:openapi` trong API trước để sinh file, rồi:
-
-```bash
-# Trong apps/api (API phải đang chạy):
-npm run gen:openapi      # → tạo openapi.json
-
-# Trong apps/mobile:
-npm run gen:types:file   # đọc ../api/openapi.json
-```
-
-> Sinh ra `src/api-types.ts` - import types từ đây, không viết tay.
-
-> **Test trên điện thoại thật:** Sửa `apps/mobile/app.json` → `extra.apiUrl` thành IP LAN của máy chạy API.
->
-> ```json
-> "extra": { "apiUrl": "http://192.168.1.X:3000" }
-> ```
->
-> KHÔNG dùng `localhost` khi test trên thiết bị thật.
-
----
-
-## Test API nhanh
-
-```bash
-# Pipeline đầy đủ
-curl -X POST http://localhost:3000/orders/voice \
-  -H "Content-Type: application/json" \
-  -d '{"transcript": "dat xe tu nha den san bay Tan Son Nhat"}'
-
-# Xác nhận đối tác (thay <orderId> bằng id trả về ở trên)
-curl -X POST http://localhost:3000/orders/confirm \
-  -H "Content-Type: application/json" \
-  -d '{"orderId": "<orderId>", "partner": "GRAB"}'
-
-# Test riêng từng bước
-curl -X POST http://localhost:3000/nlu \
-  -H "Content-Type: application/json" \
-  -d '{"transcript": "dat com tam quan Thuan Kieu"}'
-
-curl "http://localhost:3000/places/status?q=tan+son+nhat"
-curl "http://localhost:3000/weather?location=TP.HCM"
+cd apps/api
+npm run test           # unit
+npm run test:e2e       # end-to-end
+npm run test:cov       # coverage
 ```
 
 ---
 
-## Deploy server
+## User Guide
 
-1. Set biến môi trường trên server:
+1. Launch the app. After connecting your account, a floating green microphone button is visible on every screen.
+2. Tap the mic. The AI greets you and asks whether you want to book a ride or order food.
+3. Speak your request in Vietnamese — for example, "Dat xe den Benh vien Bach Mai" or "Goi mot pho bo tren Grab".
+4. If any detail is missing, the AI asks one follow-up question. It will never ask you to repeat information already given.
+5. The AI reads back an order summary and asks for verbal confirmation. Say "Xac nhan" to confirm.
+6. You are taken to the tracking screen. After delivery, the AI offers to collect a voice rating for the restaurant and driver.
 
-   ```env
-   DATABASE_URL=postgresql://user:pass@host:5432/dbname?sslmode=require
-   PORT=3000
-   PROVIDER_STT=mock
-   PROVIDER_NLU=mock
-   PROVIDER_PLACES=db
-   PROVIDER_WEATHER=mock
-   PROVIDER_PARTNER=db
-   ```
-
-2. Build và migrate:
-
-   ```bash
-   cd apps/api
-   npm install
-   npm run prisma:setup
-   npm run build
-   npm run start:prod
-   ```
+To change or cancel mid-flow, say "Doi" followed by what to change, or "Huy" to cancel.
 
 ---
 
-## Thêm provider thật (hướng dẫn team)
+## AI Disclosure
 
-Mỗi provider có 1 interface + 1 Mock. Để thêm provider thật:
+This project was developed with AI assistance.
 
-1. Tạo file `apps/api/src/<module>/real-<name>.provider.ts` implement interface tương ứng.
-2. Thêm `case 'tên-provider'` vào `useFactory` trong `<module>.module.ts`.
-3. Set env `PROVIDER_<MODULE>=tên-provider` trên server.
+| Tool | Usage |
+|---|---|
+| Claude (Anthropic) | Architecture design, NestJS module generation, React Native screen scaffolding, Prisma schema, voice flow prompt engineering |
+| GitHub Copilot | In-editor code completion |
 
-### Thêm Voice (STT + TTS) cho Mobile
-
-```bash
-cd apps/mobile
-npx expo install expo-audio expo-speech expo-haptics
-```
-
-Xem TODO trong `src/HomeScreen.tsx` để biết chính xác chỗ gắn.
+All AI-generated code was reviewed, tested, and modified by the development team before being committed.
 
 ---
 
-## Cấu trúc modules API
+## Attribution and License
 
-| Module | Mô tả |
-| --- | --- |
-| `stt` | Speech-to-Text - Mock trả text cố định |
-| `nlu` | Natural Language Understanding - Mock rule-based tiếng Việt |
-| `places` | Trạng thái mở/đóng địa điểm - đọc từ DB (bảng Place) |
-| `weather` | Thời tiết - Mock xoay vòng theo giờ |
-| `partners` | Grab/Be/Xanh SM - đọc từ DB (bảng PartnerRate) |
-| `orders` | Orchestrator - nối pipeline + lưu Prisma |
-| `prisma` | Database service - global, fail-safe khi DB chưa chạy |
+Third-party dependencies used in this project include NestJS (MIT), Expo / React Native (MIT), Prisma (Apache 2.0), React Navigation (MIT), and expo-speech-recognition (MIT). Refer to the `package.json` in each app directory for the full dependency list.
 
----
-
-## Kịch bản Test Cases Demo 
-### 1. Kịch Bản Đặt Xe (Ride Booking)
-
-| Kịch Bản | Đầu Vào (Giọng nói/Văn bản) | Phân Tích Hệ Thống & Trạng Thái Thời Tiết | Kết Quả Mong Đợi (Giá Cước & Đối Tác) |
-| :--- | :--- | :--- | :--- |
-| **Kịch bản 1: Đặt xe ngày nắng** *(Kiểm thử giá tiêu chuẩn)* | "Đặt xe đi Chợ Bến Thành" | • Tìm kiếm vị trí Chợ Bến Thành trong hệ thống maps.<br>• Phân tích thời tiết: **Trời quang / Không mưa** (`willRain: false`). | • Trả về danh sách giá cước tiêu chuẩn từ các đối tác (GrabCar, beCar, Xanh SM).<br>• Công thức cước: `Giá cơ bản + (Khoảng cách * 12.000đ)`. |
-| **Kịch bản 2: Đặt xe ngày mưa** *(Kiểm thử định giá động - Surge Pricing)* | "Đặt xe đi Sân bay Tân Sơn Nhất" hoặc "Bitexco" | • Xác định tọa độ Sân bay / Bitexco.<br>• Phân tích thời tiết: **Trời đang mưa** (`willRain: true`). | • Hệ thống tự động kích hoạt chế độ Surge Pricing do thời tiết bất lợi.<br>• **Tăng 20% giá cước (x1.2)** của tất cả các hãng Grab, Be, Xanh SM để phản ánh đúng thực tế cung/cầu ngày mưa. |
-
-### 2. Kịch Bản Đặt Đồ Ăn (Food Ordering)
-
-| Kịch Bản | Đầu Vào (Giọng nói/Văn bản) | Phân Tích Hệ Thống | Kết Quả Mong Đợi (Menu & Tổng Đơn) |
-| :--- | :--- | :--- | :--- |
-| **Kịch bản 1: Tìm kiếm & Đặt món** | "Tôi muốn ăn cơm" | • Tìm kiếm các quán cơm đối tác trong cơ sở dữ liệu.<br>• Trả về danh sách quán (Cơm Tấm Thuận Kiều...). | • AI gợi ý danh sách quán.<br>• Người dùng chọn quán -> hiển thị menu chi tiết.<br>• Chọn món -> Hệ thống tính tổng tiền (Món ăn + Phí ship đối tác) để chốt đơn. |
-| **Kịch bản 2: Thay đổi món ăn giữa chừng** | "Đổi sang cơm sườn chả" | • Hủy đơn hàng nháp cũ.<br>• Cập nhật món ăn mới từ menu quán đang chọn. | • Tính lại tổng tiền hóa đơn tức thì mà không làm gián đoạn cuộc hội thoại. |
-
-
+This project is licensed under the MIT License. See `apps/mobile/LICENSE` for the full text.
