@@ -56,11 +56,20 @@ export const useDashboard = (): DashboardViewModel => {
   const voiceContextRef = useRef<VoiceNluContext>('platform_select');
   const awaitingGrabRef = useRef(false);
   const awaitingFoodRef = useRef(false);
+  const scriptPhoStepRef = useRef<ScriptPhoStep>('none');
+  const scriptPhoQuantityRef = useRef(1);
+  const scriptPhoPaymentRef = useRef<ScriptPaymentMethod>('tiền mặt');
   const pendingFoodRef = useRef<{ restaurantId: string } | null>(null);
   const beginListeningRef = useRef<() => void>(() => { });
+  const lastSpokenTextRef = useRef('');
   useEffect(() => { platformRef.current = platform; }, [platform]);
 
   useEffect(() => {
+    if (lastSpokenTextRef.current === aiText) {
+      return;
+    }
+    lastSpokenTextRef.current = aiText;
+
     tts(aiText, () => {
       if (!TEXT_INPUT_MODE) {
         beginListeningRef.current();
@@ -131,6 +140,14 @@ export const useDashboard = (): DashboardViewModel => {
     }
 
     const ctx = voiceContextRef.current;
+
+    if (ctx === 'food' && wantsScriptPhoOrder(transcript)) {
+      scriptPhoStepRef.current = 'offer';
+      setAiText(scriptPhoOfferText());
+      setStage('idle');
+      return;
+    }
+
     const nlu = parseVoiceInput(transcript, ctx);
     const aiResponse = voiceNlg.fromNlu(ctx, nlu, 0);
 
@@ -165,6 +182,15 @@ export const useDashboard = (): DashboardViewModel => {
     }
 
     if (nlu.intent === 'SELECT_FOOD_DISH') {
+      if (isScriptPhoOrderSlot(nlu.slots)) {
+        pendingFoodRef.current = null;
+        awaitingFoodRef.current = false;
+        scriptPhoStepRef.current = 'offer';
+        setAiText(scriptPhoOfferText());
+        setStage('idle');
+        return;
+      }
+
       if (Number(nlu.slots.restaurantCount) > 1) {
         navigation.navigate('RestaurantSelection', {
           intent: {
