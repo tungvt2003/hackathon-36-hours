@@ -31,6 +31,7 @@ type FoodStep =
   | 'asking_quantity'
   | 'cart_decision'
   | 'payment_method'
+  | 'pho_confirm'
   | 'final_confirm';
 
 interface DemoRestaurant {
@@ -160,6 +161,19 @@ function wantsFriedChicken(text: string): boolean {
   return n.includes('ga ran') || n.includes('gà rán') || n.includes('fried chicken') || n.includes('kfc');
 }
 
+function wantsPhoHanoi(text: string): boolean {
+  const n = normalizeVoice(text);
+  return (
+    (n.includes('beef pho') || n.includes('pho bo') || n.includes('phở bò') || n.includes('pho')) &&
+    (n.includes('pho hanoi') || n.includes('pho ha noi') || n.includes('phở hà nội') || n.includes('hanoi'))
+  );
+}
+
+function wantsStart(text: string): boolean {
+  const n = normalizeVoice(text).replace(/[’']/g, '');
+  return n.includes('lets start') || n === 'start' || n.includes('begin') || n.includes('bat dau') || n.includes('bắt đầu');
+}
+
 function wantsCheckout(text: string): boolean {
   const n = normalizeVoice(text);
   return n.includes('thanh toan') || n.includes('dat hang') || n.includes('chot don') || n.includes('tra tien');
@@ -231,6 +245,9 @@ function repeatFoodPrompt(
   if (step === 'final_confirm') {
     return `Tôi đọc lại. Đơn hàng của bạn gồm ${cartSummary(cart)}. Sau voucher, tổng còn ${formatVnd(payableTotal(cart))}. Bạn xác nhận đặt hàng không?`;
   }
+  if (step === 'pho_confirm') {
+    return 'Tôi đọc lại. Đơn hàng của bạn từ Phở Hà Nội gồm Phở Bò Tái, số lượng một phần, giá 65.000 đồng. Phí giao hàng 15.000 đồng. Tổng cộng 80.000 đồng. Bạn hãy nói xác nhận để đặt đơn, hoặc nói hủy để quay lại.';
+  }
   return 'Tôi đọc lại. Bạn muốn đặt đồ ăn hay đặt xe?';
 }
 
@@ -254,14 +271,14 @@ export const useDashboard = (): DashboardViewModel => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const userName = 'Minh';
 
-  const [platform, setPlatform] = useState<PartnerCode | null>(PartnerCode.GRAB);
+  const [platform, setPlatform] = useState<PartnerCode | null>(null);
   const [aiText, setAiText] = useState(PLATFORM_SELECT_GREETING);
   const [userText, setUserText] = useState('');
   const [stage, setStage] = useState<DashboardStage>('idle');
   const [manualInput, setManualInput] = useState('');
 
   const platformRef = useRef<PartnerCode | null>(null);
-  const voiceContextRef = useRef<VoiceNluContext>('home');
+  const voiceContextRef = useRef<VoiceNluContext>('platform_select');
   const foodStepRef = useRef<FoodStep>('none');
   const awaitingGrabRef = useRef(false);
   const awaitingFoodRef = useRef(false);
@@ -289,6 +306,13 @@ export const useDashboard = (): DashboardViewModel => {
     setStage('thinking');
     await wait(MOCK_THINKING_DELAY_MS);
 
+    if (wantsStart(transcript)) {
+      voiceContextRef.current = 'platform_select';
+      setAiText(voiceNlg.platformGreeting());
+      setStage('idle');
+      return;
+    }
+
     if (foodStepRef.current !== 'none') {
       if (wantsRepeat(transcript)) {
         setAiText(repeatFoodPrompt(
@@ -313,6 +337,13 @@ export const useDashboard = (): DashboardViewModel => {
       }
 
       if (foodStepRef.current === 'asking_dish') {
+        if (wantsPhoHanoi(transcript)) {
+          foodStepRef.current = 'pho_confirm';
+          setAiText('Đơn hàng của bạn từ Phở Hà Nội gồm Phở Bò Tái, số lượng một phần, giá 65.000 đồng. Phí giao hàng 15.000 đồng. Tổng cộng 80.000 đồng. Bạn hãy nói xác nhận để đặt đơn, hoặc nói hủy để quay lại.');
+          setStage('idle');
+          return;
+        }
+
         if (wantsSuggestion(transcript)) {
           setAiText('Mình gợi ý vài món dễ ăn như cơm tấm sườn, gà rán, phở bò hoặc trà sữa. Mình có thể hỗ trợ gà rán rất nhanh. Bạn muốn ăn món nào?');
           setStage('idle');
@@ -327,6 +358,20 @@ export const useDashboard = (): DashboardViewModel => {
 
         foodStepRef.current = 'choosing_restaurant';
         setAiText(`Tôi tìm thấy vài quán có gà rán gần bạn: ${formatRestaurantOptions(FRIED_CHICKEN_RESTAURANTS)}. Bạn muốn chọn quán nào?`);
+        setStage('idle');
+        return;
+      }
+
+      if (foodStepRef.current === 'pho_confirm') {
+        if (!isYes(transcript) && !wantsCheckout(transcript)) {
+          setAiText('Tôi chưa đặt đơn. Bạn hãy nói xác nhận để đặt đơn, hoặc nói hủy để quay lại.');
+          setStage('idle');
+          return;
+        }
+
+        foodStepRef.current = 'none';
+        voiceContextRef.current = 'home';
+        setAiText('Nhà hàng đã nhận đơn của bạn. Tôi cũng đã báo với nhà hàng và tài xế rằng bạn là người khiếm thị, nên họ sẽ mang đơn đến tận cửa và gọi bạn khi đến nơi.');
         setStage('idle');
         return;
       }
@@ -526,7 +571,7 @@ export const useDashboard = (): DashboardViewModel => {
       selectedRestaurantRef.current = null;
       selectedItemRef.current = null;
       cartRef.current = [];
-      setAiText('Bạn muốn ăn món gì? Bạn có thể nói tên món, hoặc nói gợi ý nếu chưa biết ăn gì.');
+      setAiText(voiceNlg.serviceFoodSelected());
       setStage('idle');
       return;
     }

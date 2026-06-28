@@ -8,43 +8,43 @@ function formatVnd(amount: number): string {
 
 export const voiceNlg = {
   platformGreeting(): string {
-    return 'Xin chào, tôi là Suara. Bạn muốn dùng dịch vụ nào? Hiện tại bạn có thể nói Grab để tiếp tục.';
+    return 'Xin chào, tôi là Suara, trợ lý giọng nói của bạn. Bạn muốn dùng nền tảng nào? Bạn có thể nói Grab, Be, Xanh SM, hoặc Shopee Food.';
   },
 
   platformGrabSelected(): string {
-    return 'Bạn đã chọn Grab. Hôm nay bạn muốn đặt đồ ăn hay đặt xe?';
+    return 'Bạn đã chọn Grab. Hôm nay bạn muốn làm gì? Bạn có thể nói đặt đồ ăn, hoặc đặt xe.';
   },
 
   platformGrabConfirmedAfterFallback(): string {
-    return 'Đã chọn Grab. Hôm nay bạn muốn đặt đồ ăn hay đặt xe?';
+    return 'Bạn đã chọn Grab. Hôm nay bạn muốn làm gì? Bạn có thể nói đặt đồ ăn, hoặc đặt xe.';
   },
 
   platformUnsupported(platform: PartnerCode): string {
     const name = PARTNER_LABEL[platform];
-    return `Hiện tại ${name} chưa được hỗ trợ. Suara đang hỗ trợ Grab. Bạn có muốn dùng Grab không?`;
+    return `Rất tiếc, ${name} chưa khả dụng. Hiện tại Suara hỗ trợ Grab. Bạn có muốn dùng Grab không?`;
   },
 
   platformRetryPrompt(): string {
-    return 'Không sao. Bạn muốn dùng dịch vụ nào? Hiện tại bạn có thể nói Grab.';
+    return 'Không sao. Bạn muốn dùng nền tảng nào? Bạn có thể nói Grab, Be, Xanh SM, hoặc Shopee Food.';
   },
 
   platformUnclear(retryCount: number): string {
     if (retryCount >= 3) {
-      return 'Tôi vẫn chưa nghe rõ. Bạn hãy chạm vào nút micro để thử lại.';
+      return 'Tôi chưa nghe rõ. Bạn hãy chạm micro để thử lại.';
     }
-    return 'Tôi chưa nghe rõ. Bạn có thể nói Grab để tiếp tục.';
+    return 'Tôi chưa nghe rõ. Bạn hãy nói Grab, Be, Xanh SM, hoặc Shopee Food.';
   },
 
   servicePrompt(): string {
-    return 'Bạn muốn đặt đồ ăn hay đặt xe?';
+    return 'Hôm nay bạn muốn làm gì? Bạn có thể nói đặt đồ ăn, hoặc đặt xe.';
   },
 
   serviceFoodSelected(): string {
-    return 'Bạn muốn ăn món gì? Bạn có thể nói tên món, hoặc nói gợi ý nếu chưa biết ăn gì.';
+    return 'Được rồi. Bạn muốn ăn gì? Ví dụ, bạn có thể nói phở, cơm tấm, gà rán, hoặc burger.';
   },
 
   serviceRideSelected(): string {
-    return 'Bạn muốn đi đâu?';
+    return 'Được rồi. Bạn muốn đi đâu?';
   },
 
   serviceUnclear(): string {
